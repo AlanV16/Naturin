@@ -1,0 +1,381 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Naturin{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #FFB52E;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .navbar {
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .eco {
+            color: var(--primary-color);
+        }
+        
+        .tingo {
+            color: var(--secondary-color);
+        }
+        
+        .nav-item {
+            margin: 0 15px;
+        }
+        
+        .nav-link {
+            font-size: 18px;
+            color: #555;
+        }
+        
+        .nav-link.active {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .btn-toggle {
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 8px 20px;
+            background: #f8f9fa;
+        }
+        
+        .content {
+            padding: 30px 0;
+        }
+        
+        .category-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .category-tab {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #333;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .category-tab i {
+            margin-right: 10px;
+        }
+        
+        .category-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .search-filter-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .card-img-container {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+            background: #f8f8f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .card-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .danger-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #dc3545;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        
+        .card-body {
+            padding: 15px;
+        }
+        
+        .species-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .scientific-name {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .species-description {
+            color: #555;
+            margin-bottom: 15px;
+        }
+        
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #eee;
+            padding: 10px 15px;
+            background-color: #f9f9f9;
+        }
+        
+        .btn-details {
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn-listen {
+            color: #666;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn-details i, .btn-listen i {
+            margin-right: 5px;
+        }
+        
+        body.dark-mode {
+            background-color: #181a1b !important;
+            color: #f1f1f1 !important;
+        }
+        body.dark-mode .navbar,
+        body.dark-mode .bg-light,
+        body.dark-mode .card,
+        body.dark-mode .content,
+        body.dark-mode .category-tab,
+        body.dark-mode .card-footer {
+            background-color: #23272b !important;
+            color: #f1f1f1 !important;
+            border-color: #333 !important;
+        }
+        body.dark-mode .nav-link,
+        body.dark-mode .navbar-brand,
+        body.dark-mode .category-tab,
+        body.dark-mode .btn,
+        body.dark-mode .form-check-label {
+            color: #f1f1f1 !important;
+        }
+        body.dark-mode .card {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        body.dark-mode .btn-outline-secondary {
+            border-color: #888;
+            color: #f1f1f1;
+        }
+        body.dark-mode .btn-outline-secondary:hover {
+            background: #444;
+            color: #fff;
+        }
+        body.dark-mode .form-check-input:checked {
+            background-color: #4CAF50;
+            border-color: #4CAF50;
+        }
+        body.dark-mode .footer,
+        body.dark-mode footer {
+            background: #23272b !important;
+            color: #f1f1f1 !important;
+        }
+
+        .load-more {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn-load-more {
+            padding: 10px 25px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            color: #555;
+            font-size: 16px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .btn-load-more:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .btn-load-more i {
+            margin-left: 5px;
+        }
+        
+        /* Badges for conservation status */
+        .badge-NE { background-color: #6c757d; }
+        .badge-DD { background-color: #6c757d; }
+        .badge-LC { background-color: #28a745; }
+        .badge-NT { background-color: #28a745; }
+        .badge-VU { background-color: #ffc107; }
+        .badge-EN { background-color: #dc3545; }
+        .badge-CR { background-color: #dc3545; }
+        .badge-EW { background-color: #343a40; }
+        .badge-EX { background-color: #343a40; }
+        
+        /* Badges for human danger */
+        .danger-none { background-color: #28a745; }
+        .danger-low { background-color: #17a2b8; }
+        .danger-medium { background-color: #ffc107; }
+        .danger-high { background-color: #fd7e14; }
+        .danger-extreme { background-color: #dc3545; }
+
+
+    </style>
+    {% block extra_styles %}{% endblock %}
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white">
+            <div class="container">
+                <a class="navbar-brand" href="{% url 'home' %}">
+                    <span class="eco">Natu</span><span class="tingo">rin</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'species_list' %}">
+                                <i class="bi bi-book"></i> Aprender
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="bi bi-controller"></i> Jugar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'species_list' %}">
+                                <i class="bi bi-compass"></i> Explorar
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="d-flex align-items-center">
+                        <div class="form-check form-switch me-3">
+                            <input class="form-check-input" type="checkbox" id="teacherModeSwitch">
+                            <label class="form-check-label" for="teacherModeSwitch">Modo Oscuro</label>
+                        </div>
+                        <a href="#" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-mortarboard-fill me-1"></i> Docentes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><span class="eco">Natu</span><span class="tingo">rin</span></h5>
+                    <p>Descubre y aprende sobre la biodiversidad de Tingo María y alrededores.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>Enlaces</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'home' %}" class="text-decoration-none">Inicio</a></li>
+                        <li><a href="{% url 'species_list' %}" class="text-decoration-none">Explorar especies</a></li>
+                        <li><a href="#" class="text-decoration-none">Sobre nosotros</a></li>
+                        <li><a href="#" class="text-decoration-none">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>Síguenos</h5>
+                    <div class="d-flex gap-3 fs-5">
+                        <a href="#" class="text-decoration-none"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-decoration-none"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="text-decoration-none"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-decoration-none"><i class="bi bi-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p class="mb-0">&copy; {% now "Y" %} Naturin. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const switcher = document.getElementById('teacherModeSwitch');
+        // Guardar preferencia en localStorage
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            switcher.checked = true;
+        }
+        switcher.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'false');
+            }
+        });
+    });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

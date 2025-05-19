@@ -1,0 +1,76 @@
+{% extends 'base/base.html' %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="text-center">Bienvenido a Naturin</h1>
+            <p class="text-center">Tu aventura en la selva comienza aquí.</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Sobre Nosotros</h2>
+            <p>Descubre la magia de la selva con nosotros. Ofrecemos experiencias únicas y emocionantes.</p>
+        </div>
+        <div class="col-md-4">
+            <h2>Nuestras Atracciones</h2>
+            <p>Explora nuestras atracciones emocionantes y sumérgete en la naturaleza.</p>
+        </div>
+        <div class="col-md-4">
+            <h2>Contáctanos</h2>
+            <p>¿Tienes preguntas? ¡Estamos aquí para ayudarte!</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Últimas Noticias</h2>
+            <p>Mantente al tanto de nuestras últimas novedades y eventos especiales.</p>
+        </div>  
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Aprende</h2>
+            <p>Categorías</p>
+            <ul>
+                <li><a href="{% url 'category' 'Insectos' %}">Insectos</a></li>
+                <li><a href="{% url 'category' 'Mascotas' %}">Mascotas</a></li>
+                <li><a href="{% url 'category' 'Árboles' %}">Árboles</a></li>
+                <li><a href="{% url 'category' 'Frutos' %}">Frutos</a></li>
+            </ul>
+        </div>
+    </div>
+    {# Descomenta estos bloques solo si tienes los modelos y datos correspondientes #}
+    {# 
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Últimos Artículos</h2>
+            <ul>
+                {% for article in articles %}
+                <li><a href="{% url 'article_detail' article.id %}">{{ article.title }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>  
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Últimos Videos</h2>
+            <ul>
+                {% for video in videos %}
+                <li><a href="{% url 'video_detail' video.id %}">{{ video.title }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>  
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Últimas Imágenes</h2>
+            <ul>
+                {% for image in images %}
+                <li><a href="{% url 'image_detail' image.id %}">{{ image.title }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    #}
+</div>
+{% endblock %}

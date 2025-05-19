@@ -1,0 +1,77 @@
+{% extends 'base/base.html' %}
+{% block content %}
+<div class="mb-4">
+    <h1><i class="bi bi-journal-bookmark"></i> Aprende sobre la Flora y Fauna</h1>
+    <p class="lead">Descubre las especies más fascinantes de Tingo María y su importancia para el ecosistema.</p>
+</div>
+
+<form method="get" class="mb-4">
+    <div class="input-group">
+        <input type="text" name="search" class="form-control" placeholder="Buscar especies..." value="{{ search_query }}">
+        <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtros"><i class="bi bi-funnel"></i> Filtros</button>
+    </div>
+    <div class="collapse mt-3" id="filtros">
+        <div class="row">
+            <div class="col-md-3">
+                <h5>Categorías</h5>
+                {% for category in categories %}
+                    <a href="?category={{ category.name }}" class="badge rounded-pill bg-light text-dark mb-1">{{ category.name }}</a>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                <h5>Estado de conservación</h5>
+                <a href="?conservation=EN" class="badge rounded-pill bg-danger mb-1">En peligro</a>
+                <a href="?conservation=VU" class="badge rounded-pill bg-warning text-dark mb-1">Vulnerable</a>
+                <a href="?conservation=LC" class="badge rounded-pill bg-success mb-1">Estable</a>
+            </div>
+            <div class="col-md-3">
+                <h5>Hábitat</h5>
+                {% for location in locations %}
+                    <a href="?location={{ location.name }}" class="badge rounded-pill bg-light text-dark mb-1">{{ location.name }}</a>
+                {% endfor %}
+            </div>
+            <div class="col-md-3">
+                <h5>Tipo de planta</h5>
+                {% for plant in plant_types %}
+                    <a href="?plant_type={{ plant.name }}" class="badge rounded-pill bg-light text-dark mb-1">{{ plant.name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="row">
+    {% for specie in species_list %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-img-container">
+                {% if specie.image %}
+                    <img src="{{ specie.image.url }}" alt="{{ specie.name }}">
+                {% else %}
+                    <i class="bi bi-image fs-1 text-muted"></i>
+                {% endif %}
+                {% if specie.conservation_status == "EN" %}
+                    <span class="danger-badge">En peligro</span>
+                {% elif specie.conservation_status == "VU" %}
+                    <span class="danger-badge bg-warning text-dark">Vulnerable</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <span class="badge bg-light text-dark mb-2">{{ specie.category.name|default:"" }}</span>
+                <div class="species-name">{{ specie.name }}</div>
+                <div class="scientific-name">{{ specie.scientific_name }}</div>
+                <div class="species-description">{{ specie.description|truncatewords:25 }}</div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'species_detail' specie.id %}" class="btn-details"><i class="bi bi-eye"></i> Ver ficha</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">No se encontraron especies con los filtros seleccionados.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
