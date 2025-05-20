@@ -5,7 +5,7 @@ from .models import User, ParentProfile
 class StudentRegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(label='Nombres', required=True)
-    last_name = forms.CharField(label='Apellidos', required=True)
+    last_name = forms.CharField(label='Apellido Paterno y Materno', required=True)
     school = forms.CharField(label='Institución educativa', required=False)
     grade = forms.CharField(label='Grado de nivel educativo', required=False)
 

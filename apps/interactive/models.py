@@ -1,6 +1,6 @@
 from apps.accounts.models import User
 from django.db import models
-from apps.content.models import Species
+from apps.content.models import Especie
 
 class InteractiveMap(models.Model):
     title = models.CharField(max_length=100)
@@ -17,7 +17,7 @@ class MapPoint(models.Model):
     description = models.TextField()
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    species = models.ManyToManyField(Species, blank=True)
+    species = models.ManyToManyField(Especie, blank=True)
     image = models.ImageField(upload_to='map_points/', blank=True, null=True)
     
     def __str__(self):

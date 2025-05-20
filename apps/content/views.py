@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
-from .models import Species
+from .models import Especie, Categoria
 
 class HomeView(TemplateView):
     template_name = "home.html"
@@ -13,18 +13,20 @@ class HomeView(TemplateView):
         return context
 
 def species_list(request):
-    categories = SpeciesCategory.objects.all()
-    featured_species = Species.objects.filter(images__is_featured=True).distinct()
+    categorias = Categoria.objects.all()
+    especies = Especie.objects.all()
     return render(request, 'content/species_list.html', {
-        'categories': categories,
-        'featured_species': featured_species
+        'categorias': categorias,
+        'especies': especies
     })
 
-def species_detail(request, slug):
-    species = get_object_or_404(Species, slug=slug)
+def species_detail(request, especie_id):
+    especie = get_object_or_404(Especie, id=especie_id)
+    # Ajusta las relaciones según tu modelo
     return render(request, 'content/species_detail.html', {
-        'species': species,
-        'images': species.images.all(),
-        'sounds': species.sounds.all(),
-        'resources': species.educationalresource_set.all()
+        'especie': especie,
+        # Agrega aquí relaciones si existen, por ejemplo:
+        # 'imagenes': especie.imagenes.all(),
+        # 'sonidos': especie.sonidos.all(),
+        # 'recursos': especie.recursos_educativos.all(),
     })
