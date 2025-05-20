@@ -91,3 +91,6 @@ def species_detail(request, species_id):
     
     return render(request, 'base/species_detail.html', context)
 
+
+def explorar(request):
+    return render(request, 'base/explorar.html')
