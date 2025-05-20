@@ -1,0 +1,202 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Naturin{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_styles %}{% endblock %}
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white">
+            <div class="container">
+                <a class="navbar-brand brand-title" href="{% url 'home' %}">
+                    <span class="text-success">Natu</span><span class="text-warning">Rin</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav mx-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'species_list' %}">
+                                <i class="bi bi-book"></i> Aprender
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="bi bi-controller"></i> Jugar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'species_list' %}">
+                                <i class="bi bi-compass"></i> Explorar
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="d-flex align-items-center">
+                        <div class="form-check form-switch me-3">
+                            <input class="form-check-input" type="checkbox" id="teacherModeSwitch">
+                            <label class="form-check-label" for="teacherModeSwitch">Modo Oscuro</label>                     
+                        </div>
+                       
+                        <div class="d-flex align-items-center">
+                            <li class="nav-item auth-dropdown list-unstyled me-2">
+                                <a class="btn btn-outline-secondary btn-sm nav-link" id="loginButton" href="#">
+                                    <i class="bi bi-mortarboard-fill me-1"></i> Iniciar Sesión
+                                </a>
+                                <div class="auth-dropdown-content" id="loginDropdown">
+                                    <div class="dropdown-title">Seleccione su tipo de usuario</div>
+                                    <a href="{% url 'accounts:login_student' %}" class="role-option">
+                                        <i class="bi bi-person-badge"></i> Estudiante
+                                    </a>
+                                    <a href="{% url 'accounts:login_teacher' %}" class="role-option">
+                                        <i class="bi bi-easel"></i> Docente
+                                    </a>
+                                    <a href="{% url 'accounts:login_parent' %}" class="role-option">
+                                        <i class="bi bi-people"></i> Padre/Madre de familia
+                                    </a>
+                                    <a href="{% url 'accounts:login_admin' %}" class="role-option">
+                                        <i class="bi bi-shield-lock"></i> Administrador
+                                    </a>
+                                </div>
+                            </li>
+                            <li class="nav-item auth-dropdown list-unstyled">
+                                <a class="btn btn-outline-secondary btn-sm nav-link" id="registerButton" href="#">
+                                    <i class="bi bi-person-plus-fill me-1"></i> Registrarse
+                                </a>
+                                <div class="auth-dropdown-content" id="registerDropdown">
+                                    <div class="dropdown-title">Seleccione su tipo de usuario</div>
+                                    <a href="{% url 'accounts:register_student' %}" class="role-option">
+                                        <i class="bi bi-person-badge"></i> Estudiante
+                                    </a>
+                                    <a href="{% url 'accounts:register_teacher' %}" class="role-option">
+                                        <i class="bi bi-easel"></i> Docente
+                                    </a>
+                                    <a href="{% url 'accounts:register_parent' %}" class="role-option">
+                                        <i class="bi bi-people"></i> Padre/Madre de familia
+                                    </a>
+                                </div>
+                            </li>
+                        </div>
+                        <div class="dropdown-backdrop" id="dropdownBackdrop"></div>
+
+
+                        <div class="dropdown-backdrop" id="dropdownBackdrop"></div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="w-100 border-top bg-white py-4">
+        <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-4">
+            <div class="d-flex flex-column align-items-center align-items-md-start gap-2">
+                <a href="{% url 'home' %}" class="d-flex align-items-center gap-1 fw-bold fs-4 text-decoration-none">
+                    <span class="text-success">Natu</span><span class="text-warning">Rin</span>
+                </a>
+                <p class="text-muted text-center text-md-start mb-0" style="font-size: 0.95rem;">
+                    Educando sobre la biodiversidad de Tingo María, Perú
+                </p>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-center gap-4">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-tree-fill text-success fs-5"></i>
+                    <span class="small">ODS 15: Vida de Ecosistemas Terrestres</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-heart-fill text-danger fs-5"></i>
+                    <span class="small">ODS 13: Acción por el Clima</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-globe text-primary fs-5"></i>
+                    <span class="small">ODS 4: Educación de Calidad</span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3">
+                <a href="#" class="btn btn-outline-secondary btn-sm">Contacto</a>
+                <a href="#" class="btn btn-outline-secondary btn-sm">Accesibilidad</a>
+            </div>
+        </div>
+    </footer>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'base/css/styles.css' %}">
+    <script>
+    // Elementos DOM para los dropdowns
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginButton = document.getElementById('loginButton');
+        const registerButton = document.getElementById('registerButton');
+        const loginDropdown = document.getElementById('loginDropdown');
+        const registerDropdown = document.getElementById('registerDropdown');
+        const dropdownBackdrop = document.getElementById('dropdownBackdrop');
+
+        function showDropdown(dropdown) {
+            document.querySelectorAll('.auth-dropdown-content').forEach(el => el.classList.remove('show'));
+            dropdown.classList.add('show');
+            dropdownBackdrop.classList.add('show');
+        }
+        
+        function closeAllDropdowns() {
+            document.querySelectorAll('.auth-dropdown-content').forEach(el => el.classList.remove('show'));
+            dropdownBackdrop.classList.remove('show');
+        }
+        
+        if (loginButton && loginDropdown) {
+            loginButton.addEventListener('click', function(e) {
+                e.preventDefault(); e.stopPropagation();
+                showDropdown(loginDropdown);
+            });
+        }
+        
+        if (registerButton && registerDropdown) {
+            registerButton.addEventListener('click', function(e) {
+                e.preventDefault(); e.stopPropagation();
+                showDropdown(registerDropdown);
+            });
+        }
+        
+        if (dropdownBackdrop) {
+            dropdownBackdrop.addEventListener('click', closeAllDropdowns);
+        }
+        
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.auth-dropdown')) closeAllDropdowns();
+        });
+        
+        document.querySelectorAll('.auth-dropdown-content').forEach(dropdown => {
+            dropdown.addEventListener('click', function(e) { e.stopPropagation(); });
+        });
+        
+        // Modo oscuro
+        const switcher = document.getElementById('teacherModeSwitch');
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            switcher.checked = true;
+        }
+        
+        switcher.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'false');
+            }
+        });
+    });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
