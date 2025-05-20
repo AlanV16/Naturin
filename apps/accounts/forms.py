@@ -7,6 +7,7 @@ class StudentRegisterForm(UserCreationForm):
     first_name = forms.CharField(label='Nombres', required=True)
     last_name = forms.CharField(label='Apellido Paterno y Materno', required=True)
     school = forms.CharField(label='Institución educativa', required=False)
+    nivel= forms.CharField(label='Nivel educativo', required=False)
     grade = forms.CharField(label='Grado de nivel educativo', required=False)
 
     class Meta:
