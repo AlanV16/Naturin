@@ -1,6 +1,7 @@
+# urls.py (accounts)
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views 
+from . import views
 from django.shortcuts import redirect
 
 app_name = 'accounts'
@@ -20,9 +21,17 @@ urlpatterns = [
     # Logout
     path('logout/', auth_views.LogoutView.as_view(next_page='accounts:login_student'), name='logout'),
 
-    # Perfil
-    path('dashboard/', views.dashboard_student, name='dashboard_student'),
-    path('perfil/', lambda request: redirect('accounts:dashboard_student'), name='profile'),
+    # Dashboards (rutas diferenciadas)
+    path('dashboard/student/', views.dashboard_student, name='dashboard_student'),
+    path('dashboard/admin/', views.dashboard_admin, name='dashboard_admin'),
+    path('dashboard/teacher/', views.dashboard_teacher, name='dashboard_teacher'),
+    path('dashboard/parent/', views.dashboard_parent, name='dashboard_parent'),
+
+    # Perfil (redirecciones)
+    path('perfil/student/', lambda request: redirect('accounts:dashboard_student'), name='profile'),
+    path('perfil/admin/', lambda request: redirect('accounts:dashboard_admin'), name='profile_admin'),
+    path('perfil/teacher/', lambda request: redirect('accounts:dashboard_teacher'), name='profile_teacher'),
+    path('perfil/parent/', lambda request: redirect('accounts:dashboard_parent'), name='profile_parent'),
 
     # Password reset (opcional)
     path('password-reset/', auth_views.PasswordResetView.as_view(template_name='accounts/password_reset_form.html'), name='password_reset'),

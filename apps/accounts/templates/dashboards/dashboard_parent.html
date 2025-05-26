@@ -1,0 +1,74 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+    <h1 class="h3">Resumen General</h1>
+    <span class="text-muted">Última actualización: {{ last_updated|default:"hoy" }}</span>
+</div>
+
+<!-- Cards de Resumen -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-bg-primary">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-book me-2"></i>{{ courses_count }} Cursos</h5>
+                <p class="card-text">Cursos en los que están inscritos tus hijos.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-bg-warning">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-exclamation-triangle me-2"></i>{{ overdue_assignments }} Tareas Atrasadas</h5>
+                <p class="card-text">Verifica las tareas pendientes cuanto antes.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-bg-success">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-calendar-event me-2"></i>{{ upcoming_events }} Eventos Próximos</h5>
+                <p class="card-text">No olvides estos eventos en el calendario.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secciones adicionales -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-graph-up-arrow me-2"></i> Progreso de los Niños</h5>
+                <ul class="list-group list-group-flush">
+                    {% for child in children %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ child.name }}
+                        <span class="badge bg-primary rounded-pill">{{ child.progress }}%</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-muted">No hay información disponible.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-clock-history me-2"></i> Actividad Reciente</h5>
+                {% if recent_activities %}
+                    <ul class="list-group list-group-flush">
+                        {% for activity in recent_activities %}
+                        <li class="list-group-item">{{ activity }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No hay actividades recientes.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
