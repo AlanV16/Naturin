@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Naturin{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="{% static 'base/images/favicon.ico' %}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
@@ -17,7 +16,7 @@
         <nav class="navbar navbar-expand-lg navbar-light bg-white">
             <div class="container">
                 <a class="navbar-brand brand-title" href="{% url 'home' %}">
-                    <span class="text-success">Natu</span><span class="text-warning">Rin</span>
+                    <span class="text-success">Nature</span><span class="text-warning">In</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
@@ -30,7 +29,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:login_student' %}">
+                            <a class="nav-link" href="#">
                                 <i class="bi bi-controller"></i> Jugar
                             </a>
                         </li>
@@ -48,7 +47,7 @@
                        
                         <div class="d-flex align-items-center">
                             <li class="nav-item auth-dropdown list-unstyled me-2">
-                                <a class="btn btn-outline-secondary btn-sm nav-link px-4" id="loginButton" href="#">
+                                <a class="btn btn-outline-secondary btn-sm nav-link" id="loginButton" href="#">
                                     <i class="bi bi-mortarboard-fill me-1"></i> Iniciar Sesión
                                 </a>
                                 <div class="auth-dropdown-content" id="loginDropdown">
@@ -68,7 +67,7 @@
                                 </div>
                             </li>
                             <li class="nav-item auth-dropdown list-unstyled">
-                                <a class="btn btn-outline-secondary btn-sm nav-link px-4" id="registerButton" href="#">
+                                <a class="btn btn-outline-secondary btn-sm nav-link" id="registerButton" href="#">
                                     <i class="bi bi-person-plus-fill me-1"></i> Registrarse
                                 </a>
                                 <div class="auth-dropdown-content" id="registerDropdown">
@@ -86,6 +85,7 @@
                             </li>
                         </div>
                         <div class="dropdown-backdrop" id="dropdownBackdrop"></div>
+
 
                         <div class="dropdown-backdrop" id="dropdownBackdrop"></div>
                     </div>
@@ -108,7 +108,7 @@
                     Educando sobre la biodiversidad de Tingo María, Perú
                 </p>
             </div>
-
+            
             <div class="d-flex flex-wrap justify-content-center gap-4">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-tree-fill text-success fs-5"></i>
