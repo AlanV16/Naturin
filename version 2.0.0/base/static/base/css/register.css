@@ -1,0 +1,217 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-text-size-adjust: 100%; /* Previene el auto-ajuste en iOS */
+    text-size-adjust: 100%; /* Estándar moderno */
+}
+
+.register-box .form-control,
+.register-box .form-select {
+    background-color: rgba(244, 238, 238, 0.8); 
+    color: #2d3748;
+    font-size: 0.92rem !important; /* Tamaño fijo */
+}
+
+
+.register-box {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin: 40px auto;
+    font-size: 0.98rem;
+    max-width: 500px;
+    width: 100%;
+}
+
+.register-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+}
+
+.register-box h2 {
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+    font-size: 1.4rem;
+}
+
+.register-box p {
+    color: #4a5568;
+    margin-bottom: 1.2rem;
+    font-size: 0.95rem;
+}
+
+/* Estilos base para controles de formulario */
+.form-control,
+.form-select {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.65rem 1rem;
+    font-size: 0.92rem !important; /* Tamaño fijo */
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #2d3748;
+    line-height: 1.4;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    -webkit-appearance: none; /* Elimina estilos nativos en iOS */
+    appearance: none;
+}
+
+/* Estados de foco consistentes */
+.form-control:focus,
+.form-select:focus {
+    border-color: #48bb78;
+    box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.15);
+    outline: none;
+    font-size: 0.92rem !important; /* Mantiene tamaño al enfocar */
+}
+
+/* Controles deshabilitados */
+.form-control:disabled,
+.form-select:disabled {
+    background-color: #edf2f7;
+    opacity: 0.8;
+}
+
+/* Estilos para checkboxes y radios */
+.form-check-input {
+    width: 1em;
+    height: 1em;
+    margin-top: 0.25em;
+    margin-right: 0.5em;
+    vertical-align: top;
+    font-size: 0.92rem !important; /* Tamaño consistente */
+}
+
+.form-check-input:checked {
+    background-color: #48bb78;
+    border-color: #48bb78;
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.15);
+}
+
+.form-check-label {
+    font-size: 0.9rem;
+    color: #4a5568;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+/* Botones */
+.btn-success {
+    background-color: #48bb78;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 0.95rem !important; /* Tamaño fijo */
+    width: 100%;
+    color: white;
+    cursor: pointer;
+}
+
+.btn-success:hover {
+    background-color: #38a169;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: #718096;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-size: 0.95rem !important; /* Tamaño fijo */
+    color: white;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background-color: #4a5568;
+    transform: translateY(-2px);
+}
+
+/* Utilidades */
+.invalid-feedback {
+    font-size: 0.8rem !important; /* Tamaño fijo */
+    color: #e53e3e;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.is-invalid {
+    border-color: #e53e3e !important;
+}
+
+.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.15) !important;
+}
+
+.form-text {
+    font-size: 0.8rem !important; /* Tamaño fijo */
+    color: #718096;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.register-scroll {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 0;
+}
+/* Media queries */
+@media (max-width: 768px) {
+    .register-box {
+        padding: 1.5rem;
+        margin: 1rem auto;
+    }
+    
+    .register-box h2 {
+        font-size: 1.2rem !important; /* Tamaño fijo */
+    }
+    
+    .register-box p {
+        font-size: 0.9rem !important; /* Tamaño fijo */
+    }
+    
+    .form-control,
+    .form-select,
+    .form-check-input {
+        font-size: 0.9rem !important; /* Tamaño fijo */
+    }
+    
+    .form-label {
+        font-size: 0.85rem !important; /* Tamaño fijo */
+    }
+}
+
+@media (max-width: 576px) {
+    .register-box {
+        padding: 1.2rem;
+        margin: 0.5rem auto;
+    }
+    
+    .form-control,
+    .form-select {
+        font-size: 0.88rem !important; /* Tamaño fijo */
+    }
+}
+
+/* Reglas específicas para prevenir zoom en iOS */
+@supports (-webkit-touch-callout: none) {
+    input,
+    textarea,
+    select {
+        font-size: 16px !important; /* Previene el zoom automático en iOS */
+    }
+}
