@@ -1,7 +1,6 @@
 # **Naturin** - Plataforma Educativa sobre Flora y Fauna de Tingo María  
 
-**Versión**: 0.001  
-**Fecha de última actualización**: 06/05/2025  
+**Fecha de última actualización**: 06/06/2025  
 
 ---
 
