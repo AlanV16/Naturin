@@ -1,0 +1,62 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    .login-background {
+        position: fixed;
+        left: 0;
+        top: 10;
+        right: 0;
+        bottom: 0;
+        background: url("{% static 'images/fondo_padres.png' %}") no-repeat center center fixed;
+        background-size: cover;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 0;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="login-background">
+    <div class="container py-5 d-flex justify-content-center align-items-center" style="min-height:80vh;">
+        <div class="login-box bg-white rounded-4 shadow-sm p-4" style="max-width:400px;width:100%;">
+            <h2 class="fw-bold text-center mb-1" style="font-size:2rem;">Iniciar sesión</h2>
+            <p class="fw-semibold text-center mb-4" style="font-size:1.2rem;">¡Bienvenido/a de nuevo!</p>
+            <form method="post" autocomplete="off">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ form.username.label_tag }}
+                    {{ form.username|add_class:"form-control form-control-lg" }}
+                </div>
+                <div class="mb-3 position-relative">
+                    {{ form.password.label_tag }}
+                    {{ form.password|add_class:"form-control form-control-lg" }}
+                </div>
+                <div class="mb-3 text-end">
+                    <a href="{% url 'accounts:password_reset' %}" class="link-primary text-decoration-none">¿Olvidaste tu contraseña?</a>
+                </div>
+                <button class="btn btn-success btn-lg w-100 mb-3" type="submit">Entrar</button>
+            </form>
+            <div class="text-center mb-3">
+                <span>¿No tienes cuenta?</span>
+                <a href="{% url 'accounts:register_student' %}" class="link-primary fw-semibold text-decoration-none">Regístrate</a>
+            </div>
+            <div class="d-flex align-items-center mb-3">
+                <hr class="flex-grow-1">
+                <span class="mx-2 text-secondary">O</span>
+                <hr class="flex-grow-1">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
