@@ -1,0 +1,125 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.login-box .form-control {
+    background-color: rgba(244, 238, 238, 0.8); 
+    color: #2d3748; 
+}
+
+
+.login-box {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-top: 80px;
+    font-size: 0.98rem;
+}
+
+.login-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.login-box h2 {
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem; /* Ajustado para mayor visibilidad */
+}
+
+.login-box p {
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+.form-control {
+    border-color: #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.98rem !important; /* Forzar el tamaño de fuente consistente */
+    background-color: rgba(255, 255, 255, 0.8); /* Fondo semitransparente */
+    color: #2d3748; /* Texto oscuro */
+    line-height: 1.5; /* Mantener altura de línea consistente */
+}
+
+.form-control:focus {
+    border-color: #48bb78;
+    box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.2);
+    font-size: 0.98rem !important; /* Mantener tamaño al enfocar */
+}
+
+/* Asegurar que el input mantenga el tamaño durante la escritura */
+.form-control:not(:placeholder-shown) {
+    font-size: 0.98rem !important;
+}
+
+.btn-success {
+    background-color: #48bb78;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-size: 0.98rem;
+    width: 100%; /* Asegurar que el botón ocupe todo el ancho */
+}
+
+.btn-success:hover {
+    background-color: #38a169;
+    transform: translateY(-2px);
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #718096;
+    transition: color 0.3s ease;
+    font-size: 0.8rem;
+}
+
+.password-toggle:hover {
+    color: #48bb78;
+}
+
+.link-primary {
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.link-primary:hover {
+    color: #2b6cb0;
+}
+
+/* Estilos específicos para labels */
+.form-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .login-box {
+        padding: 1.5rem;
+        margin: 1rem;
+        margin-top: 60px;
+    }
+    .login-box h2 {
+        font-size: 1.3rem;
+    }
+    .login-box p {
+        font-size: 0.9rem;
+    }
+    .form-control {
+        font-size: 0.9rem !important;
+    }
+}

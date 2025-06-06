@@ -1,5 +1,9 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Species, Category, PlantType, Location
+from django.db import models
+from django.http import HttpResponse
+from django.views.decorators.cache import cache_page
+from django.shortcuts import render
 
 def pagina_central(request):
     """Vista para la página principal"""
@@ -94,3 +98,6 @@ def species_detail(request, species_id):
 
 def explorar(request):
     return render(request, 'base/explorar.html')
+
+def juegos(request):
+    return render(request, 'base/juegos.html')

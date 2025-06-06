@@ -90,7 +90,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Naturin_db',
+        'NAME': 'naturinDB',
         'USER': 'postgres',
         'PASSWORD': '1tesla',
         'HOST': 'localhost',
