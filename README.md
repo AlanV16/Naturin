@@ -17,18 +17,4 @@
 
 ---
 
-## **Funcionalidades Principales**  
- **Módulo Educativo**:  
-   - Fichas multimedia (imágenes, sonidos, descripciones).  
-   - Mapas interactivos y videos explicativos.  
-   - Clasificación por categorías (aves, mamíferos, plantas).  
 
- **Gamificación**:  
-   - Minijuegos (trivias, memorias).  
-   - Sistema de recompensas (insignias, puntos).  
-
- **Herramientas para Docentes**:  
-   - Creación de aulas virtuales.  
-   - Descarga de material didáctico (PDF, presentaciones).  
-
-📱 
