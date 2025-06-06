@@ -1,0 +1,160 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center mb-5 fw-bold" style="color: #4CAF50;">Descubre Tingo María</h1>
+    
+    <div class="row g-4">
+        <!-- 1. Parque Nacional Tingo María -->
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0" style="width:100%;max-width:480px;">
+                <div id="parqueCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner rounded-4">
+                        <div class="carousel-item active">
+                            <img src="{% static 'tingo_maria/parque1.jpg' %}" class="d-block w-100" style="height:320px;object-fit:cover;" alt="Parque Nacional Tingo María">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'tingo_maria/parque2.jpg' %}" class="d-block w-100" style="height:320px;object-fit:cover;" alt="Cueva de las Lechuzas">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'tingo_maria/parque3.jpg' %}" class="d-block w-100" style="height:320px;object-fit:cover;" alt="Bella Durmiente">
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#parqueCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                        <span class="visually-hidden">Anterior</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#parqueCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                        <span class="visually-hidden">Siguiente</span>
+                    </button>
+                    <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill bg-success text-white px-3 py-2 shadow-sm" style="font-size:1rem;">
+                        Parque Nacional Tingo María
+                    </span>
+                </div>
+                <div class="p-4">
+                    <h3 class="fw-bold">Parque Nacional Tingo María</h3>
+                    <p>Primer parque nacional del Perú (creado en 1965), alberga la famosa "Bella Durmiente", cadena montañosa que asemeja el perfil de una mujer acostada. Destacan:</p>
+                    <ul>
+                        <li>Cueva de las Lechuzas (hogar de aves y murciélagos)</li>
+                        <li>Catarata Santa Carmen</li>
+                        <li>Río Huallaga</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Jardín Botánico -->
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0" style="width:100%;max-width:480px;">
+                <div id="jardinCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner rounded-4">
+                        <div class="carousel-item active">
+                            <img src="{% static 'tingo_maria/jardin1.jpg' %}" class="d-block w-100" style="height:320px;object-fit:cover;" alt="Jardín Botánico">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'tingo_maria/jardin2.jpg' %}" class="d-block w-100" style="height:320px;object-fit:cover;" alt="Orquídeas">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'tingo_maria/jardin3.jpg' %}" class="d-block w-100" style="height:320px;object-fit:cover;" alt="Plantas medicinales">
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#jardinCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                        <span class="visually-hidden">Anterior</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#jardinCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                        <span class="visually-hidden">Siguiente</span>
+                    </button>
+                    <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill bg-info text-white px-3 py-2 shadow-sm" style="font-size:1rem;">
+                        Jardín Botánico
+                    </span>
+                </div>
+                <div class="p-4">
+                    <h3 class="fw-bold">Jardín Botánico "El Jardín de la Bella Durmiente"</h3>
+                    <p>Centro de conservación con más de 1,200 especies de plantas, destacando:</p>
+                    <ul>
+                        <li>Colección de 200 especies de orquídeas</li>
+                        <li>Plantas medicinales amazónicas</li>
+                        <li>Árboles nativos como la lupuna y el tornillo</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Catarata El León -->
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0" style="width:100%;max-width:480px;">
+                <div id="catarataCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner rounded-4">
+                        <div class="carousel-item active">
+                            <img src="{% static 'tingo_maria/catarata1.jpg' %}" class="d-block w-100" style="height:320px;object-fit:cover;" alt="Catarata El León">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'tingo_maria/catarata2.jpg' %}" class="d-block w-100" style="height:320px;object-fit:cover;" alt="Pozas naturales">
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#catarataCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                        <span class="visually-hidden">Anterior</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#catarataCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                        <span class="visually-hidden">Siguiente</span>
+                    </button>
+                    <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill bg-primary text-white px-3 py-2 shadow-sm" style="font-size:1rem;">
+                        Catarata El León
+                    </span>
+                </div>
+                <div class="p-4">
+                    <h3 class="fw-bold">Catarata El León</h3>
+                    <p>Impresionante caída de agua de 25 metros rodeada de vegetación exuberante. Características:</p>
+                    <ul>
+                        <li>Forma rocosa que asemeja un león</li>
+                        <li>Pozas naturales para bañarse</li>
+                        <li>Ubicada a solo 6 km de la ciudad</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Laguna El Milagro -->
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0" style="width:100%;max-width:480px;">
+                <div id="lagunaCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner rounded-4">
+                        <div class="carousel-item active">
+                            <img src="{% static 'tingo_maria/laguna1.jpg' %}" class="d-block w-100" style="height:320px;object-fit:cover;" alt="Laguna El Milagro">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'tingo_maria/laguna2.jpg' %}" class="d-block w-100" style="height:320px;object-fit:cover;" alt="Fauna acuática">
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#lagunaCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                        <span class="visually-hidden">Anterior</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#lagunaCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                        <span class="visually-hidden">Siguiente</span>
+                    </button>
+                    <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill bg-warning text-dark px-3 py-2 shadow-sm" style="font-size:1rem;">
+                        Laguna De Los Milagros
+                    </span>
+                </div>
+                <div class="p-4">
+                    <h3 class="fw-bold">Laguna De Los Milagros</h3>
+                    <p>Hermoso espejo de agua rodeado de vegetación con gran biodiversidad:</p>
+                    <ul>
+                        <li>Hábitat de aves migratorias</li>
+                        <li>Paseos en bote tradicionales</li>
+                        <li>Zona de pesca deportiva</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
