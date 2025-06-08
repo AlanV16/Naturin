@@ -1,9 +1,6 @@
 from django.shortcuts import render, get_object_or_404
-from .models import Species, Category, PlantType, Location
 from django.db import models
-from django.http import HttpResponse
-from django.views.decorators.cache import cache_page
-from django.shortcuts import render
+from .models import Species, Category, PlantType, Location
 
 def pagina_central(request):
     """Vista para la página principal"""
@@ -95,9 +92,27 @@ def species_detail(request, species_id):
     
     return render(request, 'base/species_detail.html', context)
 
+def explore(request):
+    return render(request, 'base/explore.html')
 
-def explorar(request):
-    return render(request, 'base/explorar.html')
+def explore_detail(request, slug):
+    # Diccionario de cada slug con su template
+    slug_to_template = {
+        'parque-nacional-tingo-maria': 'base/explore/explore_tingo_maria.html',
+        'jardin-botanico': 'base/explore/explore_jardin_botanico.html',
+        'cascada-el-leon': 'base/explore/explore_cascada_leon.html',
+        'laguna-de-los-milagros': 'base/explore/explore_laguna_milagros.html',
+        'cueva-de-las-lechuzas': 'base/explore/explore_cueva_lechuzas.html',
+        'rio-huallaga': 'base/explore/explore_rio_huallaga.html',
+        'catarata-santa-carmen': 'base/explore/explore_catarata_santa_carmen.html',
+        'zoocriadero-unas': 'base/explore/explore_zoocriadero_unas.html',
+        'cueva-de-las-pavas': 'base/explore/explore_cueva_pavas.html',
+        'catarata-san-miguel': 'base/explore/explore_catarata_san_miguel.html',
+    }
+    template = slug_to_template.get(slug)
+    if not template:
+        # 404 si no existe el slug 
+        from django.http import Http404
+        raise Http404("Lugar no encontrado")
+    return render(request, template, {'slug': slug})
 
-def juegos(request):
-    return render(request, 'base/juegos.html')
