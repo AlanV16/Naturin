@@ -1,0 +1,195 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block header %}
+<header class="bg-white text-dark py-3" style="box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); border-bottom: 1px solid rgba(56, 142, 60, 0.1);">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <a class="brand-title text-decoration-none">
+                <span class="brand-title-text" style="font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em;">
+                    <span class="text-success">Nature</span><span class="text-warning">In</span>
+                </span>
+            </a>
+            <div class="d-flex flex-grow-1 px-5">
+                <span class="text-truncate" style="font-size: 0.95rem; font-weight: 500; color: #495057;">
+                    Bienvenido, <span class="text-success fw-semibold">{{ user.username }}</span>
+                </span>
+            </div>
+            <form action="{% url 'accounts:logout' %}" method="post" class="m-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-success text-success border-2 px-3 py-2 logout-btn" style="font-weight: 500; border-radius: 8px; transition: all 0.2s ease;">
+                    <i class="bi bi-box-arrow-left me-2"></i>Cerrar Sesión
+                </button>
+            </form>
+            <style>
+                .logout-btn:hover {
+                    background-color: #388e3c !important;
+                    color: white !important;
+                    border-color: #388e3c !important;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 8px rgba(56, 142, 60, 0.3);
+                }
+            </style>
+        </div>
+    </div>
+</header>
+{% endblock %}
+{% block content %}
+<style>
+    .sidebar-dashboard {
+        background: #183c2b;
+        min-height: 100vh;
+        border-radius: 24px 0 0 24px;
+    }
+    .sidebar-btn {
+        transition: background 0.2s, color 0.2s;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        font-weight: 500;
+        color: #d0e6db;
+        font-size: 1rem;
+    }
+    .sidebar-btn.active, .sidebar-btn:hover {
+        background: #295b41 !important;
+        color: #fff !important;
+    }
+    .dashboard-content {
+        background: #f8f9fa;
+        min-height: 80vh;
+    }
+    .card-dashboard {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+    }
+    .btn-custom {
+        background: #388e3c;
+        border: none;
+        font-size: 1rem;
+    }
+    .btn-custom:hover {
+        background: #2f6e33;
+    }
+</style>
+<div class="container-fluid py-6 dashboard-content">
+    <div class="row">
+        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar-dashboard">
+            <div class="text-center py-3">
+                <img src="{% static 'images/tuki.png' %}" alt="Logo" width="90" class="mb-2">
+            </div>
+            <nav class="nav flex-column px-3 gap-2 py-4">
+                <a class="nav-link sidebar-btn" href="{% url 'accounts:courses' %}">
+                    <i class="bi bi-journal-bookmark-fill me-2"></i> Cursos
+                </a>
+                <a class="nav-link sidebar-btn" href="{% url 'accounts:grades' %}">
+                    <i class="bi bi-bar-chart-fill me-2"></i> Notas
+                </a>
+                <a class="nav-link sidebar-btn" href="{% url 'accounts:messages' %}">
+                    <i class="bi bi-chat-dots-fill me-2"></i> Mensajes
+                </a>
+                <a class="nav-link sidebar-btn" href="#">
+                    <i class="bi bi-person-circle me-2"></i> Perfil 
+                </a>
+            </nav>
+        </div>
+
+        <div class="col-md-9 col-lg-10 px-4">
+            <h3 class="fw-bold mb-4 text-success">Panel del Estudiante</h3>
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <button class="btn btn-custom w-100 py-2 rounded-4 fw-bold text-white" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#joinClassModal">
+                        Unirse a una clase
+                    </button>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card-dashboard text-center py-2">
+                        <div class="fw-bold text-success fs-4">0</div>
+                        <div class="text-muted small">Cursos actuales</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card-dashboard text-center py-2">
+                        <div class="fw-bold text-warning fs-4">0</div>
+                        <div class="text-muted small">Pendientes</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="card-dashboard text-center py-2">
+                        <div class="fw-bold text-info fs-4">0</div>
+                        <div class="text-muted small">Actividades</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="joinClassModal" tabindex="-1" aria-labelledby="joinClassModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content rounded-4">
+                        <div class="modal-header">
+                            <h5 class="modal-title fw-bold" id="joinClassModalLabel">Unirse a una clase</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="post" action="{% url 'accounts:join_class' %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="courseName" class="form-label">Nombre del curso</label>
+                                    <input type="text" class="form-control" id="courseName" name="course_name" placeholder="Ej: Biología">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="courseCode" class="form-label">Código del curso</label>
+                                    <input type="text" class="form-control" id="courseCode" name="course_code" placeholder="Ej: ABC123">
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Entrar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card-dashboard mb-4">
+                        <h5 class="fw-bold mb-3 text-success">Mis Cursos</h5>
+                        <div class="d-flex align-items-center justify-content-between mb-3 p-3 rounded" style="background: #e6f4ea;">
+                            <div>
+                                <i class="bi bi-book-fill me-2 text-success"></i> Curso 1
+                            </div>
+                            <a href="{% url 'accounts:course_detail' '1' %}" class="btn btn-outline-success btn-sm rounded-3">Ver</a>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background: #e6f4ea;">
+                            <div>
+                                <i class="bi bi-book-fill me-2 text-success"></i> Curso 2
+                            </div>
+                            <a href="{% url 'accounts:course_detail' '2' %}" class="btn btn-outline-success btn-sm rounded-3">Ver</a>
+                        </div>
+                    </div>
+
+                    <div class="card-dashboard">
+                        <h5 class="fw-bold mb-3 text-success">Cursos Recientes</h5>
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background: #e6f4ea;">
+                            <div>
+                                <i class="bi bi-book-fill me-2 text-success"></i> Curso 2
+                            </div>
+                            <a href="{% url 'accounts:course_detail' '2' %}" class="btn btn-outline-success btn-sm rounded-3">Ver</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-dashboard mb-4">
+                        <h5 class="fw-bold mb-3 text-success">Resumen de Notas</h5>
+                        <img src="{% static 'images/grades_placeholder.png' %}" alt="Gráfico de notas" class="img-fluid rounded" style="background: #e6f4ea;">
+                    </div>
+
+                    <div class="card-dashboard">
+                        <h5 class="fw-bold mb-3 text-success">Actividades completadas</h5>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-2"><i class="bi bi-calendar-event me-2 text-info"></i> Actividad 1</li>
+                            <li><i class="bi bi-calendar-event me-2 text-info"></i> Actividad 2</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

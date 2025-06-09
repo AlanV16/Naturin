@@ -1,0 +1,143 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block header %}
+<header class="bg-white text-dark py-3" style="box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); border-bottom: 1px solid rgba(56, 142, 60, 0.1);">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <a class="brand-title text-decoration-none">
+                <span class="brand-title-text" style="font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em;">
+                    <span class="text-success">Nature</span><span class="text-warning">In</span>
+                </span>
+            </a>
+            <div class="d-flex flex-grow-1 px-5">
+                <span class="text-truncate" style="font-size: 0.95rem; font-weight: 500; color: #495057;">
+                    Bienvenido, <span class="text-success fw-semibold">{{ user.username }}</span>
+                </span>
+            </div>
+            <form action="{% url 'accounts:logout' %}" method="post" class="m-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-success text-success border-2 px-3 py-2 logout-btn" style="font-weight: 500; border-radius: 8px; transition: all 0.2s ease;">
+                    <i class="bi bi-box-arrow-left me-2"></i>Cerrar Sesión
+                </button>
+            </form>
+            <style>
+                .logout-btn:hover {
+                    background-color: #388e3c !important;
+                    color: white !important;
+                    border-color: #388e3c !important;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 8px rgba(56, 142, 60, 0.3);
+                }
+            </style>
+        </div>
+    </div>
+</header>
+{% endblock %}
+{% block content %}
+<div class="container-fluid py-5" style="background: var(--light-color); min-height: 80vh;">
+  <div class="row">
+    <div class="col-md-3 col-lg-2 d-none d-md-block" style="background: #183c2b; min-height: 600px; border-radius: 24px 0 0 24px;">
+      <div class="text-center py-4">
+        <img src="{% static 'images/tuki.png' %}" alt="Owl" width="90" class="mb-3">
+      </div>
+      <nav class="nav flex-column px-3">
+        <button class="nav-link active mb-2 fw-bold" style="color: var(--primary-green); background: #e6f4ea; border-radius: 12px;">
+          <i class="bi bi-house-door-fill me-2"></i> Dashboard
+        </button>
+        <button class="nav-link active mb-2 fw-bold" style="color: var(--text-color); background: #e6f4ea; border-radius: 12px;">
+          <i class="bi bi-plus-circle me-2"></i> Clases
+        </button>
+        <button class="nav-link active mb-2 fw-bold" style="color: var(--text-color); background: #e6f4ea; border-radius: 12px;">
+          <i class="bi bi-folder-fill me-2"></i> Contenido
+        </button>
+        <button class="nav-link active mb-2 fw-bold" style="color: var(--text-color); background: #e6f4ea; border-radius: 12px;">
+          <i class="bi bi-chat-dots-fill me-2"></i> Mensajes
+        </button>
+        <button class="nav-link active mb-2 fw-bold" style="color: var(--text-color); background: #e6f4ea; border-radius: 12px;">
+          <i class="bi bi-gear-fill me-2"></i> Configuración
+        </button>
+      </nav>
+    </div>
+    <div class="col-md-9 col-lg-10 px-4">
+      <div class="py-4">
+        <h2 class="fw-bold" style="color: var(--primary-green);">
+          ¡Bienvenido, {{ user.get_full_name|default:user.username }}!
+        </h2>
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-3">
+            <button class="btn w-100 py-3 rounded-4 fw-bold" style="background: var(--primary-green); color: #fff; border: none;">
+              <i class="bi bi-plus-circle me-2"></i> Crear Clase
+            </button>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="bg-white rounded-4 shadow-sm text-center py-3">
+              <div class="fw-bold" style="color: var(--primary-green); font-size: 1.5rem;">6</div>
+              <div class="text-muted">Clases Activas</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="bg-white rounded-4 shadow-sm text-center py-3">
+              <div class="fw-bold" style="color: var(--primary-green); font-size: 1.5rem;">24</div>
+              <div class="text-muted">Estudiantes</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="bg-white rounded-4 shadow-sm text-center py-3">
+              <div class="fw-bold" style="color: var(--primary-green); font-size: 1.5rem;">5</div>
+              <div class="text-muted">Nuevos Mensajes</div>
+            </div>
+          </div>
+        </div>
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <div class="bg-white rounded-4 shadow-sm p-4 mb-4">
+              <h5 class="fw-bold mb-3" style="color: var(--primary-green);">Mis Clases</h5>
+              <div class="d-flex align-items-center justify-content-between mb-3 p-3 rounded" style="background: #e6f4ea;">
+                <div>
+                  <i class="bi bi-book-fill me-2" style="color: var(--primary-green);"></i> Clase A <span class="text-muted">4to Grado</span>
+                </div>
+                <a href="#" class="btn btn-outline-success btn-sm rounded-3">Ver</a>
+              </div>
+              <div class="d-flex align-items-center justify-content-between mb-3 p-3 rounded" style="background: #e6f4ea;">
+                <div>
+                  <i class="bi bi-book-fill me-2" style="color: var(--primary-green);"></i> Clase B <span class="text-muted">5to Grado</span>
+                </div>
+                <a href="#" class="btn btn-outline-success btn-sm rounded-3">Ver</a>
+              </div>
+              <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background: #e6f4ea;">
+                <div>
+                  <i class="bi bi-book-fill me-2" style="color: var(--primary-green);"></i> Clase C <span class="text-muted">6to Grado</span>
+                </div>
+                <a href="#" class="btn btn-outline-success btn-sm rounded-3">Ver</a>
+              </div>
+            </div>
+            <div class="bg-white rounded-4 shadow-sm p-4">
+              <h5 class="fw-bold mb-3" style="color: var(--primary-green);">Administrador de Contenido</h5>
+              <div class="row g-2">
+                <div class="col-6">
+                  <a href="#" class="btn w-100 py-3 rounded-4 fw-bold" style="background: #e6f4ea; color: var(--primary-green); border: none;">
+                    <i class="bi bi-plus-circle me-2"></i> Añadir nuevo contenido
+                  </a>
+                </div>
+                <div class="col-6">
+                  <a href="#" class="btn w-100 py-3 rounded-4 fw-bold" style="background: #e6f4ea; color: var(--primary-green); border: none;">
+                    <i class="bi bi-download me-2"></i> Descargar reportes
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="bg-white rounded-4 shadow-sm p-4">
+              <h5 class="fw-bold mb-3" style="color: var(--primary-green);">Nuevos Mensajes</h5>
+              <ul class="list-unstyled mb-0">
+                <li class="mb-2"><i class="bi bi-envelope-fill me-2" style="color: var(--primary-green);"></i> Message 1</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
