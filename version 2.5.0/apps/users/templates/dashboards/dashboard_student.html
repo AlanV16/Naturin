@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_student.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-5 dashboard-bg">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar-dashboard">
+            <div class="text-center py-4">
+                <img src="{% static 'images/mascota/tuki.png' %}" alt="Logo" width="110" class="mb-3">
+            </div>
+            <nav class="nav flex-column px-3 gap-2 py-4">
+                <a class="nav-link active fw-bold sidebar-btn mt-3" href="#">
+                    <i class="bi bi-house-door-fill me-2 fs-5"></i> Volver al inicio
+                </a>
+                <a class="nav-link active fw-bold sidebar-btn mt-3" href="#">
+                    <i class="bi bi-journal-bookmark-fill me-2 fs-5"></i> Cursos
+                </a>
+                <a class="nav-link active fw-bold sidebar-btn mt-3" href="#">
+                    <i class="bi bi-bar-chart-fill me-2 fs-5"></i> Notas
+                </a>
+                <a class="nav-link active fw-bold sidebar-btn mt-3" href="#">
+                    <i class="bi bi-chat-dots-fill me-2 fs-5"></i> Mensajes
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 px-4">
+            <div class="py-4">
+                <h2 class="fw-bold mb-4 dashboard-title">Panel del Estudiante</h2>
+                
+                <!-- Stats Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <button class="btn-dashboard-join" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#joinClassModal">
+                            Unirse a una clase
+                        </button>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card-container text-center">
+                            <div class="fw-bold stats-number-primary">0</div>
+                            <div class="text-muted">Cursos actuales</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card-container text-center">
+                            <div class="fw-bold stats-number-warning">0</div>
+                            <div class="text-muted">Pendientes</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card-container text-center">
+                            <div class="fw-bold stats-number-info">0</div>
+                            <div class="text-muted">Próximos eventos</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Join Class Modal -->
+                <div class="modal fade" id="joinClassModal" tabindex="-1" aria-labelledby="joinClassModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content rounded-4">
+                            <div class="modal-header">
+                                <h5 class="modal-title fw-bold" id="joinClassModalLabel">Unirse a una clase</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form>
+                                    <div class="mb-3">
+                                        <label for="courseName" class="form-label">Nombre del curso</label>
+                                        <input type="text" class="form-control" id="courseName" placeholder="Ej: Biología">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="courseCode" class="form-label">Código del curso</label>
+                                        <input type="text" class="form-control" id="courseCode" placeholder="Ej: ABC123">
+                                    </div>
+                                    <button type="submit" class="btn-dashboard-join">Entrar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Sections -->
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <!-- My Courses -->
+                        <div class="card-container">
+                            <h5 class="fw-bold mb-3 dashboard-title">Mis Cursos</h5>
+                            <div class="course-item card-bg">
+                                <div class="course-content">
+                                    <i class="bi bi-book-fill me-2 course-icon"></i> Curso 1
+                                </div>
+                                <div class="course-actions">
+                                    <a href="#" class="btn-dashboard-view">Ver</a>
+                                </div>
+                            </div>
+                            <div class="course-item card-bg">
+                                <div class="course-content">
+                                    <i class="bi bi-book-fill me-2 course-icon"></i> Curso 2
+                                </div>
+                                <div class="course-actions">
+                                    <a href="#" class="btn-dashboard-view">Ver</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Courses -->
+                        <div class="card-container">
+                            <h5 class="fw-bold mb-3 dashboard-title">Cursos Recientes</h5>
+                            <div class="course-item card-bg">
+                                <div class="course-content">
+                                    <i class="bi bi-book-fill me-2 course-icon"></i> Curso 2
+                                </div>
+                                <div class="course-actions">
+                                    <a href="#" class="btn-dashboard-view">Ver</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <!-- Grades Summary -->
+                        <div class="card-container">
+                            <h5 class="fw-bold mb-3 dashboard-title">Resumen de Notas</h5>
+                            <img src="{% static 'images/grades_placeholder.png' %}" alt="Gráfico de notas" class="img-fluid rounded img-bg">
+                        </div>
+
+                        <!-- Upcoming Events -->
+                        <div class="card-container">
+                            <h5 class="fw-bold mb-3 dashboard-title">Próximos Eventos</h5>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2"><i class="bi bi-calendar-event me-2 event-icon"></i> Evento 1</li>
+                                <li><i class="bi bi-calendar-event me-2 event-icon"></i> Evento 2</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

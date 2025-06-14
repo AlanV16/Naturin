@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <aside class="col-md-3 mb-4">
+        <div class="p-3 bg-white rounded-4 shadow-sm">
+            <h5 class="mb-3">Categorías</h5>
+            <div class="mb-3">
+                {% for category in categories %}
+                    <a href="?category={{ category.name }}" class="badge rounded-pill bg-light text-dark mb-1">{{ category.name }}</a>
+                {% endfor %}
+            </div>
+            <h5 class="mb-3">Estado de conservación</h5>
+            <div class="mb-3">
+                <a href="?conservation=EN" class="badge rounded-pill bg-danger mb-1">En peligro</a>
+                <a href="?conservation=VU" class="badge rounded-pill bg-warning text-dark mb-1">Vulnerable</a>
+                <a href="?conservation=LC" class="badge rounded-pill bg-success mb-1">Sin riesgo</a>
+            </div>
+            <h5 class="mb-3">Hábitat</h5>
+            <div class="mb-3">
+                {% for location in locations %}
+                    <a href="?location={{ location.name }}" class="badge rounded-pill bg-light text-dark mb-1">{{ location.name }}</a>
+                {% endfor %}
+            </div>
+            <h5 class="mb-3">Grado educativo</h5>
+            <div>
+                <a href="?level=Primaria" class="badge rounded-pill bg-warning text-dark mb-1">Primero</a>
+                <a href="?level=Secundaria" class="badge rounded-pill bg-info text-dark mb-1">Segundo</a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <section class="col-md-9">
+        <form method="get" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Buscar especies..." value="{{ search_query }}">
+                <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtros"><i class="bi bi-funnel"></i> Filtros</button>
+            </div>
+        </form>
+
+        <div class="mb-4">
+            <div class="btn-group w-100" role="group">
+                <button class="btn btn-light active" disabled>Fichas Educativas</button>
+                <button class="btn btn-light" disabled>Mapa de Especies</button>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for specie in species_list %}
+            <div class="col-md-6 col-lg-6 mb-4">
+                <div class="card h-100 rounded-4 shadow-sm">
+                    <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:200px;">
+                        {% if specie.image %}
+                            <img src="{{ specie.image.url }}" alt="{{ specie.name }}" style="max-height:180px;max-width:100%;object-fit:contain;">
+                        {% else %}
+                            <i class="bi bi-image fs-1 text-muted"></i>
+                        {% endif %}
+                        {% if specie.conservation_status == "EN" %}
+                            <span class="position-absolute top-0 end-0 m-3 badge rounded-pill bg-danger">En peligro</span>
+                        {% elif specie.conservation_status == "VU" %}
+                            <span class="position-absolute top-0 end-0 m-3 badge rounded-pill bg-warning text-dark">Vulnerable</span>
+                        {% endif %}
+                        <span class="position-absolute top-0 start-0 m-3 badge rounded-pill bg-light text-dark">{{ specie.category.name|default:"" }}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="species-name fw-bold" style="font-size:1.4rem;">{{ specie.name }}</div>
+                        <div class="scientific-name fst-italic text-secondary mb-2">{{ specie.scientific_name }}</div>
+                        <div class="species-description mb-3">{{ specie.description|truncatewords:25 }}</div>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <a href="{% url 'species_detail' specie.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-info-circle"></i> Detalles</a>
+                            <a href="#" class="btn btn-outline-secondary btn-sm"><i class="bi bi-volume-up"></i> Escuchar</a>
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'species_download' specie.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download"></i> Descargar</a>
+                            {% else %}
+                                <a href="{% url 'login' %}?next={% url 'species_list' %}" class="btn btn-outline-secondary btn-sm disabled" title="Inicia sesión para descargar"><i class="bi bi-download"></i> Descargar</a>
+                            {% endif %}
+                        </div>
+                        <a href="#" class="btn btn-outline-secondary btn-sm"><i class="bi bi-share"></i> Compartir</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">No se encontraron especies con los filtros seleccionados.</div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

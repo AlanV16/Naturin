@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_parent.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5 dashboard-bg">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar-dashboard">
+            <div class="text-center py-4">
+                <img src="{% static 'images/mascota/tuki.png' %}" alt="Logo" width="110" class="mb-3">
+            </div>
+            <nav class="nav flex-column px-3 gap-2 py-4">
+                <a class="nav-link fw-bold sidebar-btn mt-3" href="#">
+                    <i class="bi bi-house-door-fill me-2 fs-5"></i> Inicio
+                </a>
+                <a class="nav-link fw-bold sidebar-btn mt-3" href="#">
+                    <i class="bi bi-people-fill me-2 fs-5"></i> Mis Hijos
+                </a>
+                <a class="nav-link fw-bold sidebar-btn mt-3" href="#">
+                    <i class="bi bi-journal-bookmark-fill me-2 fs-5"></i> Cursos
+                </a>
+                <a class="nav-link fw-bold sidebar-btn mt-3" href="#">
+                    <i class="bi bi-bar-chart-fill me-2 fs-5"></i> Progreso
+                </a>
+                <a class="nav-link fw-bold sidebar-btn mt-3" href="#">
+                    <i class="bi bi-chat-dots-fill me-2 fs-5"></i> Mensajes
+                </a>
+                <a class="nav-link fw-bold sidebar-btn mt-3" href="#">
+                    <i class="bi bi-calendar-event-fill me-2 fs-5"></i> Calendario
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 px-4">
+            <div class="py-4">
+                <h2 class="fw-bold mb-4 dashboard-title">Panel de Padres de Familia</h2>
+                
+                <!-- Stats Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="bg-white rounded-4 shadow-sm text-center py-3">
+                            <div class="fw-bold stats-number-primary">{{ children_count }}</div>
+                            <div class="text-muted">Hijos registrados</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="bg-white rounded-4 shadow-sm text-center py-3">
+                            <div class="fw-bold stats-number-primary">{{ courses_count }}</div>
+                            <div class="text-muted">Cursos totales</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="bg-white rounded-4 shadow-sm text-center py-3">
+                            <div class="fw-bold stats-number-warning">{{ overdue_assignments }}</div>
+                            <div class="text-muted">Tareas atrasadas</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="bg-white rounded-4 shadow-sm text-center py-3">
+                            <div class="fw-bold stats-number-info">{{ upcoming_events }}</div>
+                            <div class="text-muted">Próximos eventos</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Sections -->
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <!-- My Children -->
+                        <div class="bg-white rounded-4 shadow-sm p-4 mb-4">
+                            <h5 class="fw-bold mb-3 dashboard-title">Mis Hijos</h5>
+                            <div class="row">
+                                {% for child in children %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card child-card h-100">
+                                        <div class="card-body text-center">
+                                            <div class="mb-3">
+                                                <img src="{% static 'images/child_placeholder.png' %}" alt="Foto del niño" class="rounded-circle" width="80">
+                                            </div>
+                                            <h6 class="card-title fw-bold">{{ child.name }}</h6>
+                                            <p class="small text-muted mb-2">Grado: {{ child.grade }}</p>
+                                            <div class="progress mb-2">
+                                                <div class="progress-bar bg-success" role="progressbar" aria-valuenow="{{ child.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <p class="small mb-0">Progreso: {{ child.progress }}%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="col-12">
+                                    <p class="text-muted">No hay hijos registrados.</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Recent Activities -->
+                        <div class="bg-white rounded-4 shadow-sm p-4">
+                            <h5 class="fw-bold mb-3 dashboard-title">Actividad Reciente</h5>
+                            {% if recent_activities %}
+                                <ul class="list-unstyled">
+                                    {% for activity in recent_activities %}
+                                    <li class="mb-3 pb-2 border-bottom">
+                                        <div class="d-flex">
+                                            <div class="flex-shrink-0 me-3">
+                                                <i class="bi bi-{{ activity.icon }} fs-4" style="color: var(--primary-green);"></i>
+                                            </div>
+                                            <div>
+                                                <p class="mb-1">{{ activity.description }}</p>
+                                                <small class="text-muted">{{ activity.date }}</small>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">No hay actividades recientes.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <!-- Grades Summary -->
+                        <div class="bg-white rounded-4 shadow-sm p-4 mb-4">
+                            <h5 class="fw-bold mb-3 dashboard-title">Rendimiento Académico</h5>
+                            <img src="{% static 'images/grades_placeholder.png' %}" alt="Gráfico de rendimiento" class="img-fluid rounded img-bg">
+                        </div>
+
+                        <!-- Upcoming Events -->
+                        <div class="bg-white rounded-4 shadow-sm p-4">
+                            <h5 class="fw-bold mb-3 dashboard-title">Próximos Eventos</h5>
+                            {% if upcoming_events_list %}
+                                <ul class="list-unstyled">
+                                    {% for event in upcoming_events_list %}
+                                    <li class="mb-3 pb-2 border-bottom">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 me-3">
+                                                <div class="bg-primary text-white rounded-3 text-center p-2" style="width: 40px;">
+                                                    <small>{{ event.day }}</small><br>
+                                                    <strong>{{ event.month }}</strong>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-0">{{ event.title }}</h6>
+                                                <small class="text-muted">{{ event.time }} - {{ event.location }}</small>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">No hay eventos próximos.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,161 @@
+/* General */
+.home-main {
+    font-size: 0.8125rem; /* 13px */
+}
+
+/* Alerta Tuki */
+.home-alert {
+    border: 0.125rem solid #ffd580; /* 2px */
+    font-size: 1rem;
+}
+.home-tuki-img {
+    width: 3.25rem;   /* 52px */
+    height: 3.25rem;  /* 52px */
+    object-fit: cover;
+    background: #eee;
+}
+.home-alert-title {
+    font-size: 0.95rem;
+}
+
+/* Títulos */
+.home-title {
+    font-size: 2.38rem;
+    line-height: 1.2;
+}
+.home-title-eco {
+    font-size: 1.22em;
+    color: #388e3c;
+    font-weight: 700;
+}
+
+/* Lead */
+.home-lead {
+    font-size: 1.3em;
+    color: #6b7c6b;
+}
+
+/* Botones */
+.home-btn-learn,
+.home-btn-play {
+    font-size: 0.97rem;
+}
+
+/* Carrusel principal */
+.home-carousel {
+    background: transparent;
+    border-radius: 1.125rem; /* 18px */
+    box-shadow: none;
+    padding: 0;
+    margin-bottom: 2rem;
+    position: relative;
+    min-height: 21.25rem; /* 340px */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Tarjeta del carrusel */
+.home-carousel-card {
+    width: 100%;
+    max-width: 33.75rem; /* 540px */
+    border-radius: 1.125rem; /* 18px */
+    overflow: hidden;
+    background: var(--carousel-bg, #fff);
+    box-shadow: 0 0.25rem 2rem rgba(60,80,60,0.13); /* 4px 32px */
+    position: relative;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 21.25rem; /* 340px */
+}
+
+/* Imagen del carrusel */
+.home-carousel-img {
+    width: 100%;
+    height: 21.25rem; /* 340px */
+    object-fit: cover;
+    border-radius: 1.125rem; /* 18px */
+    box-shadow: 0 0.125rem 1rem rgba(60,80,60,0.10); /* 2px 16px */
+    border: none;
+    transition: transform 0.3s;
+    background: #e5e7eb;
+    display: block;
+    position: absolute; /* Nuevo */
+    top: 0;
+    left: 0
+}
+
+.home-carousel-img:hover {
+    transform: scale(1.025);
+}
+
+/* Badge */
+.home-carousel-badge {
+    font-size: 1rem;
+    background: rgba(34,197,94,0.92);
+    color: #fff;
+    box-shadow: 0 0.125rem 0.5rem rgba(60,200,150,0.15); /* 2px 8px */
+    border-radius: 0.625rem; /* 10px */
+    padding: 0.4rem 1.2rem;
+    left: 1.2rem;
+    bottom: 1.2rem;
+    position: absolute;
+    z-index: 2;
+}
+
+/* Controles del carrusel */
+.home-carousel .carousel-control-prev,
+.home-carousel .carousel-control-next {
+    background: rgba(255,255,255,0.85);
+    border-radius: 50%;
+    width: 2.375rem; /* 38px */
+    height: 2.375rem; /* 38px */
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0.125rem 0.5rem rgba(60,80,60,0.10); /* 2px 8px */
+    opacity: 0.85;
+    transition: opacity 0.2s;
+}
+.home-carousel .carousel-control-prev:hover,
+.home-carousel .carousel-control-next:hover {
+    opacity: 1;
+}
+.home-carousel .carousel-control-prev-icon,
+.home-carousel .carousel-control-next-icon {
+    filter: invert(0.5) grayscale(1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .home-carousel-card,
+    .home-carousel-img {
+        max-width: 100%;
+        height: 12.5rem; /* 200px */
+        min-height: 12.5rem; /* 200px */
+        border-radius: 0.75rem; /* 12px */
+    }
+    .home-carousel {
+        min-height: 12.5rem; /* 200px */
+    }
+}
+
+/* Modo oscuro */
+body.dark-mode .home-carousel-card {
+    background: #23272f;
+    box-shadow: 0 0.25rem 2rem rgba(0,0,0,0.22); /* 4px 32px */
+}
+body.dark-mode .home-carousel-img {
+    background: #23272f;
+    box-shadow: 0 0.125rem 1rem rgba(0,0,0,0.18); /* 2px 16px */
+}
+body.dark-mode .home-carousel-badge {
+    background: rgba(34,197,94,0.92);
+    color: #fff;
+}
+body.dark-mode .home-carousel .carousel-control-prev,
+body.dark-mode .home-carousel .carousel-control-next {
+    background: rgba(30,32,36,0.85);
+    box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.18); 
+}

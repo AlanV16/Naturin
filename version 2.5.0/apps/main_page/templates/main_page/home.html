@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/home/home.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container py-4 home-main">
+    <div class="alert alert-warning d-flex align-items-center shadow-sm rounded-4 mb-4 home-alert">
+        <img src="{% static 'images/mascota/tuki.png' %}" alt="Tuki el Tucán" class="rounded me-3 home-tuki-img">
+        <div>
+            <strong class="home-alert-title">¡Hola! Soy Tuki el Tucán</strong><br>
+            Te guiaré en tu aventura por la biodiversidad de Tingo María. ¿Qué te gustaría aprender hoy?
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+    <div class="row align-items-center">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <h1 class="fw-bold home-title">
+                Descubre la magia de<br>
+                <span class="eco home-title-eco">Tingo María</span>
+            </h1>
+            <p class="lead text-secondary mb-4 home-lead">
+                Explora la increíble biodiversidad del Parque Nacional de Tingo María a través de juegos, actividades y aventuras interactivas.
+            </p>
+            <div class="d-flex flex-wrap gap-3"> 
+                <a href="{% url 'species_list' %}" class="btn btn-success btn-lg px-4 py-2 home-btn-learn">
+                    <i class="bi bi-journal-bookmark"></i> Comenzar a Aprender
+                </a>
+                <a href="{% url 'games' %}" class="btn btn-outline-dark btn-lg px-4 py-2 home-btn-play">
+                    <i class="bi bi-controller"></i> Jugar Ahora
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-6 justify-content-center">
+            <div id="placesCarousel" class="carousel slide home-carousel" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    {% for place in places %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <div class="bg-light rounded-4 shadow-sm p-0 card-explore mx-auto home-carousel-card">
+                            <a href="{% url 'explore_detail' place.slug %}" class="d-block text-decoration-none">
+                                <img src="{% static place.image.0 %}" class="d-block w-100 img-zoom mb-2 home-carousel-img" alt="{{place.name}}">
+                                <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill px-3 py-2 shadow home-carousel-badge">
+                                    {{place.name}}
+                                </span>
+                            </a>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#placesCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#placesCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

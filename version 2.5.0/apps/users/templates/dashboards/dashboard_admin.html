@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
+{% block content %}
+<div class="bg-[#f8fbf8] font-sans">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="bg-[#10451D] text-white w-64 p-6 space-y-8">
+            <div class="flex flex-col items-center">
+                <img src="{% static 'images/mascota/tuki.png' %}" alt="Owl" width="90" class="mb-3">
+                <div class="mt-4 font-semibold">Administrador</div>
+            </div>
+            <nav class="space-y-4">
+                <a href="#" class="flex items-center space-x-2 bg-white text-[#10451D] px-4 py-2 rounded">
+                    <span>🏠</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center space-x-2">
+                    <span>📋</span>
+                    <span>Usuarios</span>
+                </a>
+                <a href="#" class="flex items-center space-x-2">
+                    <span>📚</span>
+                    <span>Cursos</span>
+                </a>
+                <a href="#" class="flex items-center space-x-2">
+                    <span>📈</span>
+                    <span>Reportes</span>
+                </a>
+                <a href="#" class="flex items-center space-x-2">
+                    <span>⚙️</span>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-10">
+            <h1 class="text-3xl font-semibold text-[#10451D] mb-6">Panel del Administrador</h1>
+
+            <div class="grid grid-cols-3 gap-6 mb-8">
+                <div class="bg-white border border-[#E1F0DA] p-6 rounded-xl text-center shadow">
+                    <div class="text-3xl font-bold text-[#10451D]">0</div>
+                    <div class="text-[#4C956C] mt-2">Usuarios registrados</div>
+                </div>
+                <div class="bg-white border border-[#E1F0DA] p-6 rounded-xl text-center shadow">
+                    <div class="text-3xl font-bold text-[#10451D]">0</div>
+                    <div class="text-[#4C956C] mt-2">Cursos disponibles</div>
+                </div>
+                <div class="bg-white border border-[#E1F0DA] p-6 rounded-xl text-center shadow">
+                    <div class="text-3xl font-bold text-[#10451D]">0%</div>
+                    <div class="text-[#4C956C] mt-2">Nuevas inscripciones</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-[#10451D] mb-4">Gestión de Usuarios</h2>
+                    <div class="space-y-4">
+                        <div class="bg-[#E1F0DA] p-4 rounded-lg flex justify-between items-center">
+                            <div class="flex items-center space-x-2">
+                                <span>👤</span>
+                                <span>Anna Brown</span>
+                            </div>
+                            <button class="text-sm bg-[#4C956C] text-white px-4 py-1 rounded">Ver</button>
+                        </div>
+                        <div class="bg-[#E1F0DA] p-4 rounded-lg flex justify-between items-center">
+                            <div class="flex items-center space-x-2">
+                                <span>👤</span>
+                                <span>John Doe</span>
+                            </div>
+                            <button class="text-sm bg-[#4C956C] text-white px-4 py-1 rounded">Ver</button>
+                        </div>
+                        <div class="bg-[#E1F0DA] p-4 rounded-lg flex justify-between items-center">
+                            <div class="flex items-center space-x-2">
+                                <span>👤</span>
+                                <span>Emily White</span>
+                            </div>
+                            <button class="text-sm bg-[#4C956C] text-white px-4 py-1 rounded">Ver</button>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-xl font-semibold text-[#10451D] mb-4">Resumen del Sistema</h2>
+                    <div class="bg-white border border-[#E1F0DA] rounded-lg p-6 space-y-3 shadow">
+                        <div class="h-4 bg-[#A3BCB6] w-3/4 rounded"></div>
+                        <div class="h-4 bg-[#A3BCB6] w-full rounded"></div>
+                        <div class="h-4 bg-[#A3BCB6] w-5/6 rounded"></div>
+                        <div class="h-4 bg-[#A3BCB6] w-4/5 rounded"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
