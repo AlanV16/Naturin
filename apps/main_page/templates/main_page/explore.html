@@ -1,0 +1,428 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <style>
+.card-explore {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.card-explore:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 8px 32px rgba(60,200,150,0.15);
+    z-index: 2;
+}
+
+/* Solo agranda la imagen al hacer hover */
+.img-zoom {
+    transition: transform 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.2s;
+}
+.img-zoom:hover {
+    transform: scale(1.07);
+    box-shadow: 0 8px 32px rgba(60,200,150,0.18);
+    z-index: 2;
+}
+</style>
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold display-4" style="background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 2px 8px rgba(60,200,150,0.15);">
+            Descubre Tingo María
+        </h1>
+        <p class="lead text-muted mt-2">Explora los tesoros naturales y culturales de la región</p>
+        <div class="mx-auto" style="width:120px; height:5px; background:linear-gradient(90deg,#4CAF50,#38f9d7); border-radius:3px; margin-top:10px;"></div>
+    </div>    <div class="row g-4">
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0 card-explore" style="width:100%;max-width:480px;">
+                <a href="{% url 'explore_detail' 'parque-nacional-tingo-maria' %}" class="d-block text-decoration -none">
+                    <div id="carousel1" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded-4">
+                            <div class="carousel-item active">
+                                <img src="{% static 'images/explore/bella_durmiente.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Parque Nacional Tingo María">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/cueva_lechuzas.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Parque Nacional Tingo María">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/santa_carmen.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Parque Nacional Tingo María">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/huallaga.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Parque Nacional Tingo María">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel1" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carousel1" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                        <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill px-3 py-2 shadow" style="font-size:1rem; background:rgba(67,233,123,0.92); box-shadow:0 2px 8px rgba(60,200,150,0.15);">
+                            Parque Nacional Tingo María
+                        </span>
+                    </div>
+                </a>
+                <div class="p-4">
+                    <h3 class="fw-bold">Parque Nacional Tingo María</h3>
+                    <p>Primer parque nacional del Perú (creado en 1965), alberga la famosa "Bella Durmiente", cadena montañosa que asemeja el perfil de una mujer acostada.</p>
+                    <ul>
+                        <li>Es parte de la zona de amortiguamiento del Parque Nacional Cordillera Azul</li>
+                        <li>Zona agrícola</li>
+                        <li>Clima cálido y húmeod</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0 card-explore" style="width:100%;max-width:480px;">
+                <a href="{% url 'explore_detail' 'jardin-botanico' %}" class="d-block text-decoration -none">
+                    <div id="carousel2" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner rounded-4">
+                                <div class="carousel-item active">
+                                    <img src="{% static 'images/explore/orquideas.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Jardín Botánico">
+                                </div>
+                                <div class="carousel-item">
+                                    <img src="{% static 'images/explore/sangre_grado.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Jardín Botánico">
+                                </div>
+                                <div class="carousel-item">
+                                    <img src="{% static 'images/explore/tornillo.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Jardín Botánico">
+                                </div>
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#carousel2" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon"></span>
+                                <span class="visually-hidden">Anterior</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#carousel2" data-bs-slide="next">
+                                <span class="carousel-control-next-icon"></span>
+                                <span class="visually-hidden">Siguiente</span>
+                            </button>
+                            <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill bg-secondary px-3 py-2 shadow-sm" style="font-size:1rem;">
+                                Jardín Botánico
+                            </span>
+                        </div>
+                    </a>
+                <div class="p-4">
+                    <h3 class="fw-bold">Jardín Botánico "El Jardín de la Bella Durmiente"</h3>
+                    <p>Centro de conservación con más de 1,200 especies de plantas, destacando:</p>
+                    <ul>
+                        <li>Colección de 200 especies de orquídeas</li>
+                        <li>Plantas medicinales amazónicas</li>
+                        <li>Árboles nativos como la lupuna y el tornillo</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0 card-explore" style="width:100%;max-width:480px;">
+                <a href="{% url 'explore_detail' 'cascada-leon' %}" class="d-block text-decoration -none">
+                    <div id="carousel3" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded-4">
+                            <div class="carousel-item active">
+                                <img src="{% static 'images/explore/catarata_leon.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Catarata Leon">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/catarata_leon2.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Catarata Leon">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/catarata_leon3.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Catarata Leon">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel3" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carousel3" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                        <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill bg-secondary px-3 py-2 shadow-sm" style="font-size:1rem;">
+                            Cascada El Leon
+                        </span>
+                    </div>
+                </a>
+                <div class="p-4">
+                    <h3 class="fw-bold">Cascada "El León"</h3>
+                    <p>Hermosa cascada rica en biodiversidad debido a su ubicación. Ideal para ecoturismo y observacion de biodiversidad</p>
+                    <ul>
+                        <li>Presencia de aves y pequeños mamíferos</li>
+                        <li>Ecosistema acuático</li>
+                        <li>Vegetación exuberante típica de la selva regional</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0 card-explore" style="width:100%;max-width:480px;">
+                <a href="{% url 'explore_detail' 'laguna-de-los-milagros' %}" class="d-block text-decoration -none">
+                    <div id="carousel4" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded-4">
+                            <div class="carousel-item active">
+                                <img src="{% static 'images/explore/laguna_milagros.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Laguna De Los Milagros">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/laguna_milagros2.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Laguna De Los Milagros">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/laguna_milagros3.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Laguna De Los Milagros">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel4" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carousel4" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                        <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill bg-success px-3 py-2 shadow-sm" style="font-size:1rem;">
+                            Laguna de Los Milagros
+                        </span>
+                    </div>
+                </a>
+                <div class="p-4">
+                    <h3 class="fw-bold">Laguna De Los milagros</h3>
+                    <p>Uno de los principales atractivos turísticos, conocida por su belleza escénica y su rica biodiversidad</p>
+                    <ul>
+                        <li>Este humedal es hogar de una gran diversidad de animales</li>
+                        <li>Refugio para aves migratorias</li>
+                        <li>Ideal para avistamiento de aves y ecoturismo</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0 card-explore" style="width:100%;max-width:480px;">
+                <a href="{% url 'explore_detail' 'cueva-de-las-lechuzas' %}" class="d-block text-decoration -none">
+                    <div id="carousel5" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded-4">
+                            <div class="carousel-item active">
+                                <img src="{% static 'images/explore/cueva_lechuzas.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Cueva De Las Lechuzas">   
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/cueva_lechuzas2.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Cueva De Las Lechuzas">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/cueva_lechuzas3.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Cueva De Las Lechuzas">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel5" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carousel5" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                        <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill bg-dark px-3 py-2 shadow-sm" style="font-size:1rem;">
+                            Cueva de las lechuzas
+                        </span>
+                    </div>
+                </a>
+                <div class="p-4">
+                    <h3 class="fw-bold">Cueva De Las Lechuzas</h3>
+                    <p>Impresionante caverna de piedra caliza, hogar de los guácharos</p>
+                    <ul>
+                        <li>Presenta un ecosistema único</li>
+                        <li>Habitado principalmente por guácharos</li>
+                        <li>Hábitat de flora y fauna nocturna</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0 card-explore" style="width:100%;max-width:480px;">
+                <a href="{% url 'explore_detail' 'rio-huallaga' %}" class="d-block text-decoration -none">
+                    <div id="carousel6" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded-4">
+                            <div class="carousel-item active">
+                                <img src="{% static 'images/explore/huallaga.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Río Huallaga">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/huallaga2.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Río Huallaga">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/huallaga3.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Río Huallaga">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel6" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carousel6" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                        <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill bg-secondary px-3 py-2 shadow-sm" style="font-size:1rem;">
+                            Río Huallaga
+                        </span>
+                    </div>
+                </a>
+                <div class="p-4">
+                    <h3 class="fw-bold">Río Huallaga</h3>
+                    <p>Es uno de los principales afluentes de la Amazonía peruana y el eje natural que vertebra la vida en Tingo María</p>
+                    <ul>
+                        <li>Con aguas que oscilan entre el color café oscuro en época de lluvias y el verde esmeralda en verano</li>
+                        <li>Al bordear la Bella Durmiente, ofrece una vista panorámica</li>
+                        <li>Gran variedad de peces</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0 card-explore" style="width:100%;max-width:480px;">
+                <a href="{% url 'explore_detail' 'catarata-santa-carmen' %}" class="d-block text-decoration -none">
+                    <div id="carousel7" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded-4">
+                            <div class="carousel-item active">
+                                <img src="{% static 'images/explore/santa_carmen.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Santa Carmen">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/santa_carmen2.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Santa Carmen">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/santa_carmen3.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Santa Carmen">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel7" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carousel7" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                        <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill bg-secondary px-3 py-2 shadow-sm" style="font-size:1rem;">
+                            Catarata Santa Carmen
+                        </span>
+                    </div>
+                </a>
+                <div class="p-4">
+                    <h3 class="fw-bold">Catarata Santa Carmen</h3>
+                    <p>Espejo de agua cristalina rodeado de selva exuberante, famosa por su biodiversidad y paisajes serenos</p>
+                    <ul>
+                        <li>Aguas tranquilas y color verde esmeralda</li>
+                        <li>Alberga gran cantidad de especies, especialmente aves acuáticas, peces y reptiles</li>
+                        <li>La vegetación alrededor es típica de la selva alta y humedades tropicales</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0 card-explore" style="width:100%;max-width:480px;">
+                <a href="{% url 'explore_detail' 'zoocriadero-UNAS' %}" class="d-block text-decoration -none">
+                    <div id="carousel8" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded-4">
+                            <div class="carousel-item active">
+                                <img src="{% static 'images/explore/zoocriadero.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Zoocriadero UNAS">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/zoocriadero2.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Zoocriadero UNAS">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/zoocriadero3.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="zoocriadero UNAS">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel8" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carousel8" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                        <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill bg-success px-3 py-2 shadow-sm" style="font-size:1rem;">
+                            Zoocriadero UNAS
+                        </span>
+                    </div>
+                </a>
+                <div class="p-4">
+                    <h3 class="fw-bold">Zoocriadero UNAS</h3>
+                    <p>es un centro especializado en la cría controlada y rehabilitación de especies nativas de la selva peruana. Funciona como:</p>
+                    <ul>
+                        <li>Centro de rescate para animales víctimas de tráfico animal</li>
+                        <li>Aula viva, donde estudiantes y visitantes aprenden sobre biodiversidad</li>
+                        <li>"Banco genético" para especies en peligro</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0 card-explore" style="width:100%;max-width:480px;">
+                <a href="{% url 'explore_detail' 'cueva-de-las-pavas' %}" class="d-block text-decoration -none">
+                    <div id="carousel9" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded-4">
+                            <div class="carousel-item active">
+                                <img src="{% static 'images/explore/cueva_pavas.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Cueva De Las Pavas">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/cueva_pavas2.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Cueva De Las Pavas">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/cueva_pavas3.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Cueva De Las Pavas">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel9" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carousel9" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                        <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill bg-success px-3 py-2 shadow-sm" style="font-size:1rem;">
+                            Cueva de las pavas
+                        </span>
+                    </div>
+                </a>
+                <div class="p-4">
+                    <h3 class="fw-bold">Cueva De Las Pavas</h3>
+                    <p>Conocido por sus formaciones rocosas, cuevas y la presencia de las aves "pavas"
+                    </p>
+                    <ul>
+                        <li>La vegetación que la habita está adaptada a ambientes húmedos y rocosos</li>
+                        <li>Alberga una fauna diversa, especialmente aves, murciélagos y reptiles.</li>
+                        <li>Presencia de pequeños peces en las aguas</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 d-flex justify-content-center">
+            <div class="bg-light rounded-4 shadow-sm p-0 card-explore" style="width:100%;max-width:480px;">
+                <a href="{% url 'explore_detail' 'catarata-san-miguel' %}" class="d-block text-decoration -none">
+                    <div id="carousel10" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded-4">
+                            <div class="carousel-item active">
+                                <img src="{% static 'images/explore/catarata_san_miguel.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Catarata San Miguel">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/catarata_san_miguel2.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Catarata San Miguel">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="{% static 'images/explore/catarata_san_miguel3.png' %}" class="d-block w-100 img-zoom" style="height:320px;object-fit:cover;" alt="Catarata San Miguel">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel10" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carousel10" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                            <span class="visually-hidden">Siguiente</span>
+                        </button>
+                        <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill bg-info px-3 py-2 shadow-sm" style="font-size:1rem;">
+                            Catarata San Miguel
+                        </span>
+                    </div>
+                </a>
+                <div class="p-4">
+                    <h3 class="fw-bold">Catarata San Miguel</h3>
+                    <p>Atractivo turístico conocido por su caída de agua refrescante y su entorno biodiverso</p>
+                    <ul>
+                        <li>Tiene plantas como el palo sangre, bolaina, heliconias, orquídeas....</li>
+                        <li>Tiene animales como el martín pescador, salamandras, armadillos....</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

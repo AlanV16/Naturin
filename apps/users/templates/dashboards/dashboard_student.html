@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block header %}
+<header class="bg-white text-dark py-3" style="box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); border-bottom: 1px solid rgba(56, 142, 60, 0.1);">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <a class="brand-title text-decoration-none">
+                <span class="brand-title-text" style="font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em;">
+                    <span class="text-success">Nature</span><span class="text-warning">In</span>
+                </span>
+            </a>
+            <div class="d-flex flex-grow-1 px-5">
+                <span class="text-truncate" style="font-size: 0.95rem; font-weight: 500; color: #495057;">
+                    Bienvenido, <span class="text-success fw-semibold">{{ user.username }}</span>
+                </span>
+            </div>
+            <form action="{% url 'users:logout' %}" method="post" class="m-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-success text-success border-2 px-3 py-2 logout-btn" style="font-weight: 500; border-radius: 8px; transition: all 0.2s ease;">
+                    <i class="bi bi-box-arrow-left me-2"></i>Cerrar Sesión
+                </button>
+            </form>
+            <style>
+                .logout-btn:hover {
+                    background-color: #388e3c !important;
+                    color: white !important;
+                    border-color: #388e3c !important;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 8px rgba(56, 142, 60, 0.3);
+                }
+            </style>
+        </div>
+    </div>
+</header>
+{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_student.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2 dashboard-bg">
+    <div class="row">
+        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar-dashboard">
+            <div class="text-center py-4">
+                <img src="{% static 'images/mascota/tuki.png' %}" alt="Logo" width="110" class="mb-3">
+            </div>
+            <nav class="nav flex-column px-3 gap-2 py-4">
+                <a class="nav-link active fw-bold sidebar-btn mt-3" href="#dashboard-section">
+                    <i class="bi bi-house-door-fill me-2 fs-5"></i> Inicio
+                </a>
+                <a class="nav-link fw-bold sidebar-btn mt-3" href="#courses-section">
+                    <i class="bi bi-journal-bookmark-fill me-2 fs-5"></i> Cursos
+                </a>
+                <a class="nav-link fw-bold sidebar-btn mt-3" href="#badges-section">
+                    <i class="bi bi-award-fill me-2 fs-5"></i> Insignias
+                </a>
+                <a class="nav-link fw-bold sidebar-btn mt-3" href="#certificates-section">
+                    <i class="bi bi-file-earmark-text-fill me-2 fs-5"></i> Certificados
+                </a>
+                <a class="nav-link fw-bold sidebar-btn mt-3" href="#activities-section">
+                    <i class="bi bi-list-task me-2 fs-5"></i> Actividades
+                </a>
+                <a class="nav-link fw-bold sidebar-btn mt-3" href="#settings-section">
+                    <i class="bi bi-gear-fill me-2 fs-5"></i> Configuración
+                </a>
+            </nav>
+        </div>
+
+        <div class="col-md-9 col-lg-10 px-4">
+            <div class="py-4">
+                <h2 class="fw-bold dashboard-title">
+                    ¡Hola, {{ user.get_full_name|default:user.username }}!
+                </h2>
+
+                <div id="dashboard-section">
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <button class="btn-dashboard-join" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#joinClassModal">
+                                Unirse a una clase
+                            </button>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card-container text-center">
+                                <div class="fw-bold stats-number-primary">{{ user_courses_count }}</div>
+                                <div class="text-muted">Cursos actuales</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card-container text-center">
+                                <div class="fw-bold stats-number-warning">{{ pending_activities_count }}</div>
+                                <div class="text-muted">Pendientes</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card-container text-center">
+                                <div class="fw-bold stats-number-info">{{ progress.points }}</div>
+                                <div class="text-muted">Puntos acumulados</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <div class="card-container">
+                                <h5 class="fw-bold mb-3 dashboard-title">Mis Cursos</h5>
+                                {% for course in user_courses %}
+                                    <div class="course-item card-bg">
+                                        <div class="course-content">
+                                            <i class="bi bi-book-fill me-2 course-icon"></i> {{ course.class_id.name }}
+                                        </div>
+                                        <div class="course-actions">
+                                            <a href="{% url 'users:class_student' course.class_id.id %}" class="btn-dashboard-view">Ver</a>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <p class="text-muted">No estás inscrito en ningún curso.</p>
+                                {% endfor %}
+                            </div>
+
+                            <div class="card-container">
+                                <h5 class="fw-bold mb-3 dashboard-title">Cursos Recientes</h5>
+                                {% for course in user_courses|slice:":3" %}
+                                    <div class="course-item card-bg">
+                                        <div class="course-content">
+                                            <i class="bi bi-book-fill me-2 course-icon"></i> {{ course.class_id.name }}
+                                        </div>
+                                        <div class="course-actions">
+                                            <a href="{% url 'users:class_student' course.class_id.id %}" class="btn-dashboard-view">Ver</a>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <p class="text-muted">No hay cursos recientes.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="card-container">
+                                <h5 class="fw-bold mb-3 dashboard-title">Resumen de notas</h5>
+                                <canvas id="gradesChart" width="400" height="200"></canvas>
+                            </div>
+
+                            <div class="card-container">
+                                <h5 class="fw-bold mb-3 dashboard-title">Actividades pendientes</h5>
+                                {% for activity in pending_activities %}
+                                    <div class="mb-2">
+                                        <i class="bi bi-calendar-event me-2 event-icon"></i> {{ activity.name }}
+                                        <span class="text-secondary">({{ activity.points }} pts)</span>
+                                        <a href="{% url 'users:play_game' activity.class_id.id %}" class="btn-dashboard-view btn-sm ms-2">Realizar</a>
+                                    </div>
+                                {% empty %}
+                                    <p class="text-muted">No tienes actividades pendientes.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="courses-section" style="display: none;">
+                    <div class="card-container">
+                        <h5 class="fw-bold mb-3 dashboard-title">Mis Cursos</h5>
+                        {% for course in user_courses %}
+                            <div class="course-item card-bg">
+                                <div class="course-content">
+                                    <i class="bi bi-book-fill me-2 course-icon"></i> {{ course.class_id.name }}
+                                </div>
+                                <div class="course-actions">
+                                    <a href="{% url 'users:class_student' course.class_id.id %}" class="btn-dashboard-view">Ver</a>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">No estás inscrito en ningún curso.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div id="badges-section" style="display: none;">
+                    <div class="card-container">
+                        <h5 class="fw-bold mb-3 dashboard-title">Mis Insignias</h5>
+                        {% for badge in user_badges %}
+                            <div class="badge-item">
+                                <img src="{{ badge.image.url }}" alt="{{ badge.name }}" onerror="this.src='{% static 'images/default_badge.png' %}';">
+                                <div>
+                                    <strong>{{ badge.name }}</strong>
+                                    <p class="text-muted">{{ badge.description }}</p>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">No has ganado ninguna insignia aún.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div id="certificates-section" style="display: none;">
+                    <div class="card-container">
+                        <h5 class="fw-bold mb-3 dashboard-title">Mis Certificados</h5>
+                        {% for certificate in user_certificates %}
+                            <div class="certificate-item">
+                                <strong>{{ certificate.name }}</strong>
+                                <p class="text-muted">Fecha: {{ certificate.date|date:'d/m/Y' }}</p>
+                                <a href="{{ certificate.file.url }}" target="_blank">Descargar</a>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">No has obtenido certificados aún.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div id="activities-section" style="display: none;">
+                    <div class="card-container">
+                        <h5 class="fw-bold mb-3 dashboard-title">Actividades Pendientes</h5>
+                        {% for activity in pending_activities %}
+                            <div class="course-item card-bg">
+                                <div class="course-content">
+                                    <i class="bi bi-list-task me-2 course-icon"></i> {{ activity.name }}
+                                    <span class="text-secondary">({{ activity.points }} pts)</span>
+                                </div>
+                                <div class="course-actions">
+                                    <a href="{% url 'users:play_game' activity.class_id.id %}" class="btn-dashboard-view">Realizar</a>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">No tienes actividades pendientes.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div id="settings-section" style="display: none;">
+                    <div class="card-container">
+                        <h5 class="fw-bold mb-3 dashboard-title">Configuración</h5>
+                        <p>Aquí puedes configurar tu perfil y preferencias...</p>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="joinClassModal" tabindex="-1" aria-labelledby="joinClassModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content rounded-4">
+                            <div class="modal-header">
+                                <h5 class="modal-title fw-bold" id="joinClassModalLabel">Unirse a una clase</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                {% if messages %}
+                                    {% for message in messages %}
+                                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                                <form action="{% url 'users:join_class' %}" method="post">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="courseName" class="form-label">Nombre del curso</label>
+                                        <input type="text" class="form-control" id="courseName" name="course_name" placeholder="Ej: Biología" required>
+                                        <label for="courseCode" class="form-label">Código de la clase</label>
+                                        <input type="text" class="form-control" id="courseCode" name="course_code" placeholder="Ej: ABC12345GT" required>
+                                    </div>
+                                    <button type="submit" class="btn-dashboard-join">Entrar</button> 
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.sidebar-btn');
+        const sections = {
+            'dashboard-section': document.getElementById('dashboard-section'),
+            'courses-section': document.getElementById('courses-section'),
+            'badges-section': document.getElementById('badges-section'),
+            'certificates-section': document.getElementById('certificates-section'),
+            'activities-section': document.getElementById('activities-section'),
+            'settings-section': document.getElementById('settings-section')
+        };
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sectionId = this.getAttribute('href').substring(1);
+                Object.keys(sections).forEach(id => {
+                    sections[id].style.display = id === sectionId ? 'block' : 'none';
+                });
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        sections['dashboard-section'].style.display = 'block';
+
+        // Generar gráfico de barras
+        const ctx = document.getElementById('gradesChart').getContext('2d');
+        const activities = [
+            {% for activity in pending_activities %}
+                { name: "{{ activity.name }}", points: {{ activity.points }} },
+            {% empty %}
+                { name: "Sin datos", points: 0 },
+            {% endfor %}
+        ];
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: activities.map(a => a.name),
+                datasets: [{
+                    label: 'Puntuación',
+                    data: activities.map(a => a.points),
+                    backgroundColor: 'rgba(56, 142, 60, 0.7)',
+                    borderColor: 'rgba(56, 142, 60, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Puntos' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Actividades' }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

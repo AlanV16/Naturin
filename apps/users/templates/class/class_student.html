@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+<header class="bg-white text-dark py-3" style="box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); border-bottom: 1px solid rgba(56, 142, 60, 0.1);">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="{% url 'users:dashboard_student' %}" class="brand-title text-decoration-none">
+                <span class="brand-title-text" style="font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em;">
+                    <span style="color: #2E7D32;">Nature</span><span style="color: #F57C00;">In</span>
+                </span>
+            </a>
+            <div class="d-flex flex-grow-1 px-5">
+                <span class="text-truncate" style="font-size: 0.95rem; font-weight: 500; color: #424242;">
+                    Bienvenido, <span style="color: #2E7D32;" class="fw-semibold">{{ user.username }}</span>
+                </span>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <a href="{% url 'users:dashboard_student' %}" class="btn btn-outline-success text-success border-2 px-3 py-2 regresar-btn" style="font-weight: 500; border-radius: 8px; transition: all 0.2s ease;">
+                    <i class="bi bi-arrow-left me-2"></i>Regresar
+                </a>
+                <form action="{% url 'users:logout' %}" method="post" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-success text-success border-2 px-3 py-2 logout-btn" style="font-weight: 500; border-radius: 8px; transition: all 0.2s ease;">
+                        <i class="bi bi-box-arrow-left me-2"></i>Cerrar Sesión
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <style>
+        .logout-btn:hover {
+            background-color: #2E7D32 !important;
+            color: white !important;
+            border-color: #2E7D32 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.3);
+        }
+        .regresar-btn:hover {
+            background-color: #2E7D32 !important;
+            color: white !important;
+            border-color: #2E7D32 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.3);
+        }
+    </style>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 50%, #F9E79F 100%); border-radius: 16px;">
+                <div class="card-body text-dark p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="me-4">
+                            <i class="bi bi-mortarboard" style="font-size: 3rem; opacity: 0.8;"></i>
+                        </div>
+                        <div>
+                            <h1 class="h2 mb-2 fw-bold">{{ class.name }}</h1>
+                            <p class="mb-1 opacity-80"><i class="bi bi-bookmarks me-2"></i>Grado: {{ class.grade }} - Sección: {{ class.section }}</p>
+                            <p class="mb-0 opacity-80"><i class="bi bi-info-circle me-2"></i>{{ class.description|default:'Sin descripción' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-xl-4 col-lg-6">
+            <!-- Contenido Teórico -->
+            <div class="card mb-4 shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #2E7D32, #4CAF50); border: none;">
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-book-half me-2"></i>Contenido Teórico</h5>
+                </div>
+                <div class="card-body p-4 bg-light">
+                    {% if theoretical_content %}
+                        {% for content in theoretical_content %}
+                        <div class="border-start border-4 ps-3 mb-3" style="border-color: #2E7D32 !important;">
+                            <h6 class="fw-semibold mb-2" style="color: #2E7D32;">{{ content.title }}</h6>
+                            <p class="text-muted small mb-2">{{ content.description }}</p>
+                            {% if content.file %}
+                            <a href="{{ content.file.url }}" class="btn btn-sm btn-outline-success" target="_blank" style="border-radius: 8px;">
+                                <i class="bi bi-download me-1"></i>Descargar
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="border-start border-4 ps-3" style="border-color: #2E7D32 !important;">
+                            <h6 class="fw-semibold mb-2" style="color: #2E7D32;">Introducción a la Biología</h6>
+                            <p class="text-muted small">La biología es la ciencia que estudia los seres vivos y sus procesos vitales. Aprende sobre estructura celular, ecosistemas y biodiversidad.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actividades -->
+            <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #F57C00, #FFB300); border: none;">
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-clipboard-check me-2"></i>Actividades</h5>
+                </div>
+                <div class="card-body p-4 bg-light">
+                    {% for activity in activities %}
+                        <div class="d-flex justify-content-between align-items-center p-3 mb-3 rounded-3" style="background: #FFF3E0;">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 fw-semibold" style="color: #F57C00;">{{ activity.name }}</h6>
+                                <small class="text-muted">{{ activity.description|default:"Completa esta actividad" }}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge rounded-pill px-3 py-2" style="background: #FFB300; color: white;">{{ activity.points }} pts</span>
+                                <a href="{% url 'users:play_game' class.id %}" class="btn btn-sm text-white" style="background: #F57C00; border-radius: 8px;">
+                                    <i class="bi bi-play-fill me-1"></i>Realizar
+                                </a>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-clipboard-x" style="font-size: 3rem; color: #FFB300;"></i>
+                            <p class="text-muted mt-2">No hay actividades disponibles</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-6">
+            <!-- Juegos Educativos -->
+            <div class="card mb-4 shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #2E7D32, #F57C00); border: none;">
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-controller me-2"></i>Juegos Educativos</h5>
+                </div>
+                <div class="card-body p-4 bg-light">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="card h-100 border-0 shadow-sm" style="background: #E8F5E9; border-radius: 12px;">
+                                <div class="card-body text-center p-4">
+                                    <div class="mb-3">
+                                        <i class="bi bi-puzzle" style="font-size: 2.5rem; color: #2E7D32;"></i>
+                                    </div>
+                                    <h6 class="fw-semibold mb-2" style="color: #2E7D32;">Quiz de Biología</h6>
+                                    <p class="text-muted small mb-3">Pon a prueba tus conocimientos</p>
+                                    <a href="{% url 'users:play_game' class.id %}" class="btn text-white fw-semibold" style="background: #2E7D32; border-radius: 8px;">
+                                        <i class="bi bi-play-fill me-1"></i>Jugar Ahora
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="card h-100 border-0 shadow-sm" style="background: #FFF3E0; border-radius: 12px;">
+                                <div class="card-body text-center p-4">
+                                    <div class="mb-3">
+                                        <i class="bi bi-lightning-charge" style="font-size: 2.5rem; color: #F57C00;"></i>
+                                    </div>
+                                    <h6 class="fw-semibold mb-2" style="color: #F57C00;">Retos Rápidos</h6>
+                                    <p class="text-muted small mb-3">Desafíos de 5 minutos</p>
+                                    <a href="#" class="btn text-white fw-semibold" style="background: #F57C00; border-radius: 8px;">
+                                        <i class="bi bi-zap me-1"></i>Desafiar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert border-0 mt-3" style="background: rgba(46, 125, 50, 0.1); color: #2E7D32; border-radius: 8px;">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <small>Completa juegos para obtener insignias y puntos</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat -->
+            <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #0288D1, #03A9F4); border: none;">
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-chat-dots me-2"></i>Chat de Clase</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="chat-box p-3" style="height: 280px; overflow-y: auto; background: #F5F5F5;">
+                        {% for message in chat_messages %}
+                        <div class="mb-3">
+                            <div class="d-flex align-items-start gap-2 {% if message.user == user %}flex-row-reverse{% endif %}">
+                                <div class="avatar rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 32px; height: 32px; background: {% if message.user == user %}#2E7D32{% else %}#F57C00{% endif %}; font-size: 0.8rem;">
+                                    {{ message.user.username|first|upper }}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="message-bubble p-2 rounded-3 {% if message.user == user %}ms-auto{% endif %}" style="max-width: 80%; background: {% if message.user == user %}#2E7D32{% else %}#F57C00{% endif %}; color: white;">
+                                        <p class="mb-1 small">{{ message.content }}</p>
+                                        <small class="opacity-75" style="font-size: 0.7rem;">{{ message.timestamp|date:"H:i" }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-chat-square-text" style="font-size: 3rem; color: #B0BEC5;"></i>
+                            <p class="mt-2">¡Sé el primero en escribir!</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="p-3 border-top" style="background: white;">
+                        <form method="post" action="#">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="text" name="message" class="form-control border-0 rounded-start-3" placeholder="Escribe un mensaje..." required maxlength="500" style="background: #F5F5F5;">
+                                <button type="submit" class="btn text-white rounded-end-3" style="background: #0288D1;">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-12">
+            <!-- Progreso -->
+            <div class="card mb-4 shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="card-header text-white" style="background: linear-gradient(135deg,rgb(34, 181, 146),rgb(33, 94, 65)); border: none;">
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-graph-up-arrow me-2"></i>Tu Progreso</h5>
+                </div>
+                <div class="card-body p-4 bg-light">
+                    {% if progress %}
+                    <div class="text-center mb-3">
+                        <div class="position-relative d-inline-block">
+                            <div class="progress-circle" style="width: 100px; height: 100px; background: conic-gradient(#2E7D32 {{ progress.percentage }}%, #E0E0E0 {{ progress.percentage }}%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                                    <div class="text-center">
+                                        <div class="fw-bold h5 mb-0" style="color: #2E7D32;">{{ progress.level }}</div>
+                                        <small class="text-muted">Nivel</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <h6 class="fw-semibold mb-2" style="color: #2E7D32;">{{ progress.points }} Puntos</h6>
+                        <p class="text-muted small mb-0">{{ progress.points_to_next_level }} pts para el siguiente nivel</p>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-graph-up" style="font-size: 3rem; color: #AB47BC;"></i>
+                        <p class="text-muted mt-2">Completa actividades para ver tu progreso</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Insignias -->
+            <div class="card shadow-sm border-0" style="border-radius: 16px; overflow: hidden;">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #EF6C00, #FF9800); border: none;">
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-award me-2"></i>Insignias</h5>
+                </div>
+                <div class="card-body p-4 bg-light">
+                    {% if progress.badges.exists %}
+                        <div class="row g-3">
+                            {% for badge in progress.badges.all %}
+                            <div class="col-6">
+                                <div class="text-center p-3 rounded-3 shadow-sm" style="background: #FFF3E0;">
+                                    <i class="bi bi-award-fill mb-2" style="font-size: 2rem; color: #EF6C00;"></i>
+                                    <h6 class="small fw-semibold mb-1" style="color: #EF6C00;">{{ badge.name }}</h6>
+                                    <small class="text-muted">{{ badge.description }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-award" style="font-size: 3rem; color: #FF9800;"></i>
+                            <p class="text-muted mt-2 small">¡Completa actividades para ganar insignias!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

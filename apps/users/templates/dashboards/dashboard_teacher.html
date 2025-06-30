@@ -1,0 +1,453 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+<header class="bg-white text-dark py-3" style="box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); border-bottom: 1px solid rgba(56, 142, 60, 0.1);">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <a class="brand-title text-decoration-none">
+                <span class="brand-title-text" style="font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em;">
+                    <span class="text-success">Nature</span><span class="text-warning">In</span>
+                </span>
+            </a>
+            <div class="d-flex flex-grow-1 px-5">
+                <span class="text-truncate" style="font-size: 0.95rem; font-weight: 500; color: #495057;">
+                    Bienvenido, <span class="text-success fw-semibold">{{ user.username }}</span>
+                </span>
+            </div>
+            <form action="{% url 'users:logout' %}" method="post" class="m-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-success text-success border-2 px-3 py-2 logout-btn" style="font-weight: 500; border-radius: 8px; transition: all 0.2s ease;">
+                    <i class="bi bi-box-arrow-left me-2"></i>Cerrar Sesión
+                </button>
+            </form>
+            <style>
+                .logout-btn:hover {
+                    background-color: #388e3c !important;
+                    color: white !important;
+                    border-color: #388e3c !important;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 8px rgba(56, 142, 60, 0.3);
+                }
+            </style>
+        </div>
+    </div>
+</header>
+{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2 dashboard-bg">
+    <div class="row">
+        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar-dashboard">
+            <div class="text-center py-4">
+                <div style="width: 90px; height: 90px; background: #FFD700; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    <i class="bi bi-mortarboard-fill" style="font-size: 2rem; color: #2d5016;"></i>
+                </div>
+            </div>
+            <nav class="nav flex-column px-3">
+                <button class="nav-link active fw-bold sidebar-btn" onclick="showSection('dashboard')">
+                    <i class="bi bi-house-door-fill me-2"></i> Dashboard
+                </button>
+                <button class="nav-link fw-bold sidebar-btn" onclick="showSection('clases')">
+                    <i class="bi bi-plus-circle me-2"></i> Clases
+                </button>
+                <button class="nav-link fw-bold sidebar-btn" onclick="showSection('contenido')">
+                    <i class="bi bi-folder-fill me-2"></i> Contenido
+                </button>
+                <button class="nav-link fw-bold sidebar-btn" onclick="showSection('mensajes')">
+                    <i class="bi bi-chat-dots-fill me-2"></i> Mensajes
+                </button>
+                <button class="nav-link fw-bold sidebar-btn" onclick="showSection('configuracion')">
+                    <i class="bi bi-gear-fill me-2"></i> Configuración
+                </button>
+            </nav>
+        </div>
+
+        <div class="col-md-9 col-lg-10 px-4">
+            <div class="py-2">
+                <h2 class="fw-bold dashboard-title">
+                    ¡Bienvenido, {{ user.get_full_name|default:user.username }}!
+                </h2>
+
+                <div id="dashboard-section">
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-3">
+                            <button class="btn-dashboard-create" onclick="openCreateClassModal()">
+                                <i class="bi bi-plus-circle me-2"></i> Crear Clase
+                            </button>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <div class="card-container text-center">
+                                <div class="fw-bold stats-number-primary">6</div>
+                                <div class="text-muted">Clases Activas</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <div class="card-container text-center">
+                                <div class="fw-bold stats-number-primary">24</div>
+                                <div class="text-muted">Estudiantes</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <div class="card-container text-center">
+                                <div class="fw-bold stats-number-primary">5</div>
+                                <div class="text-muted">Nuevos Mensajes</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <div class="card-container">
+                                <h5 class="fw-bold mb-3 dashboard-title">Mis Clases</h5>
+                                <div class="course-item">
+                                    <div class="course-content">
+                                        <i class="bi bi-book-fill me-2 course-icon"></i> Clase A <span class="text-secondary">1° Secundaria</span>
+                                    </div>
+                                    <div class="course-actions">
+                                        <a href="#" class="btn-dashboard-view">Ver</a>
+                                    </div>
+                                </div>
+                                <div class="course-item">
+                                    <div class="course-content">
+                                        <i class="bi bi-book-fill me-2 course-icon"></i> Clase B <span class="text-secondary">2° Secundaria</span>
+                                    </div>
+                                    <div class="course-actions">
+                                        <a href="#" class="btn-dashboard-view">Ver</a>
+                                    </div>
+                                </div>
+                                <div class="course-item">
+                                    <div class="course-content">
+                                        <i class="bi bi-book-fill me-2 course-icon"></i> Clase C <span class="text-secondary">1° Secundaria</span>
+                                    </div>
+                                    <div class="course-actions">
+                                        <a href="#" class="btn-dashboard-view">Ver</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-container">
+                                <h5 class="fw-bold mb-3 dashboard-title">Administrador de Contenido</h5>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <button class="btn-dashboard-secondary" onclick="openContentModal()">
+                                            <i class="bi bi-plus-circle me-2"></i> Añadir nuevo contenido
+                                        </button>
+                                    </div>
+                                    <div class="col-6">
+                                        <button class="btn-dashboard-secondary" onclick="downloadReports()">
+                                            <i class="bi bi-download me-2"></i> Descargar reportes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card-container">
+                                <h5 class="fw-bold mb-3 dashboard-title">Nuevos Mensajes</h5>
+                                <ul class="list-unstyled mb-0">
+                                    <li class="mb-2"><i class="bi bi-envelope-fill me-2 message-icon"></i> Message 1</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="clases-section" style="display: none;">
+                    <h3 class="dashboard-title">Gestión de Clases</h3>
+                    <div class="card-container">
+                        <p>Aquí puedes gestionar todas tus clases...</p>
+                    </div>
+                </div>
+
+                <div id="contenido-section" style="display: none;">
+                    <h3 class="dashboard-title">Gestión de Contenido</h3>
+                    <div class="card-container">
+                        <p>Aquí puedes gestionar todo tu contenido educativo...</p>
+                    </div>
+                </div>
+
+                <div id="mensajes-section" style="display: none;">
+                    <h3 class="dashboard-title">Mensajes</h3>
+                    <div class="card-container">
+                        <p>Aquí puedes ver y responder mensajes...</p>
+                    </div>
+                </div>
+
+                <div id="configuracion-section" style="display: none;">
+                    <h3 class="dashboard-title">Configuración</h3>
+                    <div class="card-container">
+                        <p>Aquí puedes configurar tu perfil y preferencias...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="createClassModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nueva Clase</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createClassForm" action="{% url 'users:create_class' %}" method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre de la Clase</label>
+                            <input type="text" class="form-control" name="class_name" id="className" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Grado</label>
+                            <select class="form-select" name="grade" id="classGrade" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="1° de Secundaria">1° de Secundaria</option>
+                                <option value="2° de Secundaria">2° de Secundaria</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Sección</label>
+                            <select class="form-select" name="section" id="classSection" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="Sección A">Sección A</option>
+                                <option value="Sección B">Sección B</option>
+                                <option value="Sección C">Sección C</option>
+                                <option value="Sección D">Sección D</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Descripción</label>
+                            <textarea class="form-control" name="description" id="classDescription" rows="3"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <h6>Añadir Actividades a la Clase</h6>
+                            <div id="activitiesList">
+                                <div class="activity-card" onclick="selectActivity(this, 'test-matematicas')">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>Test de Biología</strong>
+                                            <div class="text-muted small">Evaluación de tips de nutrición</div>
+                                        </div>
+                                        <div>
+                                            <button type="button" class="btn-edit-activity me-2" onclick="editActivity('test-matematicas')">Editar</button>
+                                            <input type="checkbox" class="activity-checkbox" name="activities" value="test-matematicas">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="activity-card" onclick="selectActivity(this, 'juego-lectura')">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>Juego de Lectura</strong>
+                                            <div class="text-muted small">Comprensión lectora interactiva</div>
+                                        </div>
+                                        <div>
+                                            <button type="button" class="btn-edit-activity me-2" onclick="editActivity('juego-lectura')">Editar</button>
+                                            <input type="checkbox" class="activity-checkbox" name="activities" value="juego-lectura">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="activity-card" onclick="selectActivity(this, 'cuestionario-ciencias')">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>Cuestionario Ciencias</strong>
+                                            <div class="text-muted small">Preguntas sobre biotipos</div>
+                                        </div>
+                                        <div>
+                                            <button type="button" class="btn-edit-activity me-2" onclick="editActivity('cuestionario-ciencias')">Editar</button>
+                                            <input type="checkbox" class="activity-checkbox" name="activities" value="cuestionario-ciencias">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Código de Acceso</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="accessCode" name="access_code" readonly style="font-family: 'Courier New', monospace; font-weight: bold; letter-spacing: 1px; background-color: #f8f9fa;">
+                                <button class="btn btn-outline-secondary" type="button" id="copyCodeBtn" onclick="copyAccessCode()" title="Copiar código">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                                <button class="btn btn-outline-primary" type="button" onclick="generateNewAccessCode()" title="Generar nuevo código">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </div>
+                            <small class="form-text text-muted">Este código permitirá a los estudiantes unirse a la clase.</small>
+                        </div>
+                    </div>
+                </form>
+                {% if messages %}
+                    {% for message in messages %}
+                        {% if 'access_code' in message.message %}
+                            <p class="mt-2">Código de acceso: <strong>{{ message.message|slice:"27:" }}</strong></p>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-success" form="createClassForm">Crear Clase</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <div class="modal fade" id="contentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Añadir Nuevo Contenido</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-grid gap-3">
+                        <button class="btn btn-outline-success btn-lg" onclick="openActivityCreator('test')">
+                            <i class="bi bi-clipboard-check me-2"></i> Crear Test
+                        </button>
+                        <button class="btn btn-outline-success btn-lg" onclick="openActivityCreator('cuestionario')">
+                            <i class="bi bi-question-circle me-2"></i> Crear Cuestionario
+                        </button>
+                        <button class="btn btn-outline-success btn-lg" onclick="openActivityCreator('juego')">
+                            <i class="bi bi-controller me-2"></i> Seleccionar Juego Temático
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification">
+        <span id="notificationText"></span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let selectedActivities = [];
+
+        function showSection(sectionName) {
+            const sections = ['dashboard', 'clases', 'contenido', 'mensajes', 'configuracion'];
+            sections.forEach(section => {
+                document.getElementById(`${section}-section`).style.display = 'none';
+            });
+            document.getElementById(`${sectionName}-section`).style.display = 'block';
+            document.querySelectorAll('.sidebar-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function openCreateClassModal() {
+            const modal = new bootstrap.Modal(document.getElementById('createClassModal'));
+            modal.show();
+            modal._element.addEventListener('shown.bs.modal', function() {
+                generateNewAccessCode();
+            }, { once: true });
+        }
+
+        function openContentModal() {
+            const modal = new bootstrap.Modal(document.getElementById('contentModal'));
+            modal.show();
+        }
+
+        function selectActivity(card, activityId) {
+            const checkbox = card.querySelector('.activity-checkbox');
+            checkbox.checked = !checkbox.checked;
+            if (checkbox.checked) {
+                card.classList.add('selected');
+                if (!selectedActivities.includes(activityId)) {
+                    selectedActivities.push(activityId);
+                }
+            } else {
+                card.classList.remove('selected');
+                selectedActivities = selectedActivities.filter(id => id !== activityId);
+            }
+        }
+
+        function editActivity(activityId) {
+            event.stopPropagation();
+            showNotification(`Editando actividad: ${activityId}`);
+        }
+
+        function openActivityCreator(type) {
+            bootstrap.Modal.getInstance(document.getElementById('contentModal')).hide();
+            let message = '';
+            switch(type) {
+                case 'test': message = 'Abriendo creador de tests...'; break;
+                case 'cuestionario': message = 'Abriendo creador de cuestionarios...'; break;
+                case 'juego': message = 'Abriendo selector de juegos temáticos...'; break;
+            }
+            showNotification(message);
+        }
+
+        function downloadReports() {
+            showNotification('Generando reportes... (+25 pts)');
+            setTimeout(() => {
+                showNotification('¡Reportes descargados exitosamente!');
+            }, 2000);
+        }
+
+        function showNotification(text, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            notificationText.textContent = text;
+            notification.style.background = type === 'error' ? '#f44336' : '#4CAF50';
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function generateAccessCode() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 8; i++) {
+                result += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return result;
+        }
+
+        function generateNewAccessCode() {
+            const code = generateAccessCode();
+            const accessCodeInput = document.getElementById('accessCode');
+            if (accessCodeInput) {
+                accessCodeInput.value = code;
+                document.getElementById('copyCodeBtn').disabled = false;
+                console.log('Código generado:', code);
+            }
+        }
+
+        function copyAccessCode() {
+            const accessCodeInput = document.getElementById('accessCode');
+            const code = accessCodeInput.value;
+            if (!code) {
+                showNotification('No hay código para copiar', 'error');
+                return;
+            }
+            navigator.clipboard.writeText(code).then(() => {
+                showNotification('¡Código copiado: ' + code + '!');
+                const copyBtn = document.getElementById('copyCodeBtn');
+                const originalContent = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="bi bi-check"></i>';
+                copyBtn.classList.remove('btn-outline-secondary');
+                copyBtn.classList.add('btn-success');
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalContent;
+                    copyBtn.classList.remove('btn-success');
+                    copyBtn.classList.add('btn-outline-secondary');
+                }, 2000);
+            }).catch(err => {
+                showNotification('Error al copiar el código', 'error');
+                console.error('Error copying text: ', err);
+            });
+        }
+    </script>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

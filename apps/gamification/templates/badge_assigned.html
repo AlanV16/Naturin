@@ -1,0 +1,17 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Badge Assigned</title>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+</head>
+<body>
+    <h1>¡Felicidades, {{ user.username }}!</h1>
+    <p>Has ganado la insignia {{ badge.name }}.</p>
+    <p>Descripción: {{ badge.description }}</p>
+    <img src="{{ badge.image.url }}" alt="{{ badge.name }}">
+    <a href="{% url 'gamification:view_rankings' %}">Ver Rankings</a>
+</body>
+</html>
