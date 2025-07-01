@@ -1,0 +1,51 @@
+{% load static %}
+<!-- templates/partials/header_dashboard.html -->
+<div class="row px-4 bg-white border-bottom align-items-center">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/" class="btn btn-outline-success btn-sm"><i class="bi bi-house-door"></i> Inicio</a>
+            <h2 class="fw-bold dashboard-title mb-0 fs-5">
+                ¡Bienvenido, {{ user.get_full_name|default:user.username }}!
+            </h2>
+        </div>
+        <div class="d-flex align-items-center gap-3 ms-lg-4">
+            <!-- Notificaciones -->
+            <div class="dropdown">
+                {% include 'partials/notification_bell.html' %}
+            </div>
+            <!-- Perfil de usuario -->
+            <div class="dropdown">
+                <button class="btn d-flex align-items-center gap-2 dropdown-toggle" type="button" id="userDropdown">
+                    <div class="rounded-circle bg-success text-white d-flex justify-content-center align-items-center" style="width:40px;height:40px;">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" alt="Avatar" class="img-fluid rounded-circle" style="width:100%;height:100%;object-fit:cover;">
+                        {% else %}
+                            <span class="fw-bold">{{ user.get_full_name|default:user.username|make_list|first|upper }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-start">
+                        <div class="fw-semibold small text-dark">{{ user.get_full_name|default:user.username }}</div>
+                        <span class="badge bg-warning text-dark small">
+                            {% if user.user_type == 2 %}
+                                <i class="bi bi-vector-pen"></i> Docente
+                            {% elif user.user_type == 3 %}
+                                <i class="bi bi-house-door"></i> Padre/Madre
+                            {% elif user.user_type == 4 %}
+                                <i class="bi bi-sliders"></i> Admin
+                            {% else %}
+                                <i class="bi bi-journal-bookmark"></i> Estudiante
+                            {% endif %}
+                        </span>
+                    </div>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu" aria-labelledby="userDropdown">
+                    <li><h6 class="dropdown-header">Mi Cuenta</h6></li>
+                    <li><a class="dropdown-item" href="{% if user.user_type == 2 %}{% url 'users:dashboard_teacher' %}{% elif user.user_type == 3 %}{% url 'users:dashboard_parent' %}{% elif user.user_type == 4 %}{% url 'users:dashboard_admin' %}{% else %}{% url 'users:dashboard_student' %}{% endif %}"><i class="bi bi-person-circle"></i> Ver Perfil</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Configuración</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'users:logout' %}"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div> 

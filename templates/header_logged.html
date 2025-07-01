@@ -1,0 +1,98 @@
+{% load static %}
+<header class="main-header sticky-top bg-white border-bottom">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <div class="d-flex align-items-center flex-grow-1">
+        <!-- Logo a la izquierda -->
+        <a class="navbar-brand fw-bold me-4" href="{% url 'home' %}">
+          <span class="text-success">Nature</span><span class="text-warning">In</span>
+        </a>
+        <!-- Menú centrado -->
+        <div class="mx-auto flex-grow-1 d-none d-lg-flex justify-content-center">
+          <ul class="navbar-nav gap-3">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'species_list' %}"><i class="bi bi-mortarboard-fill me-1"></i> Aprender</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'games' %}"><i class="bi bi-joystick me-1"></i> Jugar</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'explore' %}"><i class="bi bi-binoculars-fill me-1"></i> Explorar</a>
+            </li>
+          </ul>
+        </div>
+        <!-- Botón hamburguesa solo en móvil -->
+        <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      </div>
+      <!-- Perfil e iconos a la derecha -->
+      <div class="collapse navbar-collapse flex-grow-0" id="navbarNavDropdown">
+        <ul class="navbar-nav d-lg-none mb-2 mb-lg-0 mt-2">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'species_list' %}"><i class="bi bi-mortarboard-fill me-1"></i> Aprender</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'games' %}"><i class="bi bi-joystick me-1"></i> Jugar</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'explore' %}"><i class="bi bi-binoculars-fill me-1"></i> Explorar</a>
+          </li>
+        </ul>
+        <div class="d-flex align-items-center gap-3 ms-lg-4">
+          <!-- Switch modo oscuro -->
+          <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" id="teacherModeSwitch" role="switch">
+            <label class="form-check-label small text-muted" for="teacherModeSwitch">
+              <i class="bi bi-moon-fill"></i>
+            </label>
+          </div>
+          <!-- Notificaciones -->
+          <div class="dropdown">
+            {% include 'partials/notification_bell.html' %}
+          </div>
+          <!-- Perfil de usuario -->
+          <div class="dropdown">
+            <button class="btn d-flex align-items-center gap-2 dropdown-toggle" type="button" id="userDropdown">
+              <div class="rounded-circle bg-success text-white d-flex justify-content-center align-items-center" style="width:40px;height:40px;">
+                {% if user.avatar %}
+                  <img src="{{ user.avatar.url }}" alt="Avatar" class="img-fluid rounded-circle" style="width:100%;height:100%;object-fit:cover;">
+                {% else %}
+                  <span class="fw-bold">{{ user.get_full_name|default:user.username|make_list|first|upper }}</span>
+                {% endif %}
+              </div>
+              <div class="text-start">
+                <div class="fw-semibold small text-dark">{{ user.get_full_name|default:user.username }}</div>
+                <span class="badge bg-warning text-dark small">
+                  {% if user.user_type == 2 %}
+                    <i class="bi bi-vector-pen"></i> Docente
+                  {% elif user.user_type == 3 %}
+                    <i class="bi bi-house-door"></i> Padre/Madre
+                  {% elif user.user_type == 4 %}
+                    <i class="bi bi-sliders"></i> Admin
+                  {% else %}
+                    <i class="bi bi-journal-bookmark"></i> Estudiante
+                  {% endif %}
+                </span>
+              </div>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu" aria-labelledby="userDropdown">
+              <li><h6 class="dropdown-header">Mi Cuenta</h6></li>
+              <li><a class="dropdown-item" href="{% if user.user_type == 2 %}{% url 'users:dashboard_teacher' %}{% elif user.user_type == 3 %}{% url 'users:dashboard_parent' %}{% elif user.user_type == 4 %}{% url 'users:dashboard_admin' %}{% else %}{% url 'users:dashboard_student' %}{% endif %}"><i class="bi bi-person-circle"></i> Ver Perfil</a></li>
+              <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Configuración</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'users:logout' %}"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/header_logged.js' %}"></script>
+{% if user.is_authenticated %}
+<script src="{% static 'js/notifications.js' %}"></script>
+{% endif %}
+{% endblock %} 

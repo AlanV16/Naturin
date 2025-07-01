@@ -1,0 +1,413 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar{% else %}Crear{% endif %} Ficha Multimedia - NatureIn
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'multimedia:list' %}">Fichas Multimedia</a></li>
+            <li class="breadcrumb-item active">
+                {% if form.instance.pk %}Editar{% else %}Crear{% endif %} Ficha
+            </li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-collection-play"></i>
+                        {% if form.instance.pk %}Editar{% else %}Crear{% endif %} Ficha Multimedia
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="multimedia-form">
+                        {% csrf_token %}
+                        
+                        <!-- Información básica -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">
+                                    <i class="bi bi-info-circle text-success"></i> Información básica
+                                </h5>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.title.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.title }}
+                                    {% if form.title.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.title.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.media_type.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.media_type.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.media_type }}
+                                    {% if form.media_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.media_type.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.description.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.description.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Archivos multimedia -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">
+                                    <i class="bi bi-file-earmark text-success"></i> Contenido multimedia
+                                </h5>
+                            </div>
+                            
+                            <!-- Campos de archivo (se muestran/ocultan según el tipo) -->
+                            <div class="col-12">
+                                <div id="file-fields">
+                                    <div class="mb-3" id="video-field">
+                                        <label for="{{ form.video_file.id_for_label }}" class="form-label fw-bold">
+                                            {{ form.video_file.label }}
+                                        </label>
+                                        {{ form.video_file }}
+                                        {% if form.video_file.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.video_file.errors.0 }}
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">Formatos soportados: MP4, AVI, MOV</div>
+                                    </div>
+
+                                    <div class="mb-3" id="audio-field">
+                                        <label for="{{ form.audio_file.id_for_label }}" class="form-label fw-bold">
+                                            {{ form.audio_file.label }}
+                                        </label>
+                                        {{ form.audio_file }}
+                                        {% if form.audio_file.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.audio_file.errors.0 }}
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">Formatos soportados: MP3, WAV, OGG</div>
+                                    </div>
+
+                                    <div class="mb-3" id="image-field">
+                                        <label for="{{ form.image_file.id_for_label }}" class="form-label fw-bold">
+                                            {{ form.image_file.label }}
+                                        </label>
+                                        {{ form.image_file }}
+                                        {% if form.image_file.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.image_file.errors.0 }}
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">Formatos soportados: JPG, PNG, GIF</div>
+                                    </div>
+
+                                    <div class="mb-3" id="document-field">
+                                        <label for="{{ form.document_file.id_for_label }}" class="form-label fw-bold">
+                                            {{ form.document_file.label }}
+                                        </label>
+                                        {{ form.document_file }}
+                                        {% if form.document_file.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.document_file.errors.0 }}
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">Formatos soportados: PDF, DOC, PPT, TXT</div>
+                                    </div>
+
+                                    <div class="mb-3" id="url-field">
+                                        <label for="{{ form.external_url.id_for_label }}" class="form-label fw-bold">
+                                            {{ form.external_url.label }}
+                                        </label>
+                                        {{ form.external_url }}
+                                        {% if form.external_url.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.external_url.errors.0 }}
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">URL del contenido externo (YouTube, Vimeo, etc.)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Metadatos educativos -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">
+                                    <i class="bi bi-mortarboard text-success"></i> Metadatos educativos
+                                </h5>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.educational_level.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.educational_level.label }}
+                                    </label>
+                                    {{ form.educational_level }}
+                                    {% if form.educational_level.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.educational_level.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.duration.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.duration.label }}
+                                    </label>
+                                    {{ form.duration }}
+                                    {% if form.duration.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.duration.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="{{ form.subject_area.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.subject_area.label }}
+                                    </label>
+                                    {{ form.subject_area }}
+                                    {% if form.subject_area.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.subject_area.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="{{ form.learning_objectives.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.learning_objectives.label }}
+                                    </label>
+                                    {{ form.learning_objectives }}
+                                    {% if form.learning_objectives.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.learning_objectives.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clasificación -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">
+                                    <i class="bi bi-tags text-success"></i> Clasificación
+                                </h5>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.category.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.category.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.category }}
+                                    {% if form.category.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.category.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.locations.id_for_label }}" class="form-label fw-bold">
+                                        {{ form.locations.label }}
+                                    </label>
+                                    {{ form.locations }}
+                                    {% if form.locations.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.locations.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">Mantén presionado Ctrl para seleccionar múltiples ubicaciones</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configuración -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2">
+                                    <i class="bi bi-gear text-success"></i> Configuración
+                                </h5>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    {{ form.is_public }}
+                                    <label class="form-check-label fw-bold" for="{{ form.is_public.id_for_label }}">
+                                        {{ form.is_public.label }}
+                                    </label>
+                                    {% if form.is_public.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.is_public.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    {{ form.is_featured }}
+                                    <label class="form-check-label fw-bold" for="{{ form.is_featured.id_for_label }}">
+                                        {{ form.is_featured.label }}
+                                    </label>
+                                    {% if form.is_featured.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.is_featured.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'multimedia:list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i>
+                                {% if form.instance.pk %}Actualizar{% else %}Crear{% endif %} Ficha
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mediaTypeSelect = document.getElementById('media-type-select');
+    const fileFields = document.getElementById('file-fields');
+    
+    // Función para mostrar/ocultar campos según el tipo de medio
+    function toggleFileFields() {
+        const selectedType = mediaTypeSelect.value;
+        
+        // Ocultar todos los campos primero
+        const allFields = ['video-field', 'audio-field', 'image-field', 'document-field', 'url-field'];
+        allFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) field.style.display = 'none';
+        });
+        
+        // Mostrar el campo correspondiente
+        if (selectedType === 'video') {
+            document.getElementById('video-field').style.display = 'block';
+            document.getElementById('url-field').style.display = 'block';
+        } else if (selectedType === 'audio') {
+            document.getElementById('audio-field').style.display = 'block';
+            document.getElementById('url-field').style.display = 'block';
+        } else if (selectedType === 'image') {
+            document.getElementById('image-field').style.display = 'block';
+            document.getElementById('url-field').style.display = 'block';
+        } else if (selectedType === 'document') {
+            document.getElementById('document-field').style.display = 'block';
+            document.getElementById('url-field').style.display = 'block';
+        } else if (selectedType === 'interactive') {
+            document.getElementById('url-field').style.display = 'block';
+        }
+    }
+    
+    // Ejecutar al cargar la página
+    toggleFileFields();
+    
+    // Ejecutar cuando cambie el tipo de medio
+    mediaTypeSelect.addEventListener('change', toggleFileFields);
+    
+    // Validación del formulario
+    const form = document.getElementById('multimedia-form');
+    form.addEventListener('submit', function(e) {
+        const title = document.getElementById('{{ form.title.id_for_label }}').value.trim();
+        const description = document.getElementById('{{ form.description.id_for_label }}').value.trim();
+        const mediaType = mediaTypeSelect.value;
+        
+        let isValid = true;
+        
+        // Validar título
+        if (title.length < 5) {
+            alert('El título debe tener al menos 5 caracteres.');
+            isValid = false;
+        }
+        
+        // Validar descripción
+        if (description.length < 20) {
+            alert('La descripción debe tener al menos 20 caracteres.');
+            isValid = false;
+        }
+        
+        // Validar que se proporcione contenido según el tipo
+        if (mediaType === 'video') {
+            const videoFile = document.getElementById('{{ form.video_file.id_for_label }}').files[0];
+            const externalUrl = document.getElementById('{{ form.external_url.id_for_label }}').value.trim();
+            if (!videoFile && !externalUrl) {
+                alert('Para contenido de video, debes proporcionar un archivo de video o una URL externa.');
+                isValid = false;
+            }
+        } else if (mediaType === 'audio') {
+            const audioFile = document.getElementById('{{ form.audio_file.id_for_label }}').files[0];
+            const externalUrl = document.getElementById('{{ form.external_url.id_for_label }}').value.trim();
+            if (!audioFile && !externalUrl) {
+                alert('Para contenido de audio, debes proporcionar un archivo de audio o una URL externa.');
+                isValid = false;
+            }
+        } else if (mediaType === 'image') {
+            const imageFile = document.getElementById('{{ form.image_file.id_for_label }}').files[0];
+            const externalUrl = document.getElementById('{{ form.external_url.id_for_label }}').value.trim();
+            if (!imageFile && !externalUrl) {
+                alert('Para contenido de imagen, debes proporcionar una imagen o una URL externa.');
+                isValid = false;
+            }
+        } else if (mediaType === 'document') {
+            const documentFile = document.getElementById('{{ form.document_file.id_for_label }}').files[0];
+            const externalUrl = document.getElementById('{{ form.external_url.id_for_label }}').value.trim();
+            if (!documentFile && !externalUrl) {
+                alert('Para contenido de documento, debes proporcionar un archivo de documento o una URL externa.');
+                isValid = false;
+            }
+        } else if (mediaType === 'interactive') {
+            const externalUrl = document.getElementById('{{ form.external_url.id_for_label }}').value.trim();
+            if (!externalUrl) {
+                alert('Para contenido interactivo, debes proporcionar una URL externa.');
+                isValid = false;
+            }
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,25 @@
+{% if user.is_authenticated %}
+<div class="dropdown">
+    <button class="btn btn-outline-primary dropdown-toggle position-relative" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-bell"></i>
+        <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+            0
+        </span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
+        <li><h6 class="dropdown-header">Notificaciones</h6></li>
+        <li><hr class="dropdown-divider"></li>
+        <li id="notifications-container">
+            <span class="text-center text-muted py-3 d-block">
+                <i class="bi bi-hourglass-split"></i> Cargando...
+            </span>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <a class="dropdown-item text-center" href="{% url 'gamification:notifications_list' %}">
+                <i class="bi bi-list-ul"></i> Ver todas las notificaciones
+            </a>
+        </li>
+    </ul>
+</div>
+{% endif %} 

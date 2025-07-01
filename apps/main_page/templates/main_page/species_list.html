@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <aside class="col-md-3 mb-4">
+        <div class="p-3 bg-white rounded-4 shadow-sm">
+            <form method="get" action="">
+                <h5 class="mb-3">Búsqueda y Filtros</h5>
+                
+                <div class="mb-3">
+                    <label for="search-input" class="form-label fw-bold">Buscar</label>
+                    <input type="text" name="search" id="search-input" class="form-control" placeholder="Nombre de especie..." value="{{ request.GET.search }}">
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="fw-bold">Categorías</h6>
+                    {% for category in categories %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="category" value="{{ category.name }}" id="cat_{{ category.id }}">
+                        <label class="form-check-label" for="cat_{{ category.id }}">{{ category.name }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="fw-bold">Estado de conservación</h6>
+                    <select name="conservation" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="EN" {% if request.GET.conservation == 'EN' %}selected{% endif %}>En peligro</option>
+                        <option value="VU" {% if request.GET.conservation == 'VU' %}selected{% endif %}>Vulnerable</option>
+                        <option value="LC" {% if request.GET.conservation == 'LC' %}selected{% endif %}>Sin riesgo</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="fw-bold">Hábitat</h6>
+                    {% for location in locations %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="location" value="{{ location.name }}" id="loc_{{ location.id }}">
+                        <label class="form-check-label" for="loc_{{ location.id }}">{{ location.name }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="fw-bold">Grado educativo</h6>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="level" value="Primaria" id="level_primaria">
+                        <label class="form-check-label" for="level_primaria">Primero</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="level" value="Secundaria" id="level_secundaria">
+                        <label class="form-check-label" for="level_secundaria">Segundo</label>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button class="btn btn-success" type="submit"><i class="bi bi-funnel-fill"></i> Aplicar Filtros</button>
+                    <a href="{% url 'species_list' %}" class="btn btn-outline-secondary">Limpiar Filtros</a>
+                </div>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <section class="col-md-9">
+        <div class="mb-4">
+            <div class="btn-group w-100" role="group">
+                <button class="btn btn-light active" disabled>Fichas Educativas</button>
+                <a href="{% url 'multimedia:list' %}" class="btn btn-light">
+                    <i class="bi bi-collection-play"></i> Fichas Multimedia
+                </a>
+                <a href="#" class="btn btn-light">Mapa de Especies</a>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for specie in species_list %}
+            <div class="col-md-6 col-lg-6 mb-4">
+                <div class="card h-100 rounded-4 shadow-sm">
+                    <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:200px;">
+                        {% if specie.image %}
+                            <img src="{{ specie.image.url }}" alt="{{ specie.name }}" style="max-height:180px;max-width:100%;object-fit:contain;">
+                        {% else %}
+                            <i class="bi bi-image fs-1 text-muted"></i>
+                        {% endif %}
+                        {% if specie.conservation_status == "EN" %}
+                            <span class="position-absolute top-0 end-0 m-3 badge rounded-pill bg-danger">En peligro</span>
+                        {% elif specie.conservation_status == "VU" %}
+                            <span class="position-absolute top-0 end-0 m-3 badge rounded-pill bg-warning text-dark">Vulnerable</span>
+                        {% endif %}
+                        <span class="position-absolute top-0 start-0 m-3 badge rounded-pill bg-light text-dark">{{ specie.category.name|default:"" }}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="species-name fw-bold" style="font-size:1.4rem;">{{ specie.name }}</div>
+                        <div class="scientific-name fst-italic text-secondary mb-2">{{ specie.scientific_name }}</div>
+                        <div class="species-description mb-3">{{ specie.description|truncatewords:25 }}</div>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <a href="{% url 'species_detail' specie.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-info-circle"></i> Detalles</a>
+                            <a href="#" class="btn btn-outline-secondary btn-sm"><i class="bi bi-volume-up"></i> Escuchar</a>
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'species_download' specie.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-download"></i> Descargar</a>
+                            {% else %}
+                                <a href="{% url 'login' %}?next={% url 'species_list' %}" class="btn btn-outline-secondary btn-sm disabled" title="Inicia sesión para descargar"><i class="bi bi-download"></i> Descargar</a>
+                            {% endif %}
+                        </div>
+                        <a href="#" class="btn btn-outline-secondary btn-sm"><i class="bi bi-share"></i> Compartir</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">No se encontraron especies con los filtros seleccionados.</div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ multimedia_card.title }} - NatureIn{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'multimedia:list' %}">Fichas Multimedia</a></li>
+            <li class="breadcrumb-item active">{{ multimedia_card.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Contenido principal -->
+        <div class="col-lg-8">
+            <!-- Header de la ficha -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h1 class="h2 mb-2">{{ multimedia_card.title }}</h1>
+                            <div class="d-flex gap-2 mb-3">
+                                <span class="badge bg-success">{{ multimedia_card.get_media_type_display }}</span>
+                                <span class="badge bg-primary">{{ multimedia_card.get_educational_level_display }}</span>
+                                {% if multimedia_card.is_featured %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-star-fill"></i> Destacada
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if user.is_authenticated and user == multimedia_card.author or user.is_staff %}
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'multimedia:update' multimedia_card.pk %}">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a></li>
+                                <li><a class="dropdown-item text-danger" href="{% url 'multimedia:delete' multimedia_card.pk %}">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </a></li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <p class="lead">{{ multimedia_card.description }}</p>
+
+                    <!-- Contenido multimedia -->
+                    <div class="multimedia-content mb-4">
+                        {% if multimedia_card.media_type == 'video' %}
+                            {% if multimedia_card.video_file %}
+                            <video class="w-100 rounded" controls>
+                                <source src="{{ multimedia_card.video_file.url }}" type="video/mp4">
+                                Tu navegador no soporta el elemento video.
+                            </video>
+                            {% elif multimedia_card.external_url %}
+                            <div class="ratio ratio-16x9">
+                                <iframe src="{{ multimedia_card.external_url }}" allowfullscreen></iframe>
+                            </div>
+                            {% endif %}
+                        {% elif multimedia_card.media_type == 'audio' %}
+                            {% if multimedia_card.audio_file %}
+                            <audio class="w-100" controls>
+                                <source src="{{ multimedia_card.audio_file.url }}" type="audio/mpeg">
+                                Tu navegador no soporta el elemento audio.
+                            </audio>
+                            {% elif multimedia_card.external_url %}
+                            <div class="text-center">
+                                <a href="{{ multimedia_card.external_url }}" class="btn btn-primary btn-lg" target="_blank">
+                                    <i class="bi bi-play-circle"></i> Reproducir audio
+                                </a>
+                            </div>
+                            {% endif %}
+                        {% elif multimedia_card.media_type == 'image' %}
+                            {% if multimedia_card.image_file %}
+                            <img src="{{ multimedia_card.image_file.url }}" alt="{{ multimedia_card.title }}" 
+                                 class="w-100 rounded shadow-sm">
+                            {% elif multimedia_card.external_url %}
+                            <div class="text-center">
+                                <a href="{{ multimedia_card.external_url }}" class="btn btn-primary btn-lg" target="_blank">
+                                    <i class="bi bi-image"></i> Ver imagen
+                                </a>
+                            </div>
+                            {% endif %}
+                        {% elif multimedia_card.media_type == 'document' %}
+                            {% if multimedia_card.document_file %}
+                            <div class="text-center">
+                                <a href="{{ multimedia_card.document_file.url }}" class="btn btn-primary btn-lg" target="_blank">
+                                    <i class="bi bi-file-earmark-text"></i> Ver documento
+                                </a>
+                            </div>
+                            {% elif multimedia_card.external_url %}
+                            <div class="text-center">
+                                <a href="{{ multimedia_card.external_url }}" class="btn btn-primary btn-lg" target="_blank">
+                                    <i class="bi bi-link-45deg"></i> Abrir documento
+                                </a>
+                            </div>
+                            {% endif %}
+                        {% elif multimedia_card.media_type == 'interactive' %}
+                            <div class="text-center">
+                                <a href="{{ multimedia_card.external_url }}" class="btn btn-primary btn-lg" target="_blank">
+                                    <i class="bi bi-play-circle"></i> Interactuar
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Metadatos educativos -->
+                    {% if multimedia_card.subject_area or multimedia_card.learning_objectives %}
+                    <div class="card bg-light border-0 mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-mortarboard text-success"></i> Información Educativa
+                            </h5>
+                            {% if multimedia_card.subject_area %}
+                            <p class="mb-2">
+                                <strong>Área temática:</strong> {{ multimedia_card.subject_area }}
+                            </p>
+                            {% endif %}
+                            {% if multimedia_card.learning_objectives %}
+                            <p class="mb-0">
+                                <strong>Objetivos de aprendizaje:</strong><br>
+                                {{ multimedia_card.learning_objectives|linebreaks }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Botones de acción -->
+                    <div class="d-flex gap-2 mb-4">
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'multimedia:download' multimedia_card.pk %}" class="btn btn-success">
+                            <i class="bi bi-download"></i> Descargar
+                        </a>
+                        {% endif %}
+                        <button class="btn btn-outline-primary" onclick="shareContent()">
+                            <i class="bi bi-share"></i> Compartir
+                        </button>
+                        {% if user.is_authenticated %}
+                        <form method="post" action="{% url 'multimedia:toggle_featured' multimedia_card.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-warning">
+                                {% if multimedia_card.is_featured %}
+                                <i class="bi bi-star-fill"></i> Quitar destacada
+                                {% else %}
+                                <i class="bi bi-star"></i> Marcar destacada
+                                {% endif %}
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Información del autor -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-circle"></i> Información del autor
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-person-circle text-success" style="font-size: 2rem;"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-0">{{ multimedia_card.author.username }}</h6>
+                            <small class="text-muted">Autor</small>
+                        </div>
+                    </div>
+                    <p class="mb-0">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar"></i> Creado: {{ multimedia_card.created_at|date:"d/m/Y H:i" }}<br>
+                            <i class="bi bi-clock"></i> Actualizado: {{ multimedia_card.updated_at|date:"d/m/Y H:i" }}
+                        </small>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up"></i> Estadísticas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-info mb-0">{{ multimedia_card.views_count }}</h4>
+                            <small class="text-muted">Visualizaciones</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success mb-0">{{ multimedia_card.downloads_count }}</h4>
+                            <small class="text-muted">Descargas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clasificación -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-tags"></i> Clasificación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>Categoría:</strong><br>
+                        <span class="badge bg-success">{{ multimedia_card.category.name }}</span>
+                    </p>
+                    {% if multimedia_card.locations.all %}
+                    <p class="mb-0">
+                        <strong>Ubicaciones:</strong><br>
+                        {% for location in multimedia_card.locations.all %}
+                        <span class="badge bg-secondary me-1">{{ location.name }}</span>
+                        {% endfor %}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Fichas relacionadas -->
+            {% if related_cards %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-collection"></i> Fichas relacionadas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for card in related_cards %}
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-collection-play text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-0">
+                                <a href="{% url 'multimedia:detail' card.pk %}" class="text-decoration-none">
+                                    {{ card.title }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">{{ card.get_media_type_display }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function shareContent() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ multimedia_card.title }}',
+            text: '{{ multimedia_card.description|truncatewords:20 }}',
+            url: window.location.href
+        });
+    } else {
+        // Fallback: copiar URL al portapapeles
+        navigator.clipboard.writeText(window.location.href).then(function() {
+            alert('URL copiada al portapapeles');
+        });
+    }
+}
+</script>
+{% endblock %} 

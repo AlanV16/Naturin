@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Subir Guía Pedagógica{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-upload"></i> Subir Guía Pedagógica</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_title" class="form-label fw-bold">Título</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                            <div class="invalid-feedback d-block">{{ form.title.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label fw-bold">Descripción</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_pdf" class="form-label fw-bold">Archivo PDF</label>
+                            {{ form.pdf }}
+                            {% if form.pdf.errors %}
+                            <div class="invalid-feedback d-block">{{ form.pdf.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-check mb-3">
+                            {{ form.is_public }}
+                            <label class="form-check-label fw-bold" for="id_is_public">Público</label>
+                        </div>
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'pedagogical_guides:guide_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-upload"></i> Subir Guía
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

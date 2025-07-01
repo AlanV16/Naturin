@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'base/css/styles.css' %}">
+    <style>
+        .game-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .game-section {
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .quiz-option, .drag-item, .match-item {
+            cursor: pointer;
+            padding: 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+        .quiz-option:hover, .drag-item:hover, .match-item:hover {
+            background: #ecfdf5;
+        }
+        .drag-container {
+            min-height: 100px;
+            border: 2px dashed #a7f3d0;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .correct {
+            background: #ecfdf5 !important;
+            border-color: #065f46 !important;
+        }
+        .incorrect {
+            background: #fee2e2 !important;
+            border-color: #dc2626 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="font-size: 13px;">
+    <h1 class="fw-bold mb-4" style="font-size: 2.38rem; color: #388e3c;">
+        Juegos Interactivos sobre Biodiversidad
+    </h1>
+    <p class="lead text-secondary mb-5" style="font-size: 1.3em; color: #6b7c6b;">
+        ¡Diviértete mientras aprendes sobre la biodiversidad del Parque Nacional de Tingo María! Prueba estos juegos y descubre cómo proteger la naturaleza.
+    </p>
+
+    <!-- Juego 1: Cuestionario sobre biodiversidad -->
+    <div class="game-section shadow-sm">
+        <h3 class="mb-3">Cuestionario: ¿Cuánto sabes de Tingo María?</h3>
+        <p>Responde las preguntas y pon a prueba tus conocimientos sobre la fauna y flora del Parque Nacional.</p>
+        <div id="quiz-container">
+            <p id="quiz-question" class="mb-3"></p>
+            <div id="quiz-options" class="d-flex flex-wrap gap-2"></div>
+            <p id="quiz-feedback" class="mt-3"></p>
+            <button id="next-question" class="btn btn-success mt-3" style="display: none;">Siguiente Pregunta</button>
+        </div>
+    </div>
+
+    <!-- Juego 2: Arrastra y clasifica (Reciclaje) -->
+    <div class="game-section shadow-sm">
+        <h3 class="mb-3">Arrastra y Clasifica: Reciclaje</h3>
+        <p>Arrastra los residuos al contenedor correcto para ayudar a proteger el medio ambiente.</p>
+        <div class="d-flex flex-wrap gap-3 mb-3">
+            <div class="drag-item" data-type="organico">Cáscara de plátano</div>
+            <div class="drag-item" data-type="plastico">Botella de plástico</div>
+            <div class="drag-item" data-type="papel">Periódico viejo</div>
+            <div class="drag-item" data-type="vidrio">Botella de vidrio</div>
+        </div>
+        <div class="row">
+            <div class="col-3"><div class="drag-container" data-accept="organico">Orgánico</div></div>
+            <div class="col-3"><div class="drag-container" data-accept="plastico">Plástico</div></div>
+            <div class="col-3"><div class="drag-container" data-accept="papel">Papel</div></div>
+            <div class="col-3"><div class="drag-container" data-accept="vidrio">Vidrio</div></div>
+        </div>
+        <p id="drag-feedback" class="mt-3"></p>
+    </div>
+
+    <!-- Juego 3: Encuentra la especie -->
+    <div class="game-section shadow-sm">
+        <h3 class="mb-3">Encuentra la Especie</h3>
+        <p>Arrastra cada animal al hábitat donde vive en el Parque Nacional de Tingo María.</p>
+        <div class="d-flex flex-wrap gap-3 mb-3">
+            <div class="match-item" data-species="jaguar">Jaguar</div>
+            <div class="match-item" data-species="orquidea">Orquídea</div>
+            <div class="match-item" data-species="guacamayo">Guacamayo</div>
+        </div>
+        <div class="row">
+            <div class="col-4"><div class="drag-container" data-accept="jaguar">Selva baja</div></div>
+            <div class="col-4"><div class="drag-container" data-accept="orquidea">Árboles altos</div></div>
+            <div class="col-4"><div class="drag-container" data-accept="guacamayo">Copas de árboles</div></div>
+        </div>
+        <p id="match-feedback" class="mt-3"></p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const questions = [
+        {
+            question: "¿Cuál de estos animales es nativo del Parque Nacional de Tingo María?",
+            options: ["Jaguar", "Panda", "Canguro", "Elefante"],
+            correct: "Jaguar"
+        },
+        {
+            question: "¿Qué tipo de ecosistema predomina en Tingo María?",
+            options: ["Desierto", "Selva tropical", "Tundra", "Sabana"],
+            correct: "Selva tropical"
+        },
+        {
+            question: "¿Qué acción ayuda a proteger la biodiversidad?",
+            options: ["Talar árboles", "Reciclar", "Contaminar ríos", "Cazar animales"],
+            correct: "Reciclar"
+        }
+    ];
+
+    let currentQuestion = 0;
+    const quizQuestion = document.getElementById('quiz-question');
+    const quizOptions = document.getElementById('quiz-options');
+    const quizFeedback = document.getElementById('quiz-feedback');
+    const nextQuestionBtn = document.getElementById('next-question');
+
+    function loadQuestion() {
+        const q = questions[currentQuestion];
+        quizQuestion.textContent = q.question;
+        quizOptions.innerHTML = '';
+        q.options.forEach(option => {
+            const btn = document.createElement('button');
+            btn.className = 'quiz-option btn btn-outline-success';
+            btn.textContent = option;
+            btn.onclick = () => checkAnswer(option);
+            quizOptions.appendChild(btn);
+        });
+        quizFeedback.textContent = '';
+        nextQuestionBtn.style.display = 'none';
+    }
+
+    function checkAnswer(selected) {
+        const q = questions[currentQuestion];
+        if (selected === q.correct) {
+            quizFeedback.textContent = "¡Correcto! " + q.correct + " es la respuesta correcta.";
+            quizFeedback.style.color = '#065f46';
+            document.querySelectorAll('.quiz-option').forEach(btn => {
+                if (btn.textContent === q.correct) btn.classList.add('correct');
+                btn.disabled = true;
+            });
+        } else {
+            quizFeedback.textContent = "Incorrecto. La respuesta correcta es " + q.correct + ".";
+            quizFeedback.style.color = '#dc2626';
+            document.querySelectorAll('.quiz-option').forEach(btn => {
+                if (btn.textContent === q.correct) btn.classList.add('correct');
+                else if (btn.textContent === selected) btn.classList.add('incorrect');
+                btn.disabled = true;
+            });
+        }
+        nextQuestionBtn.style.display = 'block';
+    }
+
+    nextQuestionBtn.onclick = () => {
+        currentQuestion = (currentQuestion + 1) % questions.length;
+        loadQuestion();
+    };
+
+    // Juego 2: Arrastra y clasifica
+    const dragItems = document.querySelectorAll('.drag-item');
+    const dragContainers = document.querySelectorAll('.drag-container');
+    const dragFeedback = document.getElementById('drag-feedback');
+
+    dragItems.forEach(item => {
+        item.draggable = true;
+        item.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('text', e.target.dataset.type);
+        });
+    });
+
+    dragContainers.forEach(container => {
+        container.addEventListener('dragover', e => e.preventDefault());
+        container.addEventListener('drop', e => {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('text');
+            const targetType = container.dataset.accept;
+            const item = document.querySelector(`.drag-item[data-type="${type}"]`);
+            if (type === targetType) {
+                container.appendChild(item);
+                item.classList.add('correct');
+                dragFeedback.textContent = "¡Correcto! El residuo está en el contenedor adecuado.";
+                dragFeedback.style.color = '#065f46';
+            } else {
+                dragFeedback.textContent = "Incorrecto. Este residuo no va en este contenedor.";
+                dragFeedback.style.color = '#dc2626';
+            }
+        });
+    });
+
+    // Juego 3: Encuentra la especie
+    const matchItems = document.querySelectorAll('.match-item');
+    const matchContainers = document.querySelectorAll('.drag-container');
+    const matchFeedback = document.getElementById('match-feedback');
+
+    matchItems.forEach(item => {
+        item.draggable = true;
+        item.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('text', e.target.dataset.species);
+        });
+    });
+
+    matchContainers.forEach(container => {
+        container.addEventListener('dragover', e => e.preventDefault());
+        container.addEventListener('drop', e => {
+            e.preventDefault();
+            const species = e.dataTransfer.getData('text');
+            const targetSpecies = container.dataset.accept;
+            const item = document.querySelector(`.match-item[data-species="${species}"]`);
+            if (species === targetSpecies) {
+                container.appendChild(item);
+                item.classList.add('correct');
+                matchFeedback.textContent = "¡Correcto! Esta especie vive en ese hábitat.";
+                matchFeedback.style.color = '#065f46';
+            } else {
+                matchFeedback.textContent = "Incorrecto. Esta especie no pertenece a ese hábitat.";
+                matchFeedback.style.color = '#dc2626';
+            }
+        });
+    });
+
+    // Inicializar el cuestionario
+    loadQuestion();
+</script>
+{% endblock %}
