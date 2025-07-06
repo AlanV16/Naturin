@@ -1,0 +1,197 @@
+{% extends 'gamification/base.html' %}
+
+{% block title %}{{ juego.NombreJuego }} - Gamificación{% endblock %}
+
+{% block gamification_content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="bi bi-controller"></i> {{ juego.NombreJuego }}</h2>
+            <div>
+                {% if user.user_type == 2 and juego.Creador == user %}
+                <a href="{% url 'gamification:game_update' juego.IDjuego %}" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+                {% endif %}
+                <a href="{% url 'gamification:game_play' juego.IDjuego %}" class="btn btn-success">
+                    <i class="bi bi-play-fill"></i> Jugar
+                </a>
+                <a href="{% url 'gamification:game_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <!-- Información del juego -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="bi bi-info-circle"></i> Información del Juego</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Tipo:</strong> {{ juego.IDtipoJuego.NombreTipo }}</p>
+                        <p><strong>Dificultad:</strong> 
+                            <span class="badge bg-{% if juego.Dificultad == 'facil' %}success{% elif juego.Dificultad == 'medio' %}warning{% else %}danger{% endif %}">
+                                {{ juego.Dificultad|title }}
+                            </span>
+                        </p>
+                        <p><strong>Puntos Máximos:</strong> {{ juego.PuntosMaximos }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Estado:</strong> 
+                            <span class="badge bg-{% if juego.Estado == 'activo' %}success{% else %}secondary{% endif %}">
+                                {{ juego.Estado|title }}
+                            </span>
+                        </p>
+                        <p><strong>Creado:</strong> {{ juego.FechaCreacion|date:"d/m/Y H:i" }}</p>
+                        <p><strong>Creador:</strong> {{ juego.Creador.get_full_name|default:juego.Creador.username }}</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <h5>Descripción</h5>
+                        <p>{{ juego.Descripcion }}</p>
+                    </div>
+                </div>
+                
+                {% if juego.Instrucciones %}
+                <div class="row">
+                    <div class="col-12">
+                        <h5>Instrucciones</h5>
+                        <p>{{ juego.Instrucciones }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Estadísticas del juego -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="bi bi-graph-up"></i> Estadísticas</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <div class="gamification-card p-3 rounded">
+                            <h3>{{ total_plays|default:0 }}</h3>
+                            <p class="mb-0">Total Jugadas</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="gamification-card p-3 rounded">
+                            <h3>{{ avg_score|default:0|floatformat:1 }}</h3>
+                            <p class="mb-0">Puntuación Promedio</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="gamification-card p-3 rounded">
+                            <h3>{{ best_score|default:0 }}</h3>
+                            <p class="mb-0">Mejor Puntuación</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="gamification-card p-3 rounded">
+                            <h3>{{ unique_players|default:0 }}</h3>
+                            <p class="mb-0">Jugadores Únicos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Acciones rápidas -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning"></i> Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'gamification:game_play' juego.IDjuego %}" class="btn btn-success">
+                        <i class="bi bi-play-fill"></i> Jugar Ahora
+                    </a>
+                    {% if user.user_type == 2 %}
+                    <a href="{% url 'gamification:actividad_create' %}?juego={{ juego.IDjuego }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Asignar como Actividad
+                    </a>
+                    {% endif %}
+                    <button class="btn btn-outline-primary" onclick="compartirJuego()">
+                        <i class="bi bi-share"></i> Compartir
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Últimas jugadas -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="bi bi-clock-history"></i> Últimas Jugadas</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_sessions %}
+                    {% for session in recent_sessions %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                        <div>
+                            <strong>{{ session.IDusuario.get_full_name|default:session.IDusuario.username }}</strong>
+                            <br>
+                            <small class="text-muted">{{ session.FechaJugada|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        <span class="badge bg-info">{{ session.Puntaje }} pts</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No hay jugadas recientes.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Ranking del juego -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-trophy"></i> Top Jugadores</h5>
+            </div>
+            <div class="card-body">
+                {% if top_players %}
+                    {% for player in top_players %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                        <div>
+                            <strong>#{{ forloop.counter }}</strong>
+                            <br>
+                            <small>{{ player.IDusuario.get_full_name|default:player.IDusuario.username }}</small>
+                        </div>
+                        <span class="badge bg-warning">{{ player.Puntaje }} pts</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No hay jugadores en el ranking.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function compartirJuego() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ juego.NombreJuego }}',
+            text: '¡Mira este juego educativo!',
+            url: window.location.href
+        });
+    } else {
+        // Fallback para navegadores que no soportan Web Share API
+        navigator.clipboard.writeText(window.location.href).then(function() {
+            alert('Enlace copiado al portapapeles');
+        });
+    }
+}
+</script>
+{% endblock %} 

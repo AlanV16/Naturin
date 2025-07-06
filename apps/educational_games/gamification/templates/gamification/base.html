@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_student.css' %}">
+<style>
+    .gamification-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 15px;
+        color: white;
+        transition: transform 0.3s ease;
+    }
+    
+    .gamification-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .level-badge {
+        background: linear-gradient(45deg, #ff6b6b, #feca57);
+        color: white;
+        border-radius: 20px;
+        padding: 5px 15px;
+        font-weight: bold;
+    }
+    
+    .points-display {
+        background: linear-gradient(45deg, #48dbfb, #0abde3);
+        color: white;
+        border-radius: 10px;
+        padding: 10px;
+        text-align: center;
+    }
+    
+    .badge-item {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 10px;
+        margin: 5px;
+        text-align: center;
+    }
+    
+    .progress-bar-gamification {
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 10px;
+        height: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar de navegación -->
+        <div class="col-md-3 col-lg-2">
+            <div class="card gamification-card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title text-center mb-3">
+                        <i class="bi bi-trophy-fill"></i> Gamificación
+                    </h5>
+                    <nav class="nav flex-column">
+                        <a class="nav-link text-white" href="{% url 'gamification:dashboard' %}">
+                            <i class="bi bi-house-door"></i> Dashboard
+                        </a>
+                        <a class="nav-link text-white" href="{% url 'gamification:game_list' %}">
+                            <i class="bi bi-controller"></i> Juegos
+                        </a>
+                        <a class="nav-link text-white" href="{% url 'gamification:desafios_list' %}">
+                            <i class="bi bi-star"></i> Desafíos
+                        </a>
+                        <a class="nav-link text-white" href="{% url 'gamification:rankings_list' %}">
+                            <i class="bi bi-list-ol"></i> Rankings
+                        </a>
+                        <a class="nav-link text-white" href="{% url 'gamification:estadisticas_personales' %}">
+                            <i class="bi bi-graph-up"></i> Estadísticas
+                        </a>
+                        {% if user.user_type == 2 %}
+                        <hr class="text-white">
+                        <h6 class="text-white">Docente</h6>
+                        <a class="nav-link text-white" href="{% url 'gamification:aula_list' %}">
+                            <i class="bi bi-people"></i> Mis Aulas
+                        </a>
+                        <a class="nav-link text-white" href="{% url 'gamification:aula_create' %}">
+                            <i class="bi bi-plus-circle"></i> Crear Aula
+                        </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Información del usuario -->
+            <div class="card gamification-card">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Tu Progreso</h6>
+                    <div class="level-badge mb-2">
+                        Nivel {{ user_level|default:1 }}
+                    </div>
+                    <div class="points-display">
+                        {{ total_points|default:0 }} pts
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contenido principal -->
+        <div class="col-md-9 col-lg-10">
+            {% block gamification_content %}
+            {% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

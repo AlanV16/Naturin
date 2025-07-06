@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views
+from . import views 
 from django.shortcuts import redirect
 
 app_name = 'users'
@@ -19,7 +19,7 @@ urlpatterns = [
 
     # Logout
     path('logout/', views.logout_view, name='logout'),
-    
+
     path('dashboard/student/', views.dashboard_student, name='dashboard_student'),
     path('dashboard/admin/', views.dashboard_admin, name='dashboard_admin'),
     path('dashboard/teacher/', views.dashboard_teacher, name='dashboard_teacher'),
@@ -33,13 +33,13 @@ urlpatterns = [
 
     # Password reset (opcional)
     path('password-reset/', auth_views.PasswordResetView.as_view(template_name='accounts/password_reset_form.html'), name='password_reset'),
-    
-    # Gestión de gamificación
+
+    # ============================================================================
+    # AULAS VIRTUALES
+    # ============================================================================
     path('join-class/', views.join_class, name='join_class'),
     path('create-class/', views.create_class, name='create_class'),
     path('class/student/<int:class_id>/', views.class_student, name='class_student'),
-    path('class/student/<int:class_id>/play/', views.play_game, name='play_game'),
     path('class/teacher/<int:class_id>/', views.class_teacher, name='class_teacher'),
-    path('class/<int:class_id>/remove/<int:student_id>/', views.remove_student, name='remove_student'),
-    path('class/<int:class_id>/create-activity/', views.create_activity, name='create_activity'),
+    path('play-game/<int:class_id>/', views.play_game, name='play_game'),
 ]

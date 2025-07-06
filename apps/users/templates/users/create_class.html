@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Nueva Clase - NatureIn{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="home-main" style="background-image: url('{% static 'images/forms/fondo_admin.png' %}'); background-size: cover; background-position: center; min-height: 100vh; padding: 2rem 0;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                <div class="home-carousel-card p-4 p-md-5" style="background-color: white;">
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="bi bi-person-video2" style="font-size: 4rem; color: #2E7D32;"></i>
+                        </div>
+                        <h2 class="home-title fw-bold mb-2" style="color: #2E7D32;">Crear Nueva Clase</h2>
+                        <p class="home-lead">Configura tu nueva aula virtual</p>
+                    </div>
+                    
+                    <form method="post" id="createClassForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="class_name" class="form-label fw-semibold">
+                                        <i class="bi bi-book me-2"></i>Nombre de la Clase
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           id="class_name" 
+                                           name="class_name" 
+                                           placeholder="Ej: Biología: Parte 01" 
+                                           required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="grade" class="form-label fw-semibold">
+                                        <i class="bi bi-mortarboard me-2"></i>Grado Educativo
+                                    </label>
+                                    <select class="form-select form-select-lg" id="grade" name="grade" required>
+                                        <option value="">Selecciona el grado</option>
+                                        {% for grade in grades %}
+                                        <option value="{{ grade }}">{{ grade }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="section" class="form-label fw-semibold">
+                                        <i class="bi bi-people me-2"></i>Sección
+                                    </label>
+                                    <select class="form-select form-select-lg" id="section" name="section" required>
+                                        <option value="">Selecciona la sección</option>
+                                        {% for section in sections %}
+                                        <option value="{{ section }}">{{ section }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">
+                                        <i class="bi bi-key me-2"></i>Código de la Clase
+                                    </label>
+                                    <div class="home-carousel-badge d-flex align-items-center justify-content-between p-3" style="position: relative; left: 0; bottom: 0;">
+                                        <div class="code-text fw-bold flex-grow-1" id="generatedCode">Se generará automáticamente</div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-light" id="regenerateCode" style="display: none;">
+                                                <i class="bi bi-arrow-clockwise me-1"></i>Regenerar
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-light" id="copyCode" style="display: none;">
+                                                <i class="bi bi-clipboard me-1"></i>Copiar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="class_code" id="classCodeInput" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-semibold">
+                                <i class="bi bi-info-circle me-2"></i>Descripción
+                            </label>
+                            <textarea class="form-control form-control-lg" 
+                                      id="description" 
+                                      name="description" 
+                                      rows="3" 
+                                      placeholder="Describe el contenido y objetivos de la clase..."></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-clipboard-check me-2"></i>Seleccionar Actividades
+                            </label>
+                            <div class="row">
+                                {% for activity in activities %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="home-carousel-card activity-card p-3" onclick="toggleActivity(this, {{ activity.IDactividad }})" style="cursor: pointer; transition: all 0.3s ease; border: 2px solid transparent;">
+                                        <input type="checkbox" 
+                                               class="activity-checkbox d-none" 
+                                               name="activities" 
+                                               value="{{ activity.IDactividad }}" 
+                                               id="activity_{{ activity.IDactividad }}">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="fw-semibold mb-1">{{ activity.Titulo }}</h6>
+                                                <p class="text-muted small mb-2">{{ activity.Instrucciones|truncatewords:10 }}</p>
+                                                <span class="home-carousel-badge" style="position: relative; left: 0; bottom: 0;">{{ activity.PuntosMaximos }} pts</span>
+                                            </div>
+                                            <i class="bi bi-check-circle text-success fs-4" style="display: none;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="col-12">
+                                    <div class="home-carousel-card text-center py-5">
+                                        <i class="bi bi-clipboard-x" style="font-size: 3rem; color: #FFB300;"></i>
+                                        <p class="text-muted mt-3">No hay actividades disponibles</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-3">
+                            <button type="submit" class="home-btn-play btn btn-success btn-lg">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Crear Clase
+                            </button>
+                            <a href="{% url 'users:dashboard_teacher' %}" class="home-btn-learn btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-arrow-left me-2"></i>
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleActivity(card, activityId) {
+    const checkbox = document.getElementById('activity_' + activityId);
+    const icon = card.querySelector('.bi-check-circle');
+    
+    if (checkbox.checked) {
+        checkbox.checked = false;
+        card.style.borderColor = 'transparent';
+        card.style.backgroundColor = '';
+        icon.style.display = 'none';
+    } else {
+        checkbox.checked = true;
+        card.style.borderColor = '#22c55e';
+        card.style.backgroundColor = 'rgba(34, 197, 148, 0.05)';
+        icon.style.display = 'block';
+    }
+}
+
+// Generar código aleatorio cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    const codeElement = document.getElementById('generatedCode');
+    const copyButton = document.getElementById('copyCode');
+    const regenerateButton = document.getElementById('regenerateCode');
+    let currentCode = '';
+    
+    // Función para generar código aleatorio de 10 caracteres
+    function generateCode() {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let code = '';
+        for (let i = 0; i < 10; i++) {
+            code += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        return code;
+    }
+    
+    // Generar código inicial
+    currentCode = generateCode();
+    codeElement.textContent = currentCode;
+    document.getElementById('classCodeInput').value = currentCode;
+    copyButton.style.display = 'inline-block';
+    regenerateButton.style.display = 'inline-block';
+    
+    // Función para regenerar código
+    regenerateButton.addEventListener('click', function(e) {
+        e.stopPropagation();
+        currentCode = generateCode();
+        codeElement.textContent = currentCode;
+        document.getElementById('classCodeInput').value = currentCode;
+        regenerateButton.innerHTML = '<i class="bi bi-check me-1"></i>Nuevo!';
+        regenerateButton.classList.remove('btn-light');
+        regenerateButton.classList.add('btn-success');
+        setTimeout(function() {
+            regenerateButton.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Regenerar';
+            regenerateButton.classList.remove('btn-success');
+            regenerateButton.classList.add('btn-light');
+        }, 1500);
+    });
+    
+    // Función para copiar código
+    copyButton.addEventListener('click', function(e) {
+        e.stopPropagation();
+        navigator.clipboard.writeText(currentCode).then(function() {
+            copyButton.innerHTML = '<i class="bi bi-check me-1"></i>Copiado!';
+            copyButton.classList.remove('btn-light');
+            copyButton.classList.add('btn-success');
+            setTimeout(function() {
+                copyButton.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copiar';
+                copyButton.classList.remove('btn-success');
+                copyButton.classList.add('btn-light');
+            }, 2000);
+        });
+    });
+});
+</script>
+{% endblock %}

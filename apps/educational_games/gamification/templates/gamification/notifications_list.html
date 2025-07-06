@@ -1,0 +1,38 @@
+{% extends 'gamification/base.html' %}
+
+{% block title %}Notificaciones - Gamificación{% endblock %}
+
+{% block gamification_content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h2><i class="bi bi-bell"></i> Mis Notificaciones</h2>
+    </div>
+
+    <div class="col-12">
+        {% if notifications %}
+            {% for notification in notifications %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="card-title">{{ notification.titulo }}</h6>
+                            <p class="card-text">{{ notification.mensaje }}</p>
+                            <small class="text-muted">{{ notification.fecha_creacion|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        <span class="badge bg-{% if notification.leida %}secondary{% else %}primary{% endif %}">
+                            {% if notification.leida %}Leída{% else %}Nueva{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-bell-slash display-1 text-muted"></i>
+                <h3 class="text-muted mt-3">No tienes notificaciones</h3>
+                <p class="text-muted">Cuando tengas nuevas notificaciones aparecerán aquí.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,205 @@
+{% extends 'gamification/base.html' %}
+{% load static %}
+
+{% block title %}Editar Test - {{ test.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px;">
+                <div class="card-header bg-success text-white border-0" style="border-radius: 16px 16px 0 0;">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil-square me-2"></i>
+                        Editar Test: {{ test.titulo }}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Información básica del test -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-8">
+                                <div class="form-group mb-3">
+                                    <label for="titulo" class="form-label fw-semibold text-success">
+                                        <i class="bi bi-type me-2"></i>Título del Test
+                                    </label>
+                                    <input type="text" class="form-control form-control-lg" id="titulo" name="titulo" 
+                                           value="{{ test.titulo }}" required>
+                                    <div class="invalid-feedback">
+                                        Por favor ingresa un título para el test.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="puntos_por_pregunta" class="form-label fw-semibold text-success">
+                                        <i class="bi bi-star me-2"></i>Puntos por Pregunta
+                                    </label>
+                                    <input type="number" class="form-control form-control-lg" id="puntos_por_pregunta" 
+                                           name="puntos_por_pregunta" value="{{ test.puntos_por_pregunta }}" min="1" max="100" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="descripcion" class="form-label fw-semibold text-success">
+                                <i class="bi bi-card-text me-2"></i>Descripción
+                            </label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" rows="3" 
+                                      placeholder="Describe el contenido y objetivos del test...">{{ test.descripcion }}</textarea>
+                        </div>
+
+                        <!-- Fechas y tiempo -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="fecha_inicio" class="form-label fw-semibold text-success">
+                                        <i class="bi bi-calendar-event me-2"></i>Fecha de Inicio
+                                    </label>
+                                    <input type="datetime-local" class="form-control form-control-lg" id="fecha_inicio" 
+                                           name="fecha_inicio" value="{{ test.fecha_inicio|date:'Y-m-d\TH:i' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="fecha_fin" class="form-label fw-semibold text-success">
+                                        <i class="bi bi-calendar-x me-2"></i>Fecha de Fin
+                                    </label>
+                                    <input type="datetime-local" class="form-control form-control-lg" id="fecha_fin" 
+                                           name="fecha_fin" value="{{ test.fecha_fin|date:'Y-m-d\TH:i' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="tiempo_limite" class="form-label fw-semibold text-success">
+                                        <i class="bi bi-clock me-2"></i>Tiempo Límite (minutos)
+                                    </label>
+                                    <input type="number" class="form-control form-control-lg" id="tiempo_limite" 
+                                           name="tiempo_limite" value="{{ test.tiempo_limite }}" min="5" max="180" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estado del test -->
+                        <div class="form-group mb-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="activo" name="activo" 
+                                       {% if test.activo %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold text-success" for="activo">
+                                    <i class="bi bi-toggle-on me-2"></i>Test Activo
+                                </label>
+                                <small class="form-text text-muted d-block">
+                                    Los estudiantes solo pueden tomar tests activos
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-success btn-lg flex-fill">
+                                <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="{% url 'gamification:test_detail' test.IDtest %}" class="btn btn-outline-secondary btn-lg flex-fill">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="card shadow-sm border-0" style="border-radius: 16px;">
+                <div class="card-header bg-light border-0" style="border-radius: 16px 16px 0 0;">
+                    <h5 class="mb-0 text-success">
+                        <i class="bi bi-info-circle me-2"></i>Información del Test
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-question-circle text-primary" style="font-size: 2rem;"></i>
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">Preguntas</small>
+                                    <span class="fw-bold fs-5">{{ test.pregunta_set.count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-people text-info" style="font-size: 2rem;"></i>
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">Participantes</small>
+                                    <span class="fw-bold fs-5">{{ test.resultadotest_set.count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-graph-up text-success" style="font-size: 2rem;"></i>
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">Puntuación Máxima</small>
+                                    <span class="fw-bold fs-5">{{ max_score }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-calendar-check text-warning" style="font-size: 2rem;"></i>
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">Estado</small>
+                                    <span class="fw-bold fs-5 {% if test.activo %}text-success{% else %}text-secondary{% endif %}">
+                                        {% if test.activo %}Activo{% else %}Inactivo{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validación del formulario
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Validación de fechas
+document.addEventListener('DOMContentLoaded', function() {
+    const fechaInicio = document.getElementById('fecha_inicio');
+    const fechaFin = document.getElementById('fecha_fin');
+    
+    fechaInicio.addEventListener('change', function() {
+        if (fechaFin.value && this.value >= fechaFin.value) {
+            alert('La fecha de inicio debe ser anterior a la fecha de fin.');
+            this.value = '';
+        }
+    });
+    
+    fechaFin.addEventListener('change', function() {
+        if (fechaInicio.value && this.value <= fechaInicio.value) {
+            alert('La fecha de fin debe ser posterior a la fecha de inicio.');
+            this.value = '';
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -64,12 +64,7 @@
                     </div>
                     <div class="mb-3">
                         {{ form.grade.label_tag }}
-                        {{ form.grade|add_class:"form-control form-control-lg" }}
-                        <select class="form-select" id="classGrade" required>
-                                    <option value="">Seleccionar...</option>
-                                    <option value="1">1° de Secundaria</option>
-                                    <option value="2">2° de Secundaria</option>
-                        </select>
+                        {{ form.grade }}
                         {% if form.grade.errors %}
                             <div class="text-danger small">{{ form.grade.errors|striptags }}</div>
                         {% endif %} 

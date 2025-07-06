@@ -1,0 +1,176 @@
+{% extends 'gamification/base.html' %}
+{% load static %}
+
+{% block title %}Resultados - {{ test.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header del Test -->
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px;">
+                <div class="card-header bg-success text-white border-0" style="border-radius: 16px 16px 0 0;">
+                    <h4 class="mb-0">
+                        <i class="bi bi-graph-up me-2"></i>
+                        Resultados: {{ test.titulo }}
+                    </h4>
+                    <p class="mb-0 opacity-75">{{ test.descripcion }}</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-people text-success" style="font-size: 2rem;"></i>
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">Participantes</small>
+                                    <span class="fw-bold fs-5">{{ resultados.count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-star text-success" style="font-size: 2rem;"></i>
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">Puntuación Promedio</small>
+                                    <span class="fw-bold fs-5">
+                                        {% if resultados %}
+                                            {{ resultados|length|floatformat:1 }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-trophy text-success" style="font-size: 2rem;"></i>
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">Mejor Puntuación</small>
+                                    <span class="fw-bold fs-5">
+                                        {% if resultados %}
+                                            {{ resultados.first.puntuacion_total }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-percent text-success" style="font-size: 2rem;"></i>
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">Promedio Acierto</small>
+                                    <span class="fw-bold fs-5">
+                                        {% if resultados %}
+                                            {{ resultados|length|floatformat:1 }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Resultados -->
+            <div class="card shadow-sm border-0" style="border-radius: 16px;">
+                <div class="card-header bg-light border-0" style="border-radius: 16px 16px 0 0;">
+                    <h5 class="mb-0 text-success">
+                        <i class="bi bi-list-ol me-2"></i>
+                        {% if user.user_type == 2 %}Resultados de Estudiantes{% else %}Mi Resultado{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if resultados %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Estudiante</th>
+                                        <th>Puntuación</th>
+                                        <th>Porcentaje</th>
+                                        <th>Preguntas Correctas</th>
+                                        <th>Tiempo</th>
+                                        <th>Fecha</th>
+                                        {% if user.user_type == 2 %}
+                                        <th>Acciones</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for resultado in resultados %}
+                                    <tr {% if resultado.IDestudiante == user %}class="table-success"{% endif %}>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-2" 
+                                                     style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                                    {{ resultado.IDestudiante.username|first|upper }}
+                                                </div>
+                                                <span class="fw-semibold">{{ resultado.IDestudiante.username }}</span>
+                                                {% if resultado.IDestudiante == user %}
+                                                    <span class="badge bg-success ms-2">Tú</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-success">{{ resultado.puntuacion_total }}</span>
+                                            <small class="text-muted">/ {{ resultado.puntuacion_maxima }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress me-2 progress-sm">
+                                                    <div class="progress-bar {% if resultado.porcentaje_acierto >= 80 %}bg-success{% elif resultado.porcentaje_acierto >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                         style="width: {{ resultado.porcentaje_acierto }}%;"></div>
+                                                </div>
+                                                <span class="fw-semibold">{{ resultado.porcentaje_acierto|floatformat:1 }}%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="fw-semibold text-success">{{ resultado.preguntas_correctas }}</span>
+                                            <small class="text-muted">/ {{ resultado.total_preguntas }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted">{{ resultado.tiempo_empleado }}s</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ resultado.fecha_fin|date:"d/m/Y H:i" }}</small>
+                                        </td>
+                                        {% if user.user_type == 2 %}
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-success" 
+                                                    onclick="verDetalle(parseInt('{{ resultado.IDresultado }}'))">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-graph-down" style="font-size: 4rem; color: #B0BEC5;"></i>
+                            <h5 class="mt-3 text-muted">No hay resultados</h5>
+                            <p class="text-muted">{% if user.user_type == 2 %}Los estudiantes aún no han completado este test{% else %}Aún no has completado este test{% endif %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function verDetalle(resultadoId) {
+    // Aquí implementarías la lógica para ver el detalle de un resultado específico
+    alert('Función de detalle en desarrollo');
+}
+</script>
+{% endblock %} 

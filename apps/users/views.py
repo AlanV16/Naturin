@@ -1,14 +1,26 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout
-from .models import User, Class, StudentClass, StudentProgress
-from .forms import StudentRegisterForm, LoginForm, TeacherRegisterForm, ParentRegisterForm
-from django.contrib.auth.decorators import login_required
-from apps.gamification.models import Badge, Certificate, GamifiedActivity
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login
+from .models import User
+from .forms import StudentRegisterForm, TeacherRegisterForm, ParentRegisterForm, LoginForm
+from django.contrib.auth.decorators import login_required   
+from django.contrib.auth import logout
 from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
 import logging
-import uuid
+import random
+import string
+from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction
+from django.utils import timezone
 
-# Vistas de login por tipo de usuario
+# Importar modelos de gamificación
+from apps.educational_games.gamification.models import (
+    Aulas, AulaEstudiante, Actividades, Niveles
+)
+
 def login_student(request):
     return login_view(request, 'accounts/login_student.html', user_type=1)
 
@@ -21,13 +33,17 @@ def login_parent(request):
 def login_admin(request):
     return login_view(request, 'accounts/login_admin.html', user_type=4)
 
+from django.contrib.auth import login
+
 def login_view(request, template, user_type):
     print(f"[DEBUG] user_type esperado desde la vista: {user_type}")
+    
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             print(f"[DEBUG] Usuario autenticado: {user.username}, tipo real: {user.user_type}")
+            
             if user.user_type == user_type:
                 login(request, user)
                 if user_type == 1:
@@ -42,9 +58,10 @@ def login_view(request, template, user_type):
                 form.add_error(None, "Tipo de usuario incorrecto para este acceso.")
     else:
         form = LoginForm()
+
     return render(request, template, {'form': form})
 
-# Vistas de registro por tipo de usuario
+
 def register_student(request):
     return register_view(request, StudentRegisterForm, 'accounts/signup_student.html')
 
@@ -65,186 +82,281 @@ def register_view(request, form_class, template):
     return render(request, template, {'form': form})
 
 def logout_view(request):
+    """Vista personalizada de logout que acepta GET y POST"""
     logout(request)
     messages.success(request, 'Has cerrado sesión exitosamente.')
-    return redirect('/')
+    return redirect('users:login_student')
 
-# Vistas protegidas
+@login_required
+def dashboard_student(request):
+    # Obtener clases del estudiante
+    student_classes = AulaEstudiante.objects.filter(IDestudiante=request.user)
+    
+    # Obtener progreso del estudiante
+    try:
+        progress = Niveles.objects.get(IDusuario=request.user)
+    except Niveles.DoesNotExist:
+        progress = None
+    
+    context = {
+        'student_classes': student_classes,
+        'total_classes': student_classes.count(),
+        'progress': progress,
+    }
+    
+    return render(request, 'dashboards/dashboard_student.html', context)
 @login_required
 def dashboard_admin(request):
     logging.debug("Entrando a dashboard_admin")
-    print("Entrando a dashboard_admin")
+    print("Entrando a dashboard_admin")  # para la consola de runserver
     return render(request, 'dashboards/dashboard_admin.html')
-
 @login_required
 def dashboard_parent(request):
     logging.debug("Entrando a dashboard_parent")
     print("Entrando a dashboard_parent")
     return render(request, 'dashboards/dashboard_parent.html')
-
 @login_required
 def dashboard_teacher(request):
     logging.debug("Entrando a dashboard_teacher")
     print("Entrando a dashboard_teacher")
-    return render(request, 'dashboards/dashboard_teacher.html')
+    
+    # Obtener clases del docente
+    teacher_classes = Aulas.objects.filter(IDdocente=request.user)
+    
+    # Contar estudiantes totales
+    total_students = 0
+    for classroom in teacher_classes:
+        total_students += AulaEstudiante.objects.filter(IDaula=classroom).count()
+    
+    # Obtener recursos creados por el docente
+    from apps.educational_games.gamification.models import Test
+    from apps.pedagogical_guides.models import Guide
+    from apps.multimedia.models import MultimediaCard
+    
+    # Tests creados por el docente
+    tests = Test.objects.filter(IDdocente=request.user).order_by('-fecha_creacion')
+    
+    # Guías pedagógicas creadas por el docente
+    guias = Guide.objects.filter(author=request.user).order_by('-created_at')
+    
+    # Recursos multimedia creados por el docente
+    multimedia = MultimediaCard.objects.filter(author=request.user).order_by('-created_at')
+    
+    context = {
+        'teacher_classes': teacher_classes,
+        'total_students': total_students,
+        'total_classes': teacher_classes.count(),
+        'tests': tests,
+        'guias': guias,
+        'multimedia': multimedia,
+    }
+    
+    return render(request, 'dashboards/dashboard_teacher.html', context)
+
+# ============================================================================
+# AULAS VIRTUALES
+# ============================================================================
 
 @login_required
 def join_class(request):
+    """Vista para que estudiantes se unan a una clase"""
     if request.method == 'POST':
-        course_code = request.POST.get('course_code')  # Corrección: Usar course_code en lugar de course_name
-        if course_code:
-            try:
-                classroom = Class.objects.get(access_code=course_code)
-                if not StudentClass.objects.filter(student=request.user, class_id=classroom).exists():
-                    StudentClass.objects.create(student=request.user, class_id=classroom)
-                    messages.success(request, f"Te has unido a {classroom.name} con código {course_code}.")
-                else:
-                    messages.error(request, "Ya estás inscrito en esta clase.")
-            except Class.DoesNotExist:
-                messages.error(request, "Código de clase inválido.")
-        else:
-            messages.error(request, "Por favor, completa todos los campos.")
-    return redirect('users:dashboard_student')  # Redirigir correctamente
+        class_code = request.POST.get('class_code')
+        
+        if not class_code:
+            messages.error(request, 'Por favor ingresa el código de la clase.')
+            return redirect('users:dashboard_student')
+        
+        try:
+            # Buscar la clase solo por código
+            classroom = Aulas.objects.get(CodigoAula=class_code)
+            
+            # Verificar si el estudiante ya está en la clase
+            if AulaEstudiante.objects.filter(IDaula=classroom, IDestudiante=request.user).exists():
+                messages.warning(request, 'Ya estás inscrito en esta clase.')
+                return redirect('users:dashboard_student')
+            
+            # Inscribir al estudiante
+            AulaEstudiante.objects.create(
+                IDaula=classroom,
+                IDestudiante=request.user,
+                DenominacionAula=classroom.NombreAula
+            )
+            
+            messages.success(request, f'Te has unido exitosamente a la clase "{classroom.NombreAula}"')
+            return redirect('users:class_student', class_id=classroom.IDaula)
+            
+        except Aulas.DoesNotExist:
+            messages.error(request, 'No se encontró la clase con el código proporcionado.')
+        except Exception as e:
+            messages.error(request, 'Error al unirse a la clase.')
+    
+    # Si es GET, redirigir al dashboard
+    return redirect('users:dashboard_student')
 
 @login_required
-def dashboard_student(request):
-    user = request.user
-    progress, created = StudentProgress.objects.get_or_create(user=user)
-    return render(request, 'dashboards/dashboard_student.html', {
-        'user_badges': progress.badges.all(),
-        'user_certificates': Certificate.objects.filter(user=user),
-        'user_courses': StudentClass.objects.filter(student=user),
-        'pending_activities': GamifiedActivity.objects.filter(completed_by__isnull=True),
-        'completed_activities': GamifiedActivity.objects.filter(completed_by=user),  # Añadir actividades completadas
-        'user_courses_count': StudentClass.objects.filter(student=user).count(),
-        'pending_activities_count': GamifiedActivity.objects.filter(completed_by__isnull=True).count(),
-        'upcoming_events_count': 0,
-        'progress': progress,
-    })
-
-@login_required
-def class_teacher(request, class_id):
-    classroom = Class.objects.get(id=class_id)
-    if classroom.teacher != request.user:
+def create_class(request):
+    """Vista para que docentes creen una nueva clase"""
+    if request.user.user_type != 2:  # Solo docentes
+        messages.error(request, 'No tienes permisos para crear clases.')
         return redirect('users:dashboard_teacher')
-    students = StudentClass.objects.filter(class_id=classroom)
-    progress_list = []
-    for student in students:
-        progress, _ = StudentProgress.objects.get_or_create(user=student.student)
-        progress_list.append({'user': student.student, 'points': progress.points})
-    progress_list.sort(key=lambda x: x['points'], reverse=True)
-
-    chat_messages = []  # Placeholder, implementar modelo de chat si es necesario
-
+    
     if request.method == 'POST':
-        if 'reward_student' in request.POST:
-            student_id = request.POST.get('student_id')
-            points = int(request.POST.get('reward_student'))
-            student = User.objects.get(id=student_id)
-            progress, _ = StudentProgress.objects.get_or_create(user=student)
-            progress.points += points
-            progress.save()
-            messages.success(request, f"Se otorgaron {points} puntos a {student.username}.")
-        elif 'chat_message' in request.POST:
-            chat_message = request.POST.get('chat_message')
-            if chat_message:
-                messages.success(request, f"Mensaje enviado: {chat_message}")
-        return redirect('users:class_teacher', class_id=class_id)
-
-    return render(request, 'class/class_teacher.html', {
-        'class': classroom,
-        'students': students,
-        'progress_list': progress_list,
-        'chat_messages': chat_messages,
-    })
+        try:
+            with transaction.atomic():
+                # Usar el código generado por JavaScript
+                code = request.POST.get('class_code')
+                if not code:
+                    messages.error(request, 'Código de clase requerido.')
+                    return redirect('users:create_class')
+                
+                # Crear la clase
+                classroom = Aulas.objects.create(
+                    NombreAula=request.POST.get('class_name'),
+                    Descripcion=request.POST.get('description'),
+                    GradoEducativo=request.POST.get('grade'),
+                    Seccion=request.POST.get('section'),
+                    CodigoAula=code,
+                    IDdocente=request.user,
+                    FechaCreacion=timezone.now()
+                )
+                
+                # Asignar actividades seleccionadas
+                selected_activities = request.POST.getlist('activities')
+                for activity_id in selected_activities:
+                    try:
+                        activity = Actividades.objects.get(IDactividad=activity_id)
+                        # Aquí podrías crear una relación entre la clase y la actividad
+                        # Por ahora solo registramos que se seleccionó
+                        pass
+                    except Actividades.DoesNotExist:
+                        pass
+                
+                messages.success(request, f'Clase "{classroom.NombreAula}" creada exitosamente.')
+                return redirect('users:class_teacher', class_id=classroom.IDaula)
+                
+        except Exception as e:
+            messages.error(request, 'Error al crear la clase.')
+    
+    # Obtener actividades disponibles (sin filtrar por estado ya que no existe ese campo)
+    activities = Actividades.objects.all()
+    
+    context = {
+        'activities': activities,
+        'grades': ['Primero', 'Segundo'],
+        'sections': ['A', 'B', 'C', 'D', 'E'],
+    }
+    
+    return render(request, 'users/create_class.html', context)
 
 @login_required
 def class_student(request, class_id):
-    classroom = Class.objects.get(id=class_id)
-    if not StudentClass.objects.filter(student=request.user, class_id=classroom).exists():
+    """Vista de clase para estudiantes"""
+    classroom = get_object_or_404(Aulas, IDaula=class_id)
+    
+    # Verificar si el estudiante está inscrito
+    if not AulaEstudiante.objects.filter(IDaula=classroom, IDestudiante=request.user).exists():
+        messages.error(request, 'No tienes acceso a esta clase.')
         return redirect('users:dashboard_student')
-    progress, _ = StudentProgress.objects.get_or_create(user=request.user)
-    activities = GamifiedActivity.objects.filter(grade=classroom.grade)
-
-    # Datos de ejemplo para theoretical_content (deberías definir un modelo si es dinámico)
-    theoretical_content = [
-        {'title': 'Introducción a la Biología', 'description': 'La biología es la ciencia que estudia los seres vivos...', 'file': None},
-    ]
-
-    # Datos de ejemplo para chat_messages (deberías definir un modelo de chat)
-    chat_messages = []  # Placeholder, implementar modelo de chat si es necesario
-
-    if request.method == 'POST':
-        chat_message = request.POST.get('chat_message')
-        if chat_message:
-            # Aquí deberías guardar el mensaje en un modelo de chat (ejemplo placeholder)
-            messages.success(request, f"Mensaje enviado: {chat_message}")
-        return redirect('users:class_student', class_id=class_id)
-
-    return render(request, 'class/class_student.html', {
+    
+    # Obtener actividades de la clase
+    activities = Actividades.objects.all()[:5]  # Limitamos a 5 por ahora
+    
+    # Obtener progreso del estudiante
+    try:
+        progress = Niveles.objects.get(IDusuario=request.user)
+    except Niveles.DoesNotExist:
+        progress = None
+    
+    # Obtener mensajes del chat (simulado por ahora)
+    chat_messages = []
+    
+    context = {
         'class': classroom,
-        'progress': progress,
         'activities': activities,
-        'theoretical_content': theoretical_content,
+        'progress': progress,
         'chat_messages': chat_messages,
-    })
+        'theoretical_content': [],  # Por ahora vacío
+    }
+    
+    return render(request, 'users/class_student.html', context)
+
+@login_required
+def class_teacher(request, class_id):
+    """Vista de clase para docentes"""
+    classroom = get_object_or_404(Aulas, IDaula=class_id, IDdocente=request.user)
+    
+    if request.method == 'POST':
+        # Manejar mensajes del chat
+        if 'chat_message' in request.POST:
+            message = request.POST.get('chat_message')
+            # Aquí guardarías el mensaje en la base de datos
+            messages.success(request, 'Mensaje enviado.')
+        
+        # Manejar recompensas a estudiantes
+        if 'reward_student' in request.POST:
+            student_id = request.POST.get('student_id')
+            points = int(request.POST.get('reward_student'))
+            
+            try:
+                student = User.objects.get(id=student_id)
+                nivel, created = Niveles.objects.get_or_create(IDusuario=student)
+                nivel.puntos_acumulados += points
+                nivel.actualizar_nivel()
+                nivel.save()
+                
+                messages.success(request, f'Se otorgaron {points} puntos al estudiante.')
+            except Exception as e:
+                messages.error(request, 'Error al otorgar puntos.')
+    
+    # Obtener estudiantes inscritos
+    students = AulaEstudiante.objects.filter(IDaula=classroom)
+    
+    # Obtener actividades de la clase
+    activities = Actividades.objects.all()[:5]
+    
+    # Obtener progreso de estudiantes
+    progress_list = []
+    for student in students:
+        try:
+            nivel = Niveles.objects.get(IDusuario=student.IDestudiante)
+            progress_list.append({
+                'user': student.IDestudiante,
+                'points': nivel.puntos_acumulados
+            })
+        except Niveles.DoesNotExist:
+            pass
+    
+    # Ordenar por puntos
+    progress_list.sort(key=lambda x: x['points'], reverse=True)
+    
+    # Obtener mensajes del chat (simulado)
+    chat_messages = []
+    
+    context = {
+        'class': classroom,
+        'students': students,
+        'activities': activities,
+        'progress_list': progress_list,
+        'chat_messages': chat_messages,
+    }
+    
+    return render(request, 'users/class_teacher.html', context)
 
 @login_required
 def play_game(request, class_id):
-    if request.method == 'POST':
-        classroom = Class.objects.get(id=class_id)
-        if StudentClass.objects.filter(student=request.user, class_id=classroom).exists():
-            progress, _ = StudentProgress.objects.get_or_create(user=request.user)
-            points_earned = 50
-            progress.points += points_earned
-            progress.save()
-
-            badges = Badge.objects.filter(points_required__lte=progress.points)
-            for badge in badges:
-                if not progress.badges.filter(id=badge.id).exists():
-                    progress.badges.add(badge)
-                    messages.success(request, f"¡Ganaste la insignia '{badge.name}'!")
-            messages.success(request, f"¡Ganaste {points_earned} puntos!")
-        return redirect('users:class_student', class_id=class_id)
-    classroom = Class.objects.get(id=class_id)
-    return render(request, 'dashboards/class_student.html', {'class': classroom})
-
-# Vistas faltantes (placeholders)
-@login_required
-def create_class(request):
-    if request.method == 'POST':
-        name = request.POST.get('class_name')
-        grade = request.POST.get('grade')
-        section = request.POST.get('section')
-        description = request.POST.get('description')
-        access_code = request.POST.get('access_code', str(uuid.uuid4())[:8])
-        if not all([name, grade, section]):
-            messages.error(request, "Por favor completa todos los campos obligatorios.")
-            return render(request, 'dashboards/dashboard_teacher.html')
-        Class.objects.create(teacher=request.user, name=name, grade=grade, section=section, description=description, access_code=access_code)
-        messages.success(request, f"Clase creada con código de acceso: {access_code}")
-        return redirect('users:dashboard_teacher')
-    return render(request, 'dashboards/dashboard_teacher.html')
-
-@login_required
-def remove_student(request, class_id, student_id):
-    classroom = Class.objects.get(id=class_id)
-    if classroom.teacher != request.user:
-        return redirect('users:dashboard_teacher')
-    student = User.objects.get(id=student_id)
-    StudentClass.objects.filter(class_id=classroom, student=student).delete()
-    messages.success(request, f"Estudiante {student.username} removido de la clase.")
-    return redirect('users:class_teacher', class_id=class_id)
-
-@login_required
-def create_activity(request, class_id):
-    if request.method == 'POST':
-        name = request.POST.get('activity_name')
-        points = request.POST.get('points', 10)
-        if name:
-            classroom = Class.objects.get(id=class_id)
-            GamifiedActivity.objects.create(name=name, points=points, grade=classroom.grade)
-            messages.success(request, f"Actividad '{name}' creada.")
-        else:
-            messages.error(request, "Por favor, ingresa un nombre para la actividad.")
-    return redirect('users:class_teacher', class_id=class_id)
+    """Vista para jugar juegos educativos"""
+    classroom = get_object_or_404(Aulas, IDaula=class_id)
+    
+    # Verificar acceso
+    if request.user.user_type == 1:  # Estudiante
+        if not AulaEstudiante.objects.filter(IDaula=classroom, IDestudiante=request.user).exists():
+            messages.error(request, 'No tienes acceso a esta clase.')
+            return redirect('users:dashboard_student')
+    elif request.user.user_type == 2:  # Docente
+        if classroom.IDdocente != request.user:
+            messages.error(request, 'No tienes acceso a esta clase.')
+            return redirect('users:dashboard_teacher')
+    
+    # Redirigir al sistema de gamificación
+    return redirect('gamification:dashboard')

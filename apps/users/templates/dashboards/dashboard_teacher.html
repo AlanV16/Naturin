@@ -2,38 +2,9 @@
 {% load static %}
 
 {% block header %}
-<header class="bg-white text-dark py-3" style="box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); border-bottom: 1px solid rgba(56, 142, 60, 0.1);">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
-            <a class="brand-title text-decoration-none">
-                <span class="brand-title-text" style="font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em;">
-                    <span class="text-success">Nature</span><span class="text-warning">In</span>
-                </span>
-            </a>
-            <div class="d-flex flex-grow-1 px-5">
-                <span class="text-truncate" style="font-size: 0.95rem; font-weight: 500; color: #495057;">
-                    Bienvenido, <span class="text-success fw-semibold">{{ user.username }}</span>
-                </span>
-            </div>
-            <form action="{% url 'users:logout' %}" method="post" class="m-0">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-success text-success border-2 px-3 py-2 logout-btn" style="font-weight: 500; border-radius: 8px; transition: all 0.2s ease;">
-                    <i class="bi bi-box-arrow-left me-2"></i>Cerrar Sesión
-                </button>
-            </form>
-            <style>
-                .logout-btn:hover {
-                    background-color: #388e3c !important;
-                    color: white !important;
-                    border-color: #388e3c !important;
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 8px rgba(56, 142, 60, 0.3);
-                }
-            </style>
-        </div>
-    </div>
-</header>
+    {% include 'partials/header_dashboard.html' %}
 {% endblock %}
+
 {% block footer %}{% endblock %}
 
 {% block extra_css %}
@@ -42,412 +13,841 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2 dashboard-bg">
+<div class="container-fluid bg-light py-2">
     <div class="row">
-        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar-dashboard">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar-dashboard p-0">
             <div class="text-center py-4">
-                <div style="width: 90px; height: 90px; background: #FFD700; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                    <i class="bi bi-mortarboard-fill" style="font-size: 2rem; color: #2d5016;"></i>
-                </div>
+                <img src="{% static 'images/mascota/tuki.png' %}" alt="Owl" width="90" class="mb-3 rounded-circle">
             </div>
             <nav class="nav flex-column px-3">
-                <button class="nav-link active fw-bold sidebar-btn" onclick="showSection('dashboard')">
+                <button class="nav-link text-white fw-bold sidebar-btn active" onclick="showSection('dashboard')">
                     <i class="bi bi-house-door-fill me-2"></i> Dashboard
                 </button>
-                <button class="nav-link fw-bold sidebar-btn" onclick="showSection('clases')">
+                <button class="nav-link text-white fw-bold sidebar-btn" onclick="showSection('clases')">
                     <i class="bi bi-plus-circle me-2"></i> Clases
                 </button>
-                <button class="nav-link fw-bold sidebar-btn" onclick="showSection('contenido')">
+                <button class="nav-link text-white fw-bold sidebar-btn" onclick="showSection('contenido')">
                     <i class="bi bi-folder-fill me-2"></i> Contenido
                 </button>
-                <button class="nav-link fw-bold sidebar-btn" onclick="showSection('mensajes')">
+                <button class="nav-link text-white fw-bold sidebar-btn" onclick="showSection('mensajes')">
                     <i class="bi bi-chat-dots-fill me-2"></i> Mensajes
                 </button>
-                <button class="nav-link fw-bold sidebar-btn" onclick="showSection('configuracion')">
+                <button class="nav-link text-white fw-bold sidebar-btn" onclick="showSection('configuracion')">
                     <i class="bi bi-gear-fill me-2"></i> Configuración
                 </button>
             </nav>
         </div>
 
+        <!-- Main Content -->
         <div class="col-md-9 col-lg-10 px-4">
-            <div class="py-2">
-                <h2 class="fw-bold dashboard-title">
-                    ¡Bienvenido, {{ user.get_full_name|default:user.username }}!
-                </h2>
+            <div class="py-4">
+                <!-- Header con bienvenida -->
+                <div class="card shadow-sm bg-white rounded-3 mb-4">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h2 class="fw-bold text-success mb-2">¡Buenos días! Bienvenido de vuelta</h2>
+                                <p class="text-muted mb-0">Es sábado 05 de julio de 2025, 11:16 AM. Gestiona tus clases y actividades de manera eficiente</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <img src="{% static 'images/mascota/tuki.png' %}" alt="Tuki" width="80" class="img-fluid rounded-circle">
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Sección Dashboard -->
                 <div id="dashboard-section">
+                    <!-- Botones de acción principales centrados -->
+                    <div class="row mb-4">
+                        <div class="col-12 text-center">
+                            <div class="btn-group mb-3" role="group">
+                                <a href="{% url 'users:create_class' %}" class="btn btn-success btn-lg mx-2">
+                            <i class="bi bi-plus-circle me-2"></i> Crear Clase
+                                </a>
+                                <div class="dropdown d-inline-block">
+                                    <button class="btn btn-success btn-lg dropdown-toggle mx-2" type="button" id="dropdownActivity" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-lightning-fill me-2"></i> Crear Actividad
+                        </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="dropdownActivity">
+                                        <li>
+                                            <a class="dropdown-item py-3" href="{% if teacher_classes.first %}{% url 'gamification:test_create' teacher_classes.first.IDaula %}{% else %}{% url 'users:create_class' %}{% endif %}">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-clipboard-check text-success me-3 fs-5"></i>
+                                                    <div>
+                                                        <strong class="d-block">Crear Test</strong>
+                                                        <small class="text-muted">{% if teacher_classes.first %}Evaluaciones con preguntas múltiples{% else %}Primero crea una clase{% endif %}</small>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item py-3" href="{% url 'gamification:test_public_list' %}">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-collection text-info me-3 fs-5"></i>
+                                                    <div>
+                                                        <strong class="d-block">Biblioteca de Tests</strong>
+                                                        <small class="text-muted">Descubre y copia tests de otros docentes</small>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item py-3" href="#">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-puzzle text-warning me-3 fs-5"></i>
+                                                    <div>
+                                                        <strong class="d-block">Crear Juegos</strong>
+                                                        <small class="text-muted">Actividades interactivas y dinámicas</small>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item py-3" href="#">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-file-earmark-text text-info me-3 fs-5"></i>
+                                                    <div>
+                                                        <strong class="d-block">Fichas Educativas</strong>
+                                                        <small class="text-muted">Material educativo estructurado</small>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item py-3" href="{% url 'pedagogical_guides:guide_upload' %}">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-upload text-secondary me-3 fs-5"></i>
+                                                    <div>
+                                                        <strong class="d-block">Subir Material (Multimedia)</strong>
+                                                        <small class="text-muted">Sube videos, imágenes o audios</small>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <a href="{% url 'pedagogical_guides:guide_upload' %}" class="btn btn-success btn-lg mx-2">
+                                    <i class="bi bi-upload me-2"></i> Subir Guía
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas -->
                     <div class="row g-3 mb-4">
-                        <div class="col-12 col-md-3">
-                            <button class="btn-dashboard-create" onclick="openCreateClassModal()">
-                                <i class="bi bi-plus-circle me-2"></i> Crear Clase
-                            </button>
+                    <div class="col-6 col-md-3">
+                            <div class="card shadow-sm bg-white rounded-3 p-3 text-center">
+                                <div class="fw-bold text-success">{{ total_classes|default:0 }}</div>
+                            <div class="text-muted">Clases Activas</div>
                         </div>
-                        <div class="col-12 col-md-3">
-                            <div class="card-container text-center">
-                                <div class="fw-bold stats-number-primary">6</div>
-                                <div class="text-muted">Clases Activas</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                            <div class="card shadow-sm bg-white rounded-3 p-3 text-center">
+                                <div class="fw-bold text-success">{{ total_students|default:0 }}</div>
+                            <div class="text-muted">Estudiantes</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                            <div class="card shadow-sm bg-white rounded-3 p-3 text-center">
+                                <div class="fw-bold text-success">{{ tests.count|default:0 }}</div>
+                                <div class="text-muted">Tests Creados</div>
                             </div>
                         </div>
-                        <div class="col-12 col-md-3">
-                            <div class="card-container text-center">
-                                <div class="fw-bold stats-number-primary">24</div>
-                                <div class="text-muted">Estudiantes</div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-3">
-                            <div class="card-container text-center">
-                                <div class="fw-bold stats-number-primary">5</div>
-                                <div class="text-muted">Nuevos Mensajes</div>
+                        <div class="col-6 col-md-3">
+                            <div class="card shadow-sm bg-white rounded-3 p-3 text-center">
+                                <div class="fw-bold text-success">{{ guias.count|default:0 }}</div>
+                                <div class="text-muted">Guías Pedagógicas</div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Contenido Principal -->
                     <div class="row g-4">
-                        <div class="col-lg-6">
-                            <div class="card-container">
-                                <h5 class="fw-bold mb-3 dashboard-title">Mis Clases</h5>
-                                <div class="course-item">
-                                    <div class="course-content">
-                                        <i class="bi bi-book-fill me-2 course-icon"></i> Clase A <span class="text-secondary">1° Secundaria</span>
-                                    </div>
-                                    <div class="course-actions">
-                                        <a href="#" class="btn-dashboard-view">Ver</a>
-                                    </div>
+                        <div class="col-lg-8">
+                            <div class="card shadow-sm bg-white rounded-3 mb-4">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="fw-bold text-success mb-0">Mis Clases</h5>
+                </div>
+                                    {% if teacher_classes %}
+                                        <div class="row g-3">
+                                            {% for classroom in teacher_classes %}
+                                                <div class="col-md-12">
+                                                    <div class="card bg-light rounded-3 p-3">
+                                <div class="course-content">
+                                                            <div class="d-flex align-items-center mb-2">
+                                                                <i class="bi bi-book-fill me-2 text-success course-icon"></i>
+                                                                <strong>{{ classroom.NombreAula }}</strong>
+                                                            </div>
+                                                            <p class="text-muted mb-2">{{ classroom.GradoEducativo }} - {{ classroom.Seccion }}</p>
+                                                            <div class="d-flex justify-content-between align-items-center" style="width: 100%;">
+                                                                <small class="text-muted">
+                                                                    <i class="bi bi-people-fill me-1"></i> {{ classroom.total_students|default:0 }} estudiantes
+                                                                </small>
+                                                                <div class="btn-group btn-group-sm right">
+                                                                    <a href="{% url 'users:class_teacher' classroom.IDaula %}" class="btn btn-outline-success">
+                                                                        <i class="bi bi-eye me-1"></i> Ver
+                                                                    </a>
+                                                                    <a href="{% url 'gamification:test_list' classroom.IDaula %}" class="btn btn-outline-primary">
+                                                                        <i class="bi bi-clipboard-check me-1"></i> Tests
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-5">
+                                            <i class="bi bi-book display-4 text-warning"></i>
+                                            <h6 class="mt-3 mb-2">No tienes clases creadas</h6>
+                                            <p class="text-muted mb-3">Crea tu primera clase para comenzar a enseñar</p>
+                                            <a href="{% url 'users:create_class' %}" class="btn btn-success">
+                                                <i class="bi bi-plus-circle me-2"></i> Crear Primera Clase
+                                            </a>
                                 </div>
-                                <div class="course-item">
-                                    <div class="course-content">
-                                        <i class="bi bi-book-fill me-2 course-icon"></i> Clase B <span class="text-secondary">2° Secundaria</span>
-                                    </div>
-                                    <div class="course-actions">
-                                        <a href="#" class="btn-dashboard-view">Ver</a>
-                                    </div>
-                                </div>
-                                <div class="course-item">
-                                    <div class="course-content">
-                                        <i class="bi bi-book-fill me-2 course-icon"></i> Clase C <span class="text-secondary">1° Secundaria</span>
-                                    </div>
-                                    <div class="course-actions">
-                                        <a href="#" class="btn-dashboard-view">Ver</a>
-                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
-                            <div class="card-container">
-                                <h5 class="fw-bold mb-3 dashboard-title">Administrador de Contenido</h5>
-                                <div class="row g-2">
-                                    <div class="col-6">
-                                        <button class="btn-dashboard-secondary" onclick="openContentModal()">
-                                            <i class="bi bi-plus-circle me-2"></i> Añadir nuevo contenido
-                                        </button>
+
+                            <!-- Actividades Recientes -->
+                            <div class="card shadow-sm bg-white rounded-3">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="fw-bold text-success mb-0">Actividades Recientes</h5>
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-success btn-sm dropdown-toggle" type="button" id="dropdownNewActivity" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-lightning-fill me-1"></i> Nueva Actividad
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="dropdownNewActivity">
+                                                <li>
+                                                    <a class="dropdown-item py-3" href="{% if teacher_classes.first %}{% url 'gamification:test_create' teacher_classes.first.IDaula %}{% else %}{% url 'users:create_class' %}{% endif %}">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="bi bi-clipboard-check text-success me-3 fs-5"></i>
+                                                            <div>
+                                                                <strong class="d-block">Crear Test</strong>
+                                                                <small class="text-muted">{% if teacher_classes.first %}Evaluaciones con preguntas múltiples{% else %}Primero crea una clase{% endif %}</small>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item py-3" href="{% url 'gamification:test_public_list' %}">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="bi bi-collection text-info me-3 fs-5"></i>
+                                                            <div>
+                                                                <strong class="d-block">Biblioteca de Tests</strong>
+                                                                <small class="text-muted">Descubre y copia tests de otros docentes</small>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item py-3" href="#">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="bi bi-puzzle text-warning me-3 fs-5"></i>
+                                                            <div>
+                                                                <strong class="d-block">Crear Juegos</strong>
+                                                                <small class="text-muted">Actividades interactivas y dinámicas</small>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item py-3" href="#">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="bi bi-file-earmark-text text-info me-3 fs-5"></i>
+                                                            <div>
+                                                                <strong class="d-block">Fichas Educativas</strong>
+                                                                <small class="text-muted">Material educativo estructurado</small>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item py-3" href="{% url 'pedagogical_guides:guide_upload' %}">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="bi bi-upload text-secondary me-3 fs-5"></i>
+                                                            <div>
+                                                                <strong class="d-block">Subir Material (Multimedia)</strong>
+                                                                <small class="text-muted">Sube videos, imágenes o audios</small>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
-                                    <div class="col-6">
-                                        <button class="btn-dashboard-secondary" onclick="downloadReports()">
-                                            <i class="bi bi-download me-2"></i> Descargar reportes
-                                        </button>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <div class="card bg-light rounded-3 p-3">
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <div>
+                                                        <i class="bi bi-clipboard-check text-success me-2"></i>
+                                                        <strong>Test de Matemáticas</strong>
+                                                        <small class="text-muted d-block">Hace 2 días</small>
+                                                    </div>
+                                                    <span class="badge bg-success">Activo</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card bg-light rounded-3 p-3">
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <div>
+                                                        <i class="bi bi-puzzle text-warning me-2"></i>
+                                                        <strong>Juego de Ciencias</strong>
+                                                        <small class="text-muted d-block">Hace 1 semana</small>
+                                                    </div>
+                                                    <span class="badge bg-warning text-dark">Borrador</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-6">
-                            <div class="card-container">
-                                <h5 class="fw-bold mb-3 dashboard-title">Nuevos Mensajes</h5>
-                                <ul class="list-unstyled mb-0">
-                                    <li class="mb-2"><i class="bi bi-envelope-fill me-2 message-icon"></i> Message 1</li>
-                                </ul>
+
+                        <div class="col-lg-4">
+                            <!-- Guías Pedagógicas -->
+                            <div class="card shadow-sm bg-white rounded-3 mb-4">
+                                <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="fw-bold text-success mb-0">Guías Pedagógicas</h5>
+                                        <a href="{% url 'pedagogical_guides:guide_list' %}" class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-eye me-1"></i> Ver todas
+                                    </a>
+                                </div>
+                                    <div class="d-grid gap-2 mb-3">
+                                        <a href="{% url 'pedagogical_guides:guide_upload' %}" class="btn btn-outline-success">
+                                            <i class="bi bi-upload me-2"></i> Subir Nueva Guía
+                                        </a>
+                                    </div>
+                                    <div class="text-center">
+                                        <small class="text-muted">
+                                            <i class="bi bi-info-circle me-1"></i> Gestiona tus recursos pedagógicos
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mensajes -->
+                            <div class="card shadow-sm bg-white rounded-3 mb-4">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="fw-bold text-success mb-0">Mensajes</h5>
+                                        <span class="badge bg-success">5</span>
+                                    </div>
+                                    <div class="card bg-light mb-2 p-3 rounded-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-envelope-fill me-2 text-success"></i>
+                                            <div class="flex-grow-1">
+                                                <strong>Estudiante Juan Pérez</strong>
+                                                <small class="text-muted d-block">Consulta sobre tarea</small>
+                                            </div>
+                                            <small class="text-muted">2h</small>
+                                        </div>
+                                    </div>
+                                    <div class="card bg-light mb-2 p-3 rounded-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-envelope-fill me-2 text-success"></i>
+                                            <div class="flex-grow-1">
+                                                <strong>Padre de María</strong>
+                                                <small class="text-muted d-block">Consulta de progreso</small>
+                                            </div>
+                                            <small class="text-muted">1d</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-center">
+                                        <a href="#" class="btn btn-outline-success btn-sm">
+                                            <i class="bi bi-chat-dots me-1"></i> Ver todos
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Estadísticas Rápidas -->
+                            <div class="card shadow-sm bg-white rounded-3">
+                                <div class="card-body p-4">
+                                    <h5 class="fw-bold text-success mb-3">Resumen Semanal</h5>
+                                    <div class="row g-2 text-center">
+                                        <div class="col-6">
+                                            <div class="card bg-light p-3 rounded-3">
+                                                <div class="fw-bold text-success">89%</div>
+                                                <small class="text-muted">Participación</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="card bg-light p-3 rounded-3">
+                                                <div class="fw-bold text-success">24</div>
+                                                <small class="text-muted">Tareas entregadas</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Sección Clases -->
                 <div id="clases-section" style="display: none;">
-                    <h3 class="dashboard-title">Gestión de Clases</h3>
-                    <div class="card-container">
-                        <p>Aquí puedes gestionar todas tus clases...</p>
+                    <h3 class="fw-bold text-success mb-4">Gestión de Clases</h3>
+                    <div class="card shadow-sm bg-white rounded-3">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="fw-bold text-success mb-0">Mis Clases</h5>
+                                <a href="{% url 'users:create_class' %}" class="btn btn-success">
+                                    <i class="bi bi-plus-circle me-2"></i> Crear Nueva Clase
+                                </a>
+                            </div>
+                            {% if teacher_classes %}
+                                <div class="row g-3">
+                                    {% for classroom in teacher_classes %}
+                                        <div class="col-md-6 col-lg-4">
+                                            <div class="card shadow-sm border-0 h-100" style="border-radius: 16px;">
+                                                <div class="card-body p-4">
+                                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                                        <h6 class="fw-bold mb-0">{{ classroom.NombreAula }}</h6>
+                                                        <span class="badge bg-success rounded-pill">Activa</span>
+                                                    </div>
+                                                    <p class="text-muted small mb-3">{{ classroom.Descripcion|default:"Sin descripción" }}</p>
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-6">
+                                                            <small class="text-muted d-block">
+                                                                <i class="bi bi-mortarboard me-1"></i>Grado
+                                                            </small>
+                                                            <small class="fw-semibold">{{ classroom.GradoEducativo }}</small>
+                                                        </div>
+                                <div class="col-6">
+                                                            <small class="text-muted d-block">
+                                                                <i class="bi bi-people me-1"></i>Sección
+                                                            </small>
+                                                            <small class="fw-semibold">{{ classroom.Seccion }}</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex gap-2">
+                                                        <a href="{% url 'users:class_teacher' classroom.IDaula %}" class="btn btn-outline-success btn-sm flex-fill">
+                                                            <i class="bi bi-eye me-1"></i> Ver
+                                                        </a>
+                                                        <a href="{% url 'gamification:test_list' classroom.IDaula %}" class="btn btn-outline-primary btn-sm flex-fill">
+                                                            <i class="bi bi-clipboard-check me-1"></i> Tests
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="bi bi-book display-4 text-warning"></i>
+                                    <h6 class="mt-3 mb-2">No tienes clases creadas</h6>
+                                    <p class="text-muted mb-3">Crea tu primera clase para comenzar a enseñar</p>
+                                    <a href="{% url 'users:create_class' %}" class="btn btn-success">
+                                        <i class="bi bi-plus-circle me-2"></i> Crear Primera Clase
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
 
+                <!-- Sección Contenido -->
                 <div id="contenido-section" style="display: none;">
-                    <h3 class="dashboard-title">Gestión de Contenido</h3>
-                    <div class="card-container">
-                        <p>Aquí puedes gestionar todo tu contenido educativo...</p>
+                    <h3 class="fw-bold text-success mb-4">Gestión de Contenido</h3>
+                    
+                    <!-- Tests -->
+                    <div class="card shadow-sm bg-white rounded-3 mb-4">
+                        <div class="card-header bg-light border-0" style="border-radius: 16px 16px 0 0;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="fw-bold text-success mb-0">
+                                    <i class="bi bi-clipboard-check me-2"></i>Tests
+                                </h5>
+                                <a href="{% if teacher_classes.first %}{% url 'gamification:test_create' teacher_classes.first.IDaula %}{% else %}{% url 'users:create_class' %}{% endif %}" class="btn btn-success btn-sm">
+                                    <i class="bi bi-plus-circle me-2"></i>Crear Test
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            {% if tests %}
+                                <div class="row g-3">
+                                    {% for test in tests %}
+                                        <div class="col-md-6 col-lg-4">
+                                            <div class="card shadow-sm border-0 h-100" style="border-radius: 12px;">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <h6 class="fw-bold mb-0">{{ test.titulo }}</h6>
+                                                        <span class="badge {% if test.activo %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
+                                                            {% if test.activo %}Activo{% else %}Inactivo{% endif %}
+                                                        </span>
+                                                    </div>
+                                                    <p class="text-muted small mb-3">{{ test.descripcion|truncatewords:15 }}</p>
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-6">
+                                                            <small class="text-muted d-block">
+                                                                <i class="bi bi-clock me-1"></i>Tiempo
+                                                            </small>
+                                                            <small class="fw-semibold">{{ test.tiempo_limite }} min</small>
+                                </div>
+                                <div class="col-6">
+                                                            <small class="text-muted d-block">
+                                                                <i class="bi bi-star me-1"></i>Puntos
+                                                            </small>
+                                                            <small class="fw-semibold">{{ test.puntos_por_pregunta }} c/u</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex gap-2">
+                                                        <a href="{% url 'gamification:test_detail' test.IDtest %}" class="btn btn-outline-success btn-sm">
+                                                            <i class="bi bi-eye"></i> Ver
+                                                        </a>
+                                                        <a href="{% url 'gamification:test_edit' test.IDtest %}" class="btn btn-outline-primary btn-sm">
+                                                            <i class="bi bi-pencil"></i> Editar
+                                                        </a>
+                                                        <form method="post" action="{% url 'gamification:test_delete' test.IDtest %}" style="display:inline;">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar este test?')">
+                                                                <i class="bi bi-trash"></i> Eliminar
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-clipboard-x" style="font-size: 3rem; color: #B0BEC5;"></i>
+                                    <h6 class="mt-3 mb-2 text-muted">No tienes tests creados</h6>
+                                    <p class="text-muted mb-3">Crea tu primer test para evaluar a tus estudiantes</p>
+                                    <a href="{% if teacher_classes.first %}{% url 'gamification:test_create' teacher_classes.first.IDaula %}{% else %}{% url 'users:create_class' %}{% endif %}" class="btn btn-success">
+                                        <i class="bi bi-plus-circle me-2"></i> Crear Primer Test
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Guías Pedagógicas -->
+                    <div class="card shadow-sm bg-white rounded-3 mb-4">
+                        <div class="card-header bg-light border-0" style="border-radius: 16px 16px 0 0;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="fw-bold text-success mb-0">
+                                    <i class="bi bi-file-earmark-text me-2"></i>Guías Pedagógicas
+                                </h5>
+                                <a href="{% url 'pedagogical_guides:guide_upload' %}" class="btn btn-success btn-sm">
+                                    <i class="bi bi-plus-circle me-2"></i>Subir Guía
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            {% if guias %}
+                                <div class="row g-3">
+                                    {% for guia in guias %}
+                                        <div class="col-md-6 col-lg-4">
+                                            <div class="card shadow-sm border-0 h-100" style="border-radius: 12px;">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <h6 class="fw-bold mb-0">{{ guia.title }}</h6>
+                                                        <span class="badge bg-info rounded-pill">Guía</span>
+                                                    </div>
+                                                    <p class="text-muted small mb-3">{{ guia.description|truncatewords:15 }}</p>
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-6">
+                                                            <small class="text-muted d-block">
+                                                                <i class="bi bi-calendar me-1"></i>Fecha
+                                                            </small>
+                                                            <small class="fw-semibold">{{ guia.created_at|date:"d/m/Y" }}</small>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <small class="text-muted d-block">
+                                                                <i class="bi bi-file-earmark me-1"></i>Tipo
+                                                            </small>
+                                                            <small class="fw-semibold">PDF</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex gap-2">
+                                                        <a href="{% url 'pedagogical_guides:guide_list' %}" class="btn btn-outline-success btn-sm">
+                                                            <i class="bi bi-eye"></i> Ver
+                                                        </a>
+                                                        <a href="{% url 'pedagogical_guides:guide_upload' %}" class="btn btn-outline-primary btn-sm">
+                                                            <i class="bi bi-pencil"></i> Editar
+                                                        </a>
+                                                        <form method="post" action="#" style="display:inline;">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar esta guía?')">
+                                                                <i class="bi bi-trash"></i> Eliminar
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-file-earmark-x" style="font-size: 3rem; color: #B0BEC5;"></i>
+                                    <h6 class="mt-3 mb-2 text-muted">No tienes guías pedagógicas</h6>
+                                    <p class="text-muted mb-3">Sube guías pedagógicas para complementar tu enseñanza</p>
+                                    <a href="{% url 'pedagogical_guides:guide_upload' %}" class="btn btn-success">
+                                        <i class="bi bi-upload me-2"></i> Subir Primera Guía
+                                    </a>
+                                </div>
+                            {% endif %}
+                                </div>
+                            </div>
+
+                    <!-- Multimedia -->
+                    <div class="card shadow-sm bg-white rounded-3 mb-4">
+                        <div class="card-header bg-light border-0" style="border-radius: 16px 16px 0 0;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="fw-bold text-success mb-0">
+                                    <i class="bi bi-image me-2"></i>Recursos Multimedia
+                                </h5>
+                                <a href="{% url 'multimedia:create' %}" class="btn btn-success btn-sm">
+                                    <i class="bi bi-plus-circle me-2"></i>Subir Recurso
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            {% if multimedia %}
+                                <div class="row g-3">
+                                    {% for media in multimedia %}
+                                        <div class="col-md-6 col-lg-4">
+                                            <div class="card shadow-sm border-0 h-100" style="border-radius: 12px;">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <h6 class="fw-bold mb-0">{{ media.title }}</h6>
+                                                        <span class="badge bg-warning text-dark rounded-pill">{{ media.media_type }}</span>
+                                                    </div>
+                                                    <p class="text-muted small mb-3">{{ media.description|truncatewords:15 }}</p>
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-6">
+                                                            <small class="text-muted d-block">
+                                                                <i class="bi bi-calendar me-1"></i>Fecha
+                                                            </small>
+                                                            <small class="fw-semibold">{{ media.created_at|date:"d/m/Y" }}</small>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <small class="text-muted d-block">
+                                                                <i class="bi bi-file-earmark me-1"></i>Tamaño
+                                </small>
+                                                            <small class="fw-semibold">{{ media.get_media_file.size|filesizeformat }}</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex gap-2">
+                                                        <a href="{% url 'multimedia:detail' media.id %}" class="btn btn-outline-success btn-sm">
+                                                            <i class="bi bi-eye"></i> Ver
+                                                        </a>
+                                                        <a href="{% url 'multimedia:update' media.id %}" class="btn btn-outline-primary btn-sm">
+                                                            <i class="bi bi-pencil"></i> Editar
+                                                        </a>
+                                                        <form method="post" action="{% url 'multimedia:delete' media.id %}" style="display:inline;">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Eliminar este recurso?')">
+                                                                <i class="bi bi-trash"></i> Eliminar
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-image" style="font-size: 3rem; color: #B0BEC5;"></i>
+                                    <h6 class="mt-3 mb-2 text-muted">No tienes recursos multimedia</h6>
+                                    <p class="text-muted mb-3">Sube videos, imágenes o audios para enriquecer tus clases</p>
+                                    <a href="{% url 'multimedia:create' %}" class="btn btn-success">
+                                        <i class="bi bi-plus-circle me-2"></i> Subir Primer Recurso
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
 
+                <!-- Sección Mensajes -->
                 <div id="mensajes-section" style="display: none;">
-                    <h3 class="dashboard-title">Mensajes</h3>
-                    <div class="card-container">
-                        <p>Aquí puedes ver y responder mensajes...</p>
-                    </div>
-                </div>
-
+                    <h3 class="fw-bold text-success mb-4">Mensajes</h3>
+                    <div class="card shadow-sm bg-white rounded-3">
+                        <div class="card-body p-4">
+                            <p>Aquí puedes ver y responder mensajes...</p>
+                        </div>
+                            </div>
+                        </div>
+                        
+                <!-- Sección Configuración -->
                 <div id="configuracion-section" style="display: none;">
-                    <h3 class="dashboard-title">Configuración</h3>
-                    <div class="card-container">
-                        <p>Aquí puedes configurar tu perfil y preferencias...</p>
+                    <h3 class="fw-bold text-success mb-4">Configuración</h3>
+                    <div class="card shadow-sm bg-white rounded-3">
+                        <div class="card-body p-4">
+                            <p>Aquí puedes configurar tu perfil y preferencias...</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="modal fade" id="createClassModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Crear Nueva Clase</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Join Class Modal -->
+<div class="modal fade" id="joinClassModal" tabindex="-1" aria-labelledby="joinClassModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-success" id="joinClassModalLabel">
+                    <i class="bi bi-people-fill me-2"></i> Unirse a una clase
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="modal-body">
-                <form id="createClassForm" action="{% url 'users:create_class' %}" method="post">
+            <div class="modal-body pt-0">
+                <form method="POST" action="{% url 'users:join_class' %}">
                     {% csrf_token %}
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Nombre de la Clase</label>
-                            <input type="text" class="form-control" name="class_name" id="className" required>
+                    <div class="mb-4">
+                        <label for="class_code" class="form-label fw-semibold text-success">
+                            <i class="bi bi-key me-2"></i> Código de la clase
+                        </label>
+                        <input type="text" class="form-control form-control-lg" id="class_code" name="class_code" placeholder="Ej: ABC123DEF4" required>
+                        <div class="form-text text-muted">
+                            <i class="bi bi-info-circle me-1"></i> Ingresa el código de la clase a la que quieres unirte
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Grado</label>
-                            <select class="form-select" name="grade" id="classGrade" required>
-                                <option value="">Seleccionar...</option>
-                                <option value="1° de Secundaria">1° de Secundaria</option>
-                                <option value="2° de Secundaria">2° de Secundaria</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Sección</label>
-                            <select class="form-select" name="section" id="classSection" required>
-                                <option value="">Seleccionar...</option>
-                                <option value="Sección A">Sección A</option>
-                                <option value="Sección B">Sección B</option>
-                                <option value="Sección C">Sección C</option>
-                                <option value="Sección D">Sección D</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Descripción</label>
-                            <textarea class="form-control" name="description" id="classDescription" rows="3"></textarea>
-                        </div>
-                        <div class="col-12">
-                            <h6>Añadir Actividades a la Clase</h6>
-                            <div id="activitiesList">
-                                <div class="activity-card" onclick="selectActivity(this, 'test-matematicas')">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>Test de Biología</strong>
-                                            <div class="text-muted small">Evaluación de tips de nutrición</div>
-                                        </div>
-                                        <div>
-                                            <button type="button" class="btn-edit-activity me-2" onclick="editActivity('test-matematicas')">Editar</button>
-                                            <input type="checkbox" class="activity-checkbox" name="activities" value="test-matematicas">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="activity-card" onclick="selectActivity(this, 'juego-lectura')">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>Juego de Lectura</strong>
-                                            <div class="text-muted small">Comprensión lectora interactiva</div>
-                                        </div>
-                                        <div>
-                                            <button type="button" class="btn-edit-activity me-2" onclick="editActivity('juego-lectura')">Editar</button>
-                                            <input type="checkbox" class="activity-checkbox" name="activities" value="juego-lectura">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="activity-card" onclick="selectActivity(this, 'cuestionario-ciencias')">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>Cuestionario Ciencias</strong>
-                                            <div class="text-muted small">Preguntas sobre biotipos</div>
-                                        </div>
-                                        <div>
-                                            <button type="button" class="btn-edit-activity me-2" onclick="editActivity('cuestionario-ciencias')">Editar</button>
-                                            <input type="checkbox" class="activity-checkbox" name="activities" value="cuestionario-ciencias">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Código de Acceso</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="accessCode" name="access_code" readonly style="font-family: 'Courier New', monospace; font-weight: bold; letter-spacing: 1px; background-color: #f8f9fa;">
-                                <button class="btn btn-outline-secondary" type="button" id="copyCodeBtn" onclick="copyAccessCode()" title="Copiar código">
-                                    <i class="bi bi-clipboard"></i>
-                                </button>
-                                <button class="btn btn-outline-primary" type="button" onclick="generateNewAccessCode()" title="Generar nuevo código">
-                                    <i class="bi bi-arrow-clockwise"></i>
-                                </button>
-                            </div>
-                            <small class="form-text text-muted">Este código permitirá a los estudiantes unirse a la clase.</small>
-                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-success btn-lg">
+                            <i class="bi bi-arrow-right-circle me-2"></i> Unirse a la clase
+                        </button>
                     </div>
                 </form>
-                {% if messages %}
-                    {% for message in messages %}
-                        {% if 'access_code' in message.message %}
-                            <p class="mt-2">Código de acceso: <strong>{{ message.message|slice:"27:" }}</strong></p>
-                        {% endif %}
-                    {% endfor %}
-                {% endif %}
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-success" form="createClassForm">Crear Clase</button>
-            </div>
-        </div>
-    </div>
-    </div>
-
-    <div class="modal fade" id="contentModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Añadir Nuevo Contenido</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="d-grid gap-3">
-                        <button class="btn btn-outline-success btn-lg" onclick="openActivityCreator('test')">
-                            <i class="bi bi-clipboard-check me-2"></i> Crear Test
-                        </button>
-                        <button class="btn btn-outline-success btn-lg" onclick="openActivityCreator('cuestionario')">
-                            <i class="bi bi-question-circle me-2"></i> Crear Cuestionario
-                        </button>
-                        <button class="btn btn-outline-success btn-lg" onclick="openActivityCreator('juego')">
-                            <i class="bi bi-controller me-2"></i> Seleccionar Juego Temático
+                <hr class="my-4">
+                <div class="text-center">
+                    <p class="text-muted mb-3">
+                        <i class="bi bi-question-circle me-1"></i> ¿No tienes un código?
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'users:create_class' %}" class="btn btn-outline-success">
+                            <i class="bi bi-plus-circle me-2"></i> Crear una nueva clase
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-2"></i> Cancelar
                         </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <div id="notification" class="notification">
-        <span id="notificationText"></span>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_scripts %}
+    {{ block.super }}
+    <script src="{% static 'js/header_logged.js' %}"></script>
+    <script src="{% static 'js/notifications.js' %}"></script>
     <script>
-        let selectedActivities = [];
-
+        // Función para mostrar/ocultar secciones
         function showSection(sectionName) {
+            // Ocultar todas las secciones
             const sections = ['dashboard', 'clases', 'contenido', 'mensajes', 'configuracion'];
             sections.forEach(section => {
                 document.getElementById(`${section}-section`).style.display = 'none';
             });
+            
+            // Mostrar la sección seleccionada
             document.getElementById(`${sectionName}-section`).style.display = 'block';
+            
+            // Actualizar botones del sidebar
             document.querySelectorAll('.sidebar-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
         }
 
-        function openCreateClassModal() {
-            const modal = new bootstrap.Modal(document.getElementById('createClassModal'));
-            modal.show();
-            modal._element.addEventListener('shown.bs.modal', function() {
-                generateNewAccessCode();
-            }, { once: true });
-        }
-
-        function openContentModal() {
-            const modal = new bootstrap.Modal(document.getElementById('contentModal'));
-            modal.show();
-        }
-
-        function selectActivity(card, activityId) {
-            const checkbox = card.querySelector('.activity-checkbox');
-            checkbox.checked = !checkbox.checked;
-            if (checkbox.checked) {
-                card.classList.add('selected');
-                if (!selectedActivities.includes(activityId)) {
-                    selectedActivities.push(activityId);
-                }
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard teacher loaded, initializing dropdowns...');
+            
+            // Verificar que Bootstrap esté disponible
+            if (typeof bootstrap !== 'undefined') {
+                console.log('Bootstrap is available');
+                
+                // Inicializar todos los dropdowns
+                var dropdownElementList = document.querySelectorAll('.dropdown-toggle');
+                console.log('Found dropdowns:', dropdownElementList.length);
+                
+                dropdownElementList.forEach(function(dropdownToggleEl) {
+                    try {
+                        // Crear nueva instancia de dropdown
+                        var dropdown = new bootstrap.Dropdown(dropdownToggleEl, {
+                            boundary: 'viewport',
+                            display: 'dynamic'
+                        });
+                        
+                        console.log('Dropdown initialized for:', dropdownToggleEl.id);
+                        
+                        // Agregar event listener para debugging
+                        dropdownToggleEl.addEventListener('click', function(e) {
+                            console.log('Dropdown clicked:', dropdownToggleEl.id);
+                        });
+                        
+                        // Agregar event listener para cuando se muestra el dropdown
+                        dropdownToggleEl.addEventListener('show.bs.dropdown', function(e) {
+                            console.log('Dropdown showing:', dropdownToggleEl.id);
+                        });
+                        
+                    } catch (error) {
+                        console.error('Error initializing dropdown:', error);
+                    }
+                });
+                
+                // Agregar estilos personalizados para mejorar la apariencia
+                var style = document.createElement('style');
+                style.textContent = `
+                    .dropdown-menu {
+                        border-radius: 12px !important;
+                        border: none !important;
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+                        padding: 8px !important;
+                        min-width: 280px !important;
+                    }
+                    
+                    .dropdown-item {
+                        border-radius: 8px !important;
+                        margin: 2px 0 !important;
+                        transition: all 0.2s ease !important;
+                    }
+                    
+                    .dropdown-item:hover {
+                        background-color: #f8f9fa !important;
+                        transform: translateX(5px) !important;
+                    }
+                    
+                    .dropdown-divider {
+                        margin: 8px 0 !important;
+                        opacity: 0.3 !important;
+                    }
+                    
+                    .dropdown-toggle::after {
+                        margin-left: 8px !important;
+                    }
+                `;
+                document.head.appendChild(style);
+                
             } else {
-                card.classList.remove('selected');
-                selectedActivities = selectedActivities.filter(id => id !== activityId);
+                console.error('Bootstrap is not available');
             }
-        }
-
-        function editActivity(activityId) {
-            event.stopPropagation();
-            showNotification(`Editando actividad: ${activityId}`);
-        }
-
-        function openActivityCreator(type) {
-            bootstrap.Modal.getInstance(document.getElementById('contentModal')).hide();
-            let message = '';
-            switch(type) {
-                case 'test': message = 'Abriendo creador de tests...'; break;
-                case 'cuestionario': message = 'Abriendo creador de cuestionarios...'; break;
-                case 'juego': message = 'Abriendo selector de juegos temáticos...'; break;
-            }
-            showNotification(message);
-        }
-
-        function downloadReports() {
-            showNotification('Generando reportes... (+25 pts)');
-            setTimeout(() => {
-                showNotification('¡Reportes descargados exitosamente!');
-            }, 2000);
-        }
-
-        function showNotification(text, type = 'success') {
-            const notification = document.getElementById('notification');
-            const notificationText = document.getElementById('notificationText');
-            notificationText.textContent = text;
-            notification.style.background = type === 'error' ? '#f44336' : '#4CAF50';
-            notification.classList.add('show');
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-
-        function generateAccessCode() {
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let result = '';
-            for (let i = 0; i < 8; i++) {
-                result += characters.charAt(Math.floor(Math.random() * characters.length));
-            }
-            return result;
-        }
-
-        function generateNewAccessCode() {
-            const code = generateAccessCode();
-            const accessCodeInput = document.getElementById('accessCode');
-            if (accessCodeInput) {
-                accessCodeInput.value = code;
-                document.getElementById('copyCodeBtn').disabled = false;
-                console.log('Código generado:', code);
-            }
-        }
-
-        function copyAccessCode() {
-            const accessCodeInput = document.getElementById('accessCode');
-            const code = accessCodeInput.value;
-            if (!code) {
-                showNotification('No hay código para copiar', 'error');
-                return;
-            }
-            navigator.clipboard.writeText(code).then(() => {
-                showNotification('¡Código copiado: ' + code + '!');
-                const copyBtn = document.getElementById('copyCodeBtn');
-                const originalContent = copyBtn.innerHTML;
-                copyBtn.innerHTML = '<i class="bi bi-check"></i>';
-                copyBtn.classList.remove('btn-outline-secondary');
-                copyBtn.classList.add('btn-success');
-                setTimeout(() => {
-                    copyBtn.innerHTML = originalContent;
-                    copyBtn.classList.remove('btn-success');
-                    copyBtn.classList.add('btn-outline-secondary');
-                }, 2000);
-            }).catch(err => {
-                showNotification('Error al copiar el código', 'error');
-                console.error('Error copying text: ', err);
-            });
-        }
+        });
     </script>
-{% endblock %}
-
-{% block extra_js %}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

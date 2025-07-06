@@ -1,0 +1,431 @@
+{% extends 'gamification/base.html' %}
+{% load static %}
+
+{% block title %}Crear Test - {{ aula.NombreAula }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-0" style="border-radius: 16px;">
+                <div class="card-header bg-success text-white border-0" style="border-radius: 16px 16px 0 0;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-clipboard-check me-3" style="font-size: 2rem;"></i>
+                        <div>
+                            <h4 class="mb-0">Crear Nuevo Test</h4>
+                            <p class="mb-0 opacity-75">{{ aula.NombreAula }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" id="test-form">
+                        {% csrf_token %}
+                        
+                        <!-- Información Básica del Test -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="titulo" class="form-label fw-semibold fs-5 text-success">
+                                        <i class="bi bi-type me-2"></i>Título del Test *
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           id="titulo" 
+                                           name="titulo" 
+                                           placeholder="Ej: Evaluación de Biología - Unidad 1: Ecosistemas"
+                                           required>
+                                    <div class="form-text text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Usa un título descriptivo que ayude a los estudiantes a identificar el contenido
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="descripcion" class="form-label fw-semibold fs-5 text-success">
+                                        <i class="bi bi-text-paragraph me-2"></i>Descripción *
+                                    </label>
+                                    <textarea class="form-control" 
+                                              id="descripcion" 
+                                              name="descripcion" 
+                                              rows="4"
+                                              placeholder="Describe el contenido, objetivos y temas que cubre este test..."
+                                              required></textarea>
+                                    <div class="form-text text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Proporciona información clara sobre qué evaluará este test
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Configuración de Fechas y Tiempo -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="fecha_inicio" class="form-label fw-semibold text-success">
+                                        <i class="bi bi-calendar-event me-2"></i>Fecha de Inicio *
+                                    </label>
+                                    <input type="datetime-local" 
+                                           class="form-control" 
+                                           id="fecha_inicio" 
+                                           name="fecha_inicio" 
+                                           required>
+                                    <div class="form-text text-muted">
+                                        <i class="bi bi-clock me-1"></i>
+                                        Cuándo estará disponible el test
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="fecha_fin" class="form-label fw-semibold text-success">
+                                        <i class="bi bi-calendar-x me-2"></i>Fecha de Fin *
+                                    </label>
+                                    <input type="datetime-local" 
+                                           class="form-control" 
+                                           id="fecha_fin" 
+                                           name="fecha_fin" 
+                                           required>
+                                    <div class="form-text text-muted">
+                                        <i class="bi bi-clock me-1"></i>
+                                        Cuándo se cerrará el test
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Configuración de Evaluación -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tiempo_limite" class="form-label fw-semibold text-success">
+                                        <i class="bi bi-clock me-2"></i>Tiempo Límite (minutos) *
+                                    </label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="tiempo_limite" 
+                                           name="tiempo_limite" 
+                                           value="30" 
+                                           min="5" 
+                                           max="180" 
+                                           required>
+                                    <div class="form-text text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Entre 5 y 180 minutos
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="puntos_por_pregunta" class="form-label fw-semibold text-success">
+                                        <i class="bi bi-star me-2"></i>Puntos por Pregunta *
+                                    </label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="puntos_por_pregunta" 
+                                           name="puntos_por_pregunta" 
+                                           value="10" 
+                                           min="1" 
+                                           max="50" 
+                                           required>
+                                    <div class="form-text text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Entre 1 y 50 puntos
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Configuración de Visibilidad -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="es_publico" name="es_publico">
+                                    <label class="form-check-label fw-semibold text-success" for="es_publico">
+                                        <i class="bi bi-globe me-2"></i>Hacer público este test
+                                    </label>
+                                    <div class="form-text text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Si activas esta opción, otros docentes podrán ver y copiar este test como base para crear sus propios tests
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Preguntas -->
+                        <div class="card border-success mb-4" style="border-radius: 12px;">
+                            <div class="card-header bg-success text-white border-0" style="border-radius: 12px 12px 0 0;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-question-circle me-2"></i>
+                                        Preguntas del Test
+                                    </h5>
+                                    <button type="button" class="btn btn-light btn-sm" onclick="agregarPregunta()" id="btn-agregar-pregunta">
+                                        <i class="bi bi-plus-circle me-1"></i>Agregar Pregunta
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <div id="preguntas-container">
+                                    <!-- Las preguntas se agregarán dinámicamente aquí -->
+                                </div>
+                                
+                                <div class="text-center mt-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Máximo 50 preguntas. Puedes agregar preguntas de opción múltiple, verdadero/falso y texto corto.
+                                    </small>
+                                </div>
+                                <div id="pregunta-error" class="alert alert-danger mt-3 d-none" style="border-radius: 10px;">
+                                    Debes agregar al menos una pregunta antes de guardar el test.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botones de Acción -->
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg flex-fill">
+                                <i class="bi bi-check-circle me-2"></i>Crear Test con Preguntas
+                            </button>
+                            <a href="{% url 'gamification:test_list' aula.IDaula %}" class="btn btn-outline-secondary btn-lg flex-fill">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template para nueva pregunta SIEMPRE fuera de los bloques -->
+<template id="pregunta-template">
+    <div class="pregunta-item card border-light mb-3" style="border-radius: 12px;">
+        <div class="card-header bg-light border-0" style="border-radius: 12px 12px 0 0;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-success">
+                    <i class="bi bi-question-circle me-2"></i>
+                    Pregunta <span class="numero-pregunta"></span>
+                </h6>
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarPregunta(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-3">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label fw-semibold text-success">Pregunta *</label>
+                    <textarea class="form-control pregunta-texto" name="preguntas[]" rows="2" 
+                              placeholder="Escribe tu pregunta aquí..." required></textarea>
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-success">Tipo de Pregunta *</label>
+                    <select class="form-select tipo-pregunta" name="tipos_pregunta[]" onchange="cambiarTipoPregunta(this)" required>
+                        <option value="opcion_multiple">Opción Múltiple</option>
+                        <option value="verdadero_falso">Verdadero/Falso</option>
+                        <option value="texto_corto">Texto Corto</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-success">Puntos *</label>
+                    <input type="number" class="form-control puntos-pregunta" name="puntos_pregunta[]" 
+                           value="10" min="1" max="50" required>
+                </div>
+                
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-success">Respuesta Correcta</label>
+                    <div class="respuesta-correcta-container">
+                        <!-- Se llenará dinámicamente según el tipo de pregunta -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Opciones para preguntas de opción múltiple -->
+            <div class="opciones-container mt-3" style="display: none;">
+                <label class="form-label fw-semibold text-success">Opciones de Respuesta</label>
+                <div class="opciones-list">
+                    <div class="input-group mb-2">
+                        <div class="input-group-text">
+                            <input class="form-check-input mt-0" type="radio" name="correcta_0" value="0" checked>
+                        </div>
+                        <input type="text" class="form-control opcion-texto" name="opciones_0[]" 
+                               placeholder="Opción 1" required>
+                    </div>
+                    <div class="input-group mb-2">
+                        <div class="input-group-text">
+                            <input class="form-check-input mt-0" type="radio" name="correcta_0" value="1">
+                        </div>
+                        <input type="text" class="form-control opcion-texto" name="opciones_0[]" 
+                               placeholder="Opción 2" required>
+                    </div>
+                    <div class="input-group mb-2">
+                        <div class="input-group-text">
+                            <input class="form-check-input mt-0" type="radio" name="correcta_0" value="2">
+                        </div>
+                        <input type="text" class="form-control opcion-texto" name="opciones_0[]" 
+                               placeholder="Opción 3" required>
+                    </div>
+                    <div class="input-group mb-2">
+                        <div class="input-group-text">
+                            <input class="form-check-input mt-0" type="radio" name="correcta_0" value="3">
+                        </div>
+                        <input type="text" class="form-control opcion-texto" name="opciones_0[]" 
+                               placeholder="Opción 4" required>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-outline-success btn-sm mt-2" onclick="agregarOpcion(this)">
+                    <i class="bi bi-plus-circle me-1"></i>Agregar Opción
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+    let preguntaCounter = 0;
+    function agregarPregunta() {
+        if (preguntaCounter >= 50) return;
+        const container = document.getElementById('preguntas-container');
+        const template = document.getElementById('pregunta-template');
+        const preguntaItem = template.content.cloneNode(true);
+        container.appendChild(preguntaItem);
+        preguntaCounter++;
+        renumerarPreguntas();
+        if (preguntaCounter >= 50) {
+            document.getElementById('btn-agregar-pregunta').disabled = true;
+        }
+    }
+    function eliminarPregunta(button) {
+        button.closest('.pregunta-item').remove();
+        preguntaCounter--;
+        renumerarPreguntas();
+        if (preguntaCounter < 50) {
+            document.getElementById('btn-agregar-pregunta').disabled = false;
+        }
+    }
+    function renumerarPreguntas() {
+        const preguntas = document.querySelectorAll('.pregunta-item');
+        preguntas.forEach((pregunta, index) => {
+            pregunta.querySelector('.numero-pregunta').textContent = index + 1;
+            // Renombrar campos internos
+            const opciones = pregunta.querySelectorAll('.opciones-list .input-group');
+            opciones.forEach((opcion, j) => {
+                const radio = opcion.querySelector('input[type="radio"]');
+                const input = opcion.querySelector('input[type="text"]');
+                radio.name = `correcta_${index}`;
+                radio.value = j;
+                input.name = `opciones_${index}[]`;
+                input.placeholder = `Opción ${j + 1}`;
+            });
+            const selectVF = pregunta.querySelector('.respuesta-correcta-container select');
+            if (selectVF) {
+                selectVF.name = `correcta_${index}`;
+            }
+        });
+    }
+    function cambiarTipoPregunta(select) {
+        const preguntaItem = select.closest('.pregunta-item');
+        const opcionesContainer = preguntaItem.querySelector('.opciones-container');
+        const respuestaCorrectaContainer = preguntaItem.querySelector('.respuesta-correcta-container');
+        const index = Array.from(document.querySelectorAll('.pregunta-item')).indexOf(preguntaItem);
+        if (select.value === 'opcion_multiple') {
+            opcionesContainer.style.display = 'block';
+            respuestaCorrectaContainer.innerHTML = '<small class="text-muted">Selecciona la opción correcta arriba</small>';
+            const radios = opcionesContainer.querySelectorAll('input[type="radio"]');
+            const inputs = opcionesContainer.querySelectorAll('input[type="text"]');
+            radios.forEach((radio, j) => { radio.name = `correcta_${index}`; radio.value = j; });
+            inputs.forEach((input, j) => { input.name = `opciones_${index}[]`; input.placeholder = `Opción ${j + 1}`; });
+        } else if (select.value === 'verdadero_falso') {
+            opcionesContainer.style.display = 'none';
+            respuestaCorrectaContainer.innerHTML = `<select class="form-select" name="correcta_${index}"><option value="verdadero">Verdadero</option><option value="falso">Falso</option></select>`;
+        } else if (select.value === 'texto_corto') {
+            opcionesContainer.style.display = 'none';
+            respuestaCorrectaContainer.innerHTML = '<small class="text-muted">Revisión manual requerida</small>';
+        }
+    }
+    function agregarOpcion(button) {
+        const opcionesList = button.previousElementSibling;
+        const preguntaItem = button.closest('.pregunta-item');
+        const preguntaIndex = Array.from(document.querySelectorAll('.pregunta-item')).indexOf(preguntaItem);
+        const opcionesCount = opcionesList.children.length;
+        const nuevaOpcion = document.createElement('div');
+        nuevaOpcion.className = 'input-group mb-2';
+        nuevaOpcion.innerHTML = `
+            <div class="input-group-text">
+                <input class="form-check-input mt-0" type="radio" name="correcta_${preguntaIndex}" value="${opcionesCount}">
+            </div>
+            <input type="text" class="form-control opcion-texto" name="opciones_${preguntaIndex}[]" 
+                   placeholder="Opción ${opcionesCount + 1}" required>
+        `;
+        opcionesList.appendChild(nuevaOpcion);
+        renumerarPreguntas();
+    }
+    // Bind dinámico para selects y botones
+    function bindEvents() {
+        document.getElementById('preguntas-container').addEventListener('change', function(e) {
+            if (e.target.classList.contains('tipo-pregunta')) {
+                cambiarTipoPregunta(e.target);
+            }
+        });
+        document.getElementById('preguntas-container').addEventListener('click', function(e) {
+            if (e.target.closest('.btn-outline-danger')) {
+                eliminarPregunta(e.target.closest('.btn-outline-danger'));
+            }
+            if (e.target.closest('.btn-outline-success')) {
+                agregarOpcion(e.target.closest('.btn-outline-success'));
+            }
+        });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar fechas por defecto
+        const now = new Date();
+        const startDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // Mañana
+        const endDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // En una semana
+        document.getElementById('fecha_inicio').value = startDate.toISOString().slice(0, 16);
+        document.getElementById('fecha_fin').value = endDate.toISOString().slice(0, 16);
+        // Agregar pregunta por defecto
+        agregarPregunta();
+        // Bind eventos
+        bindEvents();
+    });
+    // Validación y envío del formulario
+    document.addEventListener('DOMContentLoaded', function() {
+        const testForm = document.getElementById('test-form');
+        testForm.addEventListener('submit', function(e) {
+            const preguntas = document.querySelectorAll('.pregunta-texto');
+            let preguntasValidas = 0;
+            preguntas.forEach(pregunta => {
+                if (pregunta.value.trim() !== '') {
+                    preguntasValidas++;
+                }
+            });
+            if (preguntasValidas === 0) {
+                e.preventDefault();
+                document.getElementById('pregunta-error').classList.remove('d-none');
+                document.getElementById('pregunta-error').scrollIntoView({behavior: 'smooth'});
+                return false;
+            } else {
+                document.getElementById('pregunta-error').classList.add('d-none');
+            }
+            if (preguntasValidas > 50) {
+                e.preventDefault();
+                alert('No puedes tener más de 50 preguntas en un test.');
+                return false;
+            }
+        });
+    });
+    // Exponer funciones globales si se necesitan
+    window.agregarPregunta = agregarPregunta;
+})();
+</script>
+{% endblock %} 

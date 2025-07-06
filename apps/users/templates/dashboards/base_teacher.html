@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+    <style>
+        .progress-sm {
+            width: 60px !important;
+            height: 8px !important;
+        }
+        
+        .sidebar-dashboard {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            min-height: 100vh;
+            position: sticky;
+            top: 0;
+        }
+        
+        .sidebar-btn {
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .sidebar-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .sidebar-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+        
+        .text-success {
+            color: #28a745 !important;
+        }
+        
+        .bg-success {
+            background-color: #28a745 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid bg-light">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar-dashboard p-0">
+            <div class="text-center py-4">
+                <img src="{% static 'images/mascota/tuki.png' %}" alt="Owl" width="90" class="mb-3 rounded-circle">
+                <h6 class="text-white mb-0">{{ user.username }}</h6>
+                <small class="text-white-50">Docente</small>
+            </div>
+            <nav class="nav flex-column px-3">
+                <button class="nav-link text-white fw-bold sidebar-btn active" onclick="showSection('dashboard')">
+                    <i class="bi bi-house-door-fill me-2"></i> Dashboard
+                </button>
+                <button class="nav-link text-white fw-bold sidebar-btn" onclick="showSection('clases')">
+                    <i class="bi bi-book-fill me-2"></i> Clases
+                </button>
+                <button class="nav-link text-white fw-bold sidebar-btn" onclick="showSection('contenido')">
+                    <i class="bi bi-folder-fill me-2"></i> Contenido
+                </button>
+                <button class="nav-link text-white fw-bold sidebar-btn" onclick="showSection('tests')">
+                    <i class="bi bi-clipboard-check me-2"></i> Tests
+                </button>
+                <button class="nav-link text-white fw-bold sidebar-btn" onclick="showSection('mensajes')">
+                    <i class="bi bi-chat-dots-fill me-2"></i> Mensajes
+                </button>
+                <button class="nav-link text-white fw-bold sidebar-btn" onclick="showSection('configuracion')">
+                    <i class="bi bi-gear-fill me-2"></i> Configuración
+                </button>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 main-content px-4 py-4">
+            {% block teacher_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script src="{% static 'js/header_logged.js' %}"></script>
+    <script src="{% static 'js/notifications.js' %}"></script>
+    <script>
+        // Función para mostrar/ocultar secciones
+        function showSection(sectionName) {
+            // Ocultar todas las secciones
+            const sections = ['dashboard', 'clases', 'contenido', 'tests', 'mensajes', 'configuracion'];
+            sections.forEach(section => {
+                const sectionElement = document.getElementById(`${section}-section`);
+                if (sectionElement) {
+                    sectionElement.style.display = 'none';
+                }
+            });
+            
+            // Mostrar la sección seleccionada
+            const selectedSection = document.getElementById(`${sectionName}-section`);
+            if (selectedSection) {
+                selectedSection.style.display = 'block';
+            }
+            
+            // Actualizar botones del sidebar
+            document.querySelectorAll('.sidebar-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Teacher base template loaded');
+            
+            // Inicializar dropdowns si Bootstrap está disponible
+            if (typeof bootstrap !== 'undefined') {
+                var dropdownElementList = document.querySelectorAll('.dropdown-toggle');
+                dropdownElementList.forEach(function(dropdownToggleEl) {
+                    try {
+                        new bootstrap.Dropdown(dropdownToggleEl);
+                    } catch (error) {
+                        console.error('Error initializing dropdown:', error);
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %} 

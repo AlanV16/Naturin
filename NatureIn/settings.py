@@ -41,17 +41,17 @@ INSTALLED_APPS = [
     'crispy_forms',
     'django.contrib.sitemaps',
     'django.contrib.sites',
-    # Añade las nuevas apps aquí
     'apps.animals',
     'apps.common',
     'apps.content',
-    'apps.gamification',
+    'apps.educational_games.gamification',
     'apps.main_page',
     'apps.multimedia',
     'apps.plants',
     'apps.security',
     'apps.users',
     'apps.ui_ux',
+    'apps.pedagogical_guides',
 ]
 
 AUTH_USER_MODEL = 'users.User'
@@ -75,7 +75,6 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',

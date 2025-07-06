@@ -1,0 +1,120 @@
+{% extends 'gamification/base.html' %}
+{% load static %}
+
+{% block title %}Duplicar Test - {{ test.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0" style="border-radius: 16px;">
+                <div class="card-header bg-success text-white border-0" style="border-radius: 16px 16px 0 0;">
+                    <h4 class="mb-0">
+                        <i class="bi bi-files me-2"></i>
+                        Duplicar Test: {{ test.titulo }}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info" style="border-radius: 12px;">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-info-circle me-3" style="font-size: 1.5rem; margin-top: 2px;"></i>
+                            <div>
+                                <h6 class="mb-2 fw-semibold">Crear una copia del test</h6>
+                                <p class="mb-0 small">
+                                    Se creará una copia exacta de este test con todas sus preguntas y opciones. 
+                                    El nuevo test estará inactivo por defecto para que puedas editarlo antes de activarlo.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información del Test Original -->
+                    <div class="card bg-light border-0 mb-4" style="border-radius: 12px;">
+                        <div class="card-body p-3">
+                            <h6 class="fw-bold text-success mb-3">Test Original</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-type me-1"></i>Título
+                                    </small>
+                                    <span class="fw-semibold">{{ test.titulo }}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-clock me-1"></i>Tiempo Límite
+                                    </small>
+                                    <span class="fw-semibold">{{ test.tiempo_limite }} min</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-star me-1"></i>Puntos por Pregunta
+                                    </small>
+                                    <span class="fw-semibold">{{ test.puntos_por_pregunta }}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-question-circle me-1"></i>Preguntas
+                                    </small>
+                                    <span class="fw-semibold">{{ test.pregunta_set.count }}</span>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-text-paragraph me-1"></i>Descripción
+                                </small>
+                                <span class="fw-semibold">{{ test.descripcion }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Formulario de Duplicación -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="aula_destino" class="form-label fw-semibold text-success">
+                                <i class="bi bi-building me-2"></i>Aula de Destino
+                            </label>
+                            <select class="form-select form-select-lg" id="aula_destino" name="aula_destino" required>
+                                <option value="">Selecciona un aula...</option>
+                                {% for aula in aulas_docente %}
+                                <option value="{{ aula.IDaula }}">
+                                    {{ aula.NombreAula }} - {{ aula.GradoEducativo }} {{ aula.Seccion }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>
+                                El test se copiará a la aula seleccionada
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning" style="border-radius: 12px;">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-exclamation-triangle me-3" style="font-size: 1.5rem; margin-top: 2px;"></i>
+                                <div>
+                                    <h6 class="mb-2 fw-semibold">Información Importante</h6>
+                                    <ul class="mb-0 small">
+                                        <li>El nuevo test tendrá el título "{{ test.titulo }} (Copia)"</li>
+                                        <li>Estará inactivo por defecto para que puedas editarlo</li>
+                                        <li>Se copiarán todas las preguntas y opciones</li>
+                                        <li>No se copiarán los resultados existentes</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-success btn-lg flex-fill">
+                                <i class="bi bi-files me-2"></i>Duplicar Test
+                            </button>
+                            <a href="{% url 'gamification:test_detail' test.IDtest %}" class="btn btn-outline-secondary btn-lg flex-fill">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
