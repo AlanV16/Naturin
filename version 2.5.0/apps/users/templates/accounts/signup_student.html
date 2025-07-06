@@ -31,6 +31,37 @@
                 flex-direction: column !important;
             }
         }
+        
+        /* Estilos para indicador de fortaleza de contraseña */
+        .password-strength {
+            margin-top: 0.5rem;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .strength-bar {
+            height: 100%;
+            transition: width 0.3s, background-color 0.3s;
+            width: 0%;
+        }
+        
+        .strength-weak { background-color: #f44336; }
+        .strength-medium { background-color: #ff9800; }
+        .strength-strong { background-color: #4caf50; }
+        
+        .strength-text {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+        
+        .password-tips {
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -91,6 +122,13 @@
                                 <i class="bi bi-eye"></i>
                             </button>
                         </div>
+                        <div class="password-strength">
+                            <div class="strength-bar" id="strength-bar"></div>
+                        </div>
+                        <div class="strength-text" id="strength-text"></div>
+                        <div class="password-tips">
+                            💡 Usa al menos 8 caracteres, mayúsculas, minúsculas, números y símbolos
+                        </div>
                         {% if form.password1.errors %}
                             <div class="text-danger small">{{ form.password1.errors|striptags }}</div>
                         {% endif %}
@@ -112,7 +150,7 @@
             </form>
             <div class="text-center mb-2">
                 <span>¿Ya tienes cuenta?</span>
-                <a href="{% url 'users:login_student' %}" class="link-primary fw-semibold text-decoration-none">Inicia sesión</a>
+                <a href="{% url 'users:register_student' %}" class="link-primary fw-semibold text-decoration-none">Inicia sesión</a>
             </div>
         </div>
     </div>
@@ -120,17 +158,100 @@
 {% endblock %}
 {% block extra_scripts %}
 <script>
-document.querySelectorAll('.toggle-password').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        const input = btn.parentElement.querySelector('input');
-        if (input.type === 'password') {
-            input.type = 'text';
-            btn.innerHTML = '<i class="bi bi-eye-slash"></i>';
-        } else {
-            input.type = 'password';
-            btn.innerHTML = '<i class="bi bi-eye"></i>';
-        }
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('{{ form.password1.id_for_label }}');
+    const confirmInput = document.getElementById('{{ form.password2.id_for_label }}');
+    const strengthBar = document.getElementById('strength-bar');
+    const strengthText = document.getElementById('strength-text');
+    
+    // Funcionalidad para mostrar/ocultar contraseñas
+    document.querySelectorAll('.toggle-password').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const input = btn.parentElement.querySelector('input');
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = '<i class="bi bi-eye-slash"></i>';
+            } else {
+                input.type = 'password';
+                btn.innerHTML = '<i class="bi bi-eye"></i>';
+            }
+        });
     });
+    
+    // Función para verificar fortaleza de contraseña
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        let feedback = [];
+        
+        if (password.length >= 8) strength += 1;
+        else feedback.push('Al menos 8 caracteres');
+        
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 1;
+        else feedback.push('Mayúsculas y minúsculas');
+        
+        if (/\d/.test(password)) strength += 1;
+        else feedback.push('Números');
+        
+        if (/[^a-zA-Z0-9]/.test(password)) strength += 1;
+        else feedback.push('Símbolos especiales');
+        
+        return { strength, feedback };
+    }
+    
+    // Actualizar indicador de fortaleza
+    function updateStrengthIndicator(password) {
+        if (!password) {
+            strengthBar.style.width = '0%';
+            strengthText.textContent = '';
+            return;
+        }
+        
+        const result = checkPasswordStrength(password);
+        const percentage = (result.strength / 4) * 100;
+        
+        strengthBar.style.width = percentage + '%';
+        
+        if (result.strength <= 1) {
+            strengthBar.className = 'strength-bar strength-weak';
+            strengthText.textContent = '🔴 Débil: ' + result.feedback.join(', ');
+            strengthText.style.color = '#f44336';
+        } else if (result.strength <= 2) {
+            strengthBar.className = 'strength-bar strength-medium';
+            strengthText.textContent = '🟡 Medio: ' + result.feedback.join(', ');
+            strengthText.style.color = '#ff9800';
+        } else if (result.strength <= 3) {
+            strengthBar.className = 'strength-bar strength-strong';
+            strengthText.textContent = '🟢 Buena: ' + (result.feedback.length > 0 ? result.feedback.join(', ') : 'Cumple los requisitos básicos');
+            strengthText.style.color = '#4caf50';
+        } else {
+            strengthBar.className = 'strength-bar strength-strong';
+            strengthText.textContent = '🟢 Excelente: Contraseña muy segura';
+            strengthText.style.color = '#4caf50';
+        }
+    }
+    
+    // Event listeners
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            updateStrengthIndicator(this.value);
+        });
+    }
+    
+    // Verificar que las contraseñas coincidan
+    function checkPasswordMatch() {
+        if (confirmInput && confirmInput.value && passwordInput.value !== confirmInput.value) {
+            confirmInput.style.borderColor = '#f44336';
+        } else if (confirmInput) {
+            confirmInput.style.borderColor = '#dee2e6';
+        }
+    }
+    
+    if (confirmInput) {
+        confirmInput.addEventListener('input', checkPasswordMatch);
+    }
+    if (passwordInput) {
+        passwordInput.addEventListener('input', checkPasswordMatch);
+    }
 });
 </script>
 {% endblock %}

@@ -41,26 +41,11 @@
                             <i class="bi bi-moon-fill"></i>
                         </label>
                     </div>
-                    <div class="dropdown position-relative">
-                        <button class="btn btn-outline-success btn-sm login-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle me-1"></i> Iniciar Sesión
+                        <button class="btn btn-outline-success btn-sm login-btn" 
+                            onclick="window.location.href='{% url 'users:login' %}'">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
                         </button>
-                        <ul class="dropdown-menu login-dropdown">
-                            <li><div class="dropdown-header dropdown-title">Iniciar como:</div></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_student' %}">
-                                <i class="bi bi-journal-bookmark"></i> Estudiante
-                            </a></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_teacher' %}">
-                                <i class="bi bi-vector-pen"></i> Docente
-                            </a></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_parent' %}">
-                                <i class="bi bi-house-door"></i> Padre/Madre
-                            </a></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_admin' %}">
-                                <i class="bi bi-sliders"></i> Administrador
-                            </a></li>
-                        </ul>
-                    </div>
+                 
                     <div class="dropdown">
                         <button class="btn btn-success btn-sm register-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-plus me-1"></i> Registrarse
@@ -109,25 +94,12 @@
                             <i class="bi bi-moon-fill"></i>
                         </label>
                     </div>
-                    <div class="dropdown position-relative">
-                        <button class="btn btn-outline-success btn-sm login-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle me-1"></i> Iniciar Sesión
+                    <div class="position-relative">
+                        <button class="btn btn-outline-success btn-sm login-btn" 
+                            onclick="window.location.href='{% url 'users:login' %}'">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
                         </button>
-                        <ul class="dropdown-menu login-dropdown dropdown-menu-static">
-                            <li><div class="dropdown-header dropdown-title">Iniciar como:</div></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_student' %}">
-                                <i class="bi bi-journal-bookmark"></i> Estudiante
-                            </a></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_teacher' %}">
-                                <i class="bi bi-vector-pen"></i> Docente
-                            </a></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_parent' %}">
-                                <i class="bi bi-house-door"></i> Padre/Madre
-                            </a></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_admin' %}">
-                                <i class="bi bi-sliders"></i> Administrador
-                            </a></li>
-                        </ul>
+
                     </div>
                     <div class="dropdown">
                         <button class="btn btn-success btn-sm register-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">

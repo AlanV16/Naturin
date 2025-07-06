@@ -40,7 +40,7 @@
         <div class="col-md-9 col-lg-10 px-4">
             <div class="py-4">
                 <h2 class="fw-bold dashboard-title">
-                    ¡Bienvenido, {{ user.get_full_name|default:user.username }}!
+                    ¡Bienvenido, {{ user|default:user.username }}!
                 </h2>
                 <div class="row g-3 mb-4">
                     <div class="col-12 col-md-3">

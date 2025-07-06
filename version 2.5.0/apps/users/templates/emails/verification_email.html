@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Email</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .code-container {
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+            display: inline-block;
+        }
+        .verification-code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            letter-spacing: 8px;
+            margin: 0;
+        }
+        .instructions {
+            color: #666;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Verificación de Email</h1>
+        </div>
+        
+        <div class="content">
+            <h2>¡Hola {{ user.first_name }}!</h2>
+            
+            <p class="instructions">
+                Gracias por registrarte como {{ user.get_user_type_display|lower }} en nuestra plataforma educativa. 
+                Para completar tu registro, utiliza el siguiente código de verificación:
+            </p>
+            
+            <div class="code-container">
+                <p class="verification-code">{{ verification_code }}</p>
+            </div>
+            
+            <p class="instructions">
+                Ingresa este código en la página de verificación para activar tu cuenta.
+            </p>
+            
+            <div class="warning">
+                <strong>⚠️ Importante:</strong>
+                <ul style="text-align: left; margin: 10px 0;">
+                    <li>Este código expira en <strong>15 minutos</strong></li>
+                    <li>No compartas este código con nadie</li>
+                    <li>Si no solicitaste este registro, ignora este email</li>
+                </ul>
+            </div>
+            
+            <p class="instructions">
+                Si tienes problemas para verificar tu cuenta, puedes solicitar un nuevo código 
+                desde la página de verificación.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>
+                Este email fue enviado automáticamente por {{ site_name }}<br>
+                No respondas a este mensaje.
+            </p>
+            <p>
+                <small>
+                    © {{ "now"|date:"Y" }} {{ site_name }}. Todos los derechos reservados.
+                </small>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

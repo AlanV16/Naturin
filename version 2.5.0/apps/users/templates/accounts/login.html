@@ -13,7 +13,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url("{% static 'images/forms/fondo.png' %}") no-repeat center center fixed;
+            background: url("{% static background_image %}") no-repeat center center fixed;
             background-size: cover;
             display: flex;
             align-items: center;
@@ -26,7 +26,6 @@
     </style>
 {% endblock %}
 
-
 {% block content %}
 <div class="login-background">
     <div class="container py-5 d-flex justify-content-center align-items-center">
@@ -34,6 +33,36 @@
             <h2 class="fw-bold text-center mb-1">Iniciar sesión</h2>
             <p class="fw-semibold text-center mb-4">¡Bienvenido/a de nuevo!</p>
             <form method="post" autocomplete="off">
+            {% if messages %}
+                <div class="mb-3">
+                    {% for message in messages %}
+                        <!-- Mensajes de Éxito -->
+                    {% if message.tags == 'success' %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            
+            <!-- Mensajes de Error -->
+                        {% elif message.tags == 'error' %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+            
+                        <!-- Mensaje por defecto si no tiene tags -->
+                        {% else %}
+                            <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                                <i class="bi bi-info-circle me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
                 {% csrf_token %}
                 <div class="mb-3">
                     {{ form.username.label_tag }}
@@ -49,13 +78,13 @@
                     </div>
                 </div>
                 <div class="mb-3 text-end">
-                    <a href="{% url 'users:password_reset' %}" class="link-primary text-decoration-none">¿Olvidaste tu contraseña?</a>
+                    <a href="{% url 'users:password_reset_request' %}" class="link-primary text-decoration-none">¿Olvidaste tu contraseña?</a>
                 </div>
                 <button class="btn btn-success w-100 mb-3" type="submit">Entrar</button>
             </form>
             <div class="text-center mb-3">
                 <span>¿No tienes cuenta?</span>
-                <a href="{% url 'users:register_student' %}" class="link-primary fw-semibold text-decoration-none">Regístrate</a>
+                <a href="{% url registration_link %}" class="link-primary fw-semibold text-decoration-none">Regístrate</a>
             </div>
         </div>
     </div>

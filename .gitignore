@@ -1,0 +1,50 @@
+venv/
+
+
+# 🔒 Entorno virtual
+
+
+# 🐍 Archivos temporales de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ⚙ Archivos de configuración de VSCode o PyCharm
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# 🗃 Base de datos local (si usas SQLite)
+*.sqlite3
+
+# 💾 Archivos de migraciones (opcional si no los quieres subir todos)
+*/migrations/*.py
+!*/migrations/__init__.py
+
+# 📦 Archivos de paquetes y dependencias
+*.egg
+*.egg-info/
+dist/
+build/
+*.wheel
+
+# 🔐 Archivos sensibles
+.env
+.env.*
+
+# 🗂 Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# 📈 Archivos de logs y debug
+*.log
+
+# 🖼 Archivos generados por collectstatic (si usas `STATIC_ROOT`)
+staticfiles/
+static_root/
+
+# 🧪 Coverage
+htmlcov/
+.coverage
+.tox/

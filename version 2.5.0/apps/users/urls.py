@@ -1,36 +1,37 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views 
-from django.shortcuts import redirect
+from . import views
 
 app_name = 'users'
 
 urlpatterns = [
-    # Login por tipo de usuario
-    path('login/estudiante/', views.login_student, name='login_student'),
-    path('login/docente/', views.login_teacher, name='login_teacher'),
-    path('login/padre/', views.login_parent, name='login_parent'),
-    path('login/admin/', views.login_admin, name='login_admin'),
-
-    # Registro por tipo de usuario
+    # ========== AUTENTICACIÓN ==========
+    path('login/', views.login_unificado, name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='users:login'), name='logout'),
+    
+    # ========== REGISTRO POR TIPO DE USUARIO ==========
     path('registro/estudiante/', views.register_student, name='register_student'),
     path('registro/docente/', views.register_teacher, name='register_teacher'),
     path('registro/padre/', views.register_parent, name='register_parent'),
+    
+    # ========== VERIFICACIÓN DE EMAIL ==========
+    path('verificar-email/<int:user_id>/', views.verify_email, name='verify_email'),
+    path('reenviar-codigo/<int:user_id>/', views.resend_verification_code, name='resend_verification_code'),
 
-    # Logout
-    path('logout/', auth_views.LogoutView.as_view(next_page='users:login_student'), name='logout'),
-
-    path('dashboard/student/', views.dashboard_student, name='dashboard_student'),
-    path('dashboard/admin/', views.dashboard_admin, name='dashboard_admin'),
-    path('dashboard/teacher/', views.dashboard_teacher, name='dashboard_teacher'),
-    path('dashboard/parent/', views.dashboard_parent, name='dashboard_parent'),
-
-    # Perfil (redirecciones)
-    path('perfil/student/', lambda request: redirect('users:dashboard_student'), name='profile'),
-    path('perfil/admin/', lambda request: redirect('users:dashboard_admin'), name='profile_admin'),
-    path('perfil/teacher/', lambda request: redirect('users:dashboard_teacher'), name='profile_teacher'),
-    path('perfil/parent/', lambda request: redirect('users:dashboard_parent'), name='profile_parent'),
-
-    # Password reset (opcional)
-    path('password-reset/', auth_views.PasswordResetView.as_view(template_name='accounts/password_reset_form.html'), name='password_reset'),
+    # ========== REDIRECCIONES ==========
+    path('perfil/', views.redirect_to_user_dashboard, name='profile'),
+    path('', views.home_redirect, name='home'),
+    
+    # ========== DASHBOARDS ==========
+    path('dashboard/estudiante/<int:user_id>/', views.dashboard_student, name='dashboard_student'),
+    path('dashboard/docente/<int:user_id>/', views.dashboard_teacher, name='dashboard_teacher'),
+    path('dashboard/padre/<int:user_id>/', views.dashboard_parent, name='dashboard_parent'),
+    path('dashboard/admin/<int:user_id>/', views.dashboard_admin, name='dashboard_admin'),
+    
+    # ========== RECUPERACIÓN DE CONTRASEÑA (CON CÓDIGO) ==========
+    path('olvide-contraseña/', views.password_reset_request, name='password_reset_request'),
+    path('verificar-reset/<int:user_id>/', views.password_reset_verify, name='password_reset_verify'),
+    path('nueva-contraseña/<int:user_id>/<str:code>/', views.password_reset_form, name='password_reset_form'),
+    path('contraseña-actualizada/', views.password_reset_complete, name='password_reset_complete'),
+    path('reenviar-codigo-reset/<int:user_id>/', views.resend_password_reset_code, name='resend_password_reset_code'),
 ]
