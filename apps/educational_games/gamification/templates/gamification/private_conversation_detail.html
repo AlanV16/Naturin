@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Chat with {{ other_user.username }} - NatureIn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .chat-header {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px 10px 0 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .chat-messages {
+        height: 400px;
+        overflow-y: auto;
+        padding: 20px;
+        background: white;
+        border: 1px solid #dee2e6;
+    }
+    
+    .message {
+        margin-bottom: 15px;
+        display: flex;
+    }
+    
+    .message.own {
+        justify-content: flex-end;
+    }
+    
+    .message-content {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        word-wrap: break-word;
+    }
+    
+    .message.own .message-content {
+        background: #007bff;
+        color: white;
+        border-bottom-right-radius: 5px;
+    }
+    
+    .message.other .message-content {
+        background: #e9ecef;
+        color: #333;
+        border-bottom-left-radius: 5px;
+    }
+    
+    .message-time {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+    
+    .chat-input {
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 0 0 10px 10px;
+        border: 1px solid #dee2e6;
+        border-top: none;
+    }
+    
+    .message-form {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .message-input {
+        flex: 1;
+        border-radius: 20px;
+        border: 1px solid #dee2e6;
+        padding: 10px 15px;
+    }
+    
+    .send-btn {
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .back-btn {
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <a href="{% url 'messaging_dashboard' %}" class="btn btn-outline-secondary back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Messages
+    </a>
+    
+    <div class="card">
+        <div class="chat-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5><i class="fas fa-user"></i> {{ other_user.username }}</h5>
+                    <small class="text-muted">
+                        {% if other_user.user_type == 1 %}Student{% elif other_user.user_type == 2 %}Teacher{% elif other_user.user_type == 3 %}Parent{% else %}Admin{% endif %}
+                    </small>
+                </div>
+                <div>
+                    <span class="badge badge-success">Online</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chat-messages">
+            {% for message in messages %}
+                <div class="message {% if message.sender == request.user %}own{% else %}other{% endif %}">
+                    <div class="message-content">
+                        {{ message.content }}
+                        <div class="message-time">
+                            {{ message.created_at|date:"H:i" }}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-center text-muted mt-5">
+                    <i class="fas fa-comments fa-3x mb-3"></i>
+                    <p>No messages yet. Start the conversation!</p>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="chat-input">
+            <form method="post" class="message-form">
+                {% csrf_token %}
+                <input type="text" name="content" class="form-control message-input" 
+                       placeholder="Type your message..." required>
+                <button type="submit" class="btn btn-primary send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-scroll to bottom
+    function scrollToBottom() {
+        const chatMessages = document.getElementById('chat-messages');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Scroll to bottom on page load
+    scrollToBottom();
+    
+    // Auto-refresh messages every 5 seconds
+    let lastMessageId = 0;
+    
+    function loadNewMessages() {
+        fetch(`{% url 'get_new_messages_api' conversation.id %}?last_message_id=${lastMessageId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.messages.length > 0) {
+                    const chatMessages = document.getElementById('chat-messages');
+                    
+                    data.messages.forEach(message => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = `message ${message.is_own ? 'own' : 'other'}`;
+                        
+                        messageDiv.innerHTML = `
+                            <div class="message-content">
+                                ${message.content}
+                                <div class="message-time">${message.created_at}</div>
+                            </div>
+                        `;
+                        
+                        chatMessages.appendChild(messageDiv);
+                        lastMessageId = Math.max(lastMessageId, message.id);
+                    });
+                    
+                    scrollToBottom();
+                }
+            });
+    }
+    
+    // Update every 5 seconds
+    setInterval(loadNewMessages, 5000);
+    
+    // Focus on input when page loads
+    document.querySelector('.message-input').focus();
+</script>
+{% endblock %} 

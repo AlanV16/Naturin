@@ -1,0 +1,546 @@
+.course-card {
+    border: none;
+    border-radius: 15px;
+    transition: all 0.3ms ease;
+    cursor: pointer;
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+}
+
+.course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.course-header {
+    height: 100px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+}
+
+.course-header.math { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.course-header.science { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.course-header.history { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.course-header.art { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+
+.course-icon {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+}
+
+.course-body {
+    padding: 15px;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.course-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.course-teacher {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.course-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-item {
+    text-align: center;
+    font-size: 12px;
+}
+
+.stat-number {
+    font-weight: 600;
+    color: #333;
+    display: block;
+}
+
+.stat-label {
+    color: #999;
+    font-size: 11px;
+}
+
+.join-course-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 50px;
+    color: white;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.join-course-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    color: white;
+}
+
+.search-bar {
+    border-radius: 50px;
+    border: 2px solid #e9ecef;
+    padding: 12px 20px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.search-bar:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.filter-tabs {
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 30px;
+}
+
+.filter-tab {
+    background: none;
+    border: none;
+    padding: 15px 25px;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.filter-tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.filter-tab:hover {
+    color: #667eea;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    border: 2px dashed #dee2e6;
+    margin: 20px 0;
+}
+
+.empty-state-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.empty-state-image img {
+    max-width: 250px;
+    width: 100%;
+    height: auto;
+    opacity: 0.8;
+    animation: floating 3s ease-in-out infinite;
+}
+
+.empty-state h4 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 15px;
+}
+
+.empty-state p {
+    font-size: 1rem;
+    color: #6c757d;
+    max-width: 400px;
+    margin: 0 auto 30px;
+}
+
+/* Animación flotante para la imagen */
+@keyframes floating {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Responsive para empty state */
+@media (max-width: 768px) {
+    .empty-state {
+        padding: 40px 15px;
+    }
+    
+    .empty-state-image img {
+        max-width: 180px;
+    }
+    
+    .empty-state h4 {
+        font-size: 1.3rem;
+    }
+    
+    .empty-state p {
+        font-size: 0.9rem;
+    }
+}
+
+/* Mejorar el botón join-course en empty state */
+.empty-state .join-course-btn {
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.empty-state .join-course-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+    .back-to-dashboard {
+        display: inline-flex;
+        align-items: center;
+        color: #6c757d;
+        text-decoration: none;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+        padding: 8px 15px;
+        border-radius: 20px;
+        background: rgba(108, 117, 125, 0.1);
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+    
+    .back-to-dashboard:hover {
+        color: #667eea;
+        background: rgba(102, 126, 234, 0.1);
+        border-color: rgba(102, 126, 234, 0.2);
+        text-decoration: none;
+        transform: translateX(-3px);
+    }
+    
+    .back-to-dashboard i {
+        margin-right: 8px;
+        font-size: 1rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .back-to-dashboard:hover i {
+        transform: translateX(-2px);
+    }
+/* ===== ESTILOS PARA GRADES.HTML ===== */
+
+.stats-overview {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.stats-overview h3 {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stats-overview small {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+/* Grade Cards */
+.grade-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    background: white;
+}
+
+.grade-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.grade-card .card-body {
+    padding: 25px;
+}
+
+.grade-card .card-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 20px;
+}
+
+/* Grade Badges */
+.grade-badge {
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 1rem;
+    display: inline-block;
+    text-align: center;
+    min-width: 70px;
+}
+
+.grade-excellent { 
+    background: linear-gradient(135deg, #28a745, #20c997); 
+    color: white; 
+}
+
+.grade-good { 
+    background: linear-gradient(135deg, #17a2b8, #007bff); 
+    color: white; 
+}
+
+.grade-satisfactory { 
+    background: linear-gradient(135deg, #ffc107, #fd7e14); 
+    color: white; 
+}
+
+.grade-needs-improvement { 
+    background: linear-gradient(135deg, #dc3545, #e83e8c); 
+    color: white; 
+}
+
+/* Course Sections */
+.course-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    border: 1px solid #e9ecef;
+}
+
+.course-section h4 {
+    color: #2d3748;
+    font-size: 1.4rem;
+}
+
+/* Assignment Items */
+.assignment-item {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-left: 4px solid #e9ecef;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.assignment-item:hover {
+    border-left-color: #667eea;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transform: translateX(5px);
+}
+
+.assignment-item h6 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 5px;
+}
+
+.assignment-item .text-muted {
+    font-size: 0.85rem;
+}
+
+/* Grade Distribution Boxes */
+.grade-excellent {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.grade-good {
+    background: linear-gradient(135deg, #17a2b8, #007bff);
+    color: white;
+}
+
+.grade-satisfactory {
+    background: linear-gradient(135deg, #ffc107, #fd7e14);
+    color: white;
+}
+
+.grade-needs-improvement {
+    background: linear-gradient(135deg, #dc3545, #e83e8c);
+    color: white;
+}
+
+/* Distribution boxes styling */
+.row .col-3 > div {
+    border-radius: 12px !important;
+    padding: 20px !important;
+    margin: 5px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.row .col-3 > div:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.row .col-3 h4 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.row .col-3 small {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+/* Empty State específico para grades */
+.empty-state img {
+    max-width: 200px;
+    opacity: 0.8;
+    margin-bottom: 20px;
+}
+
+.empty-state .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.empty-state .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Badges */
+.badge.bg-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    border-radius: 15px;
+}
+
+/* Responsive para grades */
+@media (max-width: 768px) {
+    .stats-overview {
+        padding: 20px 15px;
+    }
+    
+    .stats-overview h3 {
+        font-size: 1.8rem;
+    }
+    
+    .course-section {
+        padding: 15px;
+    }
+    
+    .assignment-item {
+        padding: 15px;
+    }
+    
+    .assignment-item:hover {
+        transform: translateX(0);
+    }
+    
+    .row .col-3 > div {
+        margin: 2px;
+        padding: 15px !important;
+    }
+    
+    .row .col-3 h4 {
+        font-size: 1.5rem;
+    }
+    
+    .grade-badge {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+    }
+}
+
+/* Responsive para mobile en grades */
+@media (max-width: 576px) {
+    .assignment-item .row {
+        flex-direction: column;
+    }
+    
+    .assignment-item .col-md-3,
+    .assignment-item .col-md-6 {
+        margin-bottom: 10px;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 15px;
+    }
+    
+    .d-flex.align-items-center.gap-3 {
+        flex-direction: row !important;
+        gap: 10px !important;
+    }
+}
+
+/* Animaciones adicionales */
+@keyframes slideInUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.assignment-item {
+    animation: slideInUp 0.5s ease-out;
+}
+
+.course-section {
+    animation: slideInUp 0.6s ease-out;
+}
+
+.stats-overview {
+    animation: slideInUp 0.4s ease-out;
+}
+
+/* Mejoras en hover effects */
+.course-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+/* Loading states (opcional) */
+.loading-placeholder {
+    background: linear-gradient(90deg, #f0f0f0 25%, transparent 37%, #f0f0f0 63%);
+    background-size: 400% 100%;
+    animation: loading 1.4s ease infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: -100% 50%;
+    }
+}

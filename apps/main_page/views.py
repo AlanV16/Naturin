@@ -4,6 +4,8 @@ from itertools import chain
 from apps.plants.models import Plant, PlantType
 from apps.animals.models import Animal
 from apps.common.models import Category, Location
+from apps.content.models import Place
+from apps.multimedia.models import MultimediaCard
 
 def main_page(request):
     """Vista para la página principal"""
@@ -179,28 +181,72 @@ def explore(request):
 
 
 def explore_detail(request, slug):
-    # Diccionario de cada slug con su template
-    slug_to_template = {
-        'parque-nacional-tingo-maria': 'base/explore/explore_tingo_maria.html',
-        'jardin-botanico': 'base/explore/explore_jardin_botanico.html',
-        'cascada-el-leon': 'base/explore/explore_cascada_leon.html',
-        'laguna-de-los-milagros': 'base/explore/explore_laguna_milagros.html',
-        'cueva-de-las-lechuzas': 'base/explore/explore_cueva_lechuzas.html',
-        'rio-huallaga': 'base/explore/explore_rio_huallaga.html',
-        'catarata-santa-carmen': 'base/explore/explore_catarata_santa_carmen.html',
-        'zoocriadero-unas': 'base/explore/explore_zoocriadero_unas.html',
-        'cueva-de-las-pavas': 'base/explore/explore_cueva_pavas.html',
-        'catarata-san-miguel': 'base/explore/explore_catarata_san_miguel.html',
-    }
-    template = slug_to_template.get(slug)
-    if not template:
-        # 404 si no existe el slug
-        from django.http import Http404
+    from django.http import Http404
+    try:
+        place = Place.objects.get(slug=slug)
+    except Place.DoesNotExist:
         raise Http404("Lugar no encontrado")
-    return render(request, template, {'slug': slug})
+    # Renderiza la plantilla específica si existe, si no usa una genérica
+    template = place.template if place.template else 'main_page/explore_detail.html'
+    context = {
+        'place': place,
+    }
+    return render(request, template, context)
 
 
 def games(request):
     """Vista para la sección de juegos"""
     return render(request, 'main_page/games.html')
+
+
+def species_tab(request):
+    categories = Category.objects.all()
+    plant_types = PlantType.objects.all()
+    locations = Location.objects.all()
+    animals_qs = Animal.objects.all()
+    plants_qs = Plant.objects.all()
+    category_filter = request.GET.get('category')
+    if category_filter:
+        animals_qs = animals_qs.filter(category__name__iexact=category_filter)
+        plants_qs = plants_qs.filter(category__name__iexact=category_filter)
+    plant_type_filter = request.GET.get('plant_type')
+    if plant_type_filter:
+        plants_qs = plants_qs.filter(plant_type__name__iexact=plant_type_filter)
+    conservation_filter = request.GET.get('conservation')
+    if conservation_filter:
+        animals_qs = animals_qs.filter(conservation_status=conservation_filter)
+        plants_qs = plants_qs.filter(conservation_status=conservation_filter)
+    location_filter = request.GET.get('location')
+    if location_filter:
+        animals_qs = animals_qs.filter(locations__name__iexact=location_filter)
+        plants_qs = plants_qs.filter(locations__name__iexact=location_filter)
+    search_query = request.GET.get('search')
+    if search_query:
+        animals_qs = animals_qs.filter(
+            models.Q(name__icontains=search_query) |
+            models.Q(scientific_name__icontains=search_query) |
+            models.Q(description__icontains=search_query)
+        )
+        plants_qs = plants_qs.filter(
+            models.Q(name__icontains=search_query) |
+            models.Q(scientific_name__icontains=search_query) |
+            models.Q(description__icontains=search_query)
+        )
+    species_list = list(chain(animals_qs, plants_qs))
+    context = {
+        'categories': categories,
+        'species_list': species_list,
+        'plant_types': plant_types,
+        'locations': locations,
+        'active_category': category_filter,
+        'active_plant_type': plant_type_filter,
+        'active_conservation': conservation_filter,
+        'active_location': location_filter,
+        'search_query': search_query,
+    }
+    return render(request, 'main_page/tabs/species_tab.html', context)
+
+
+def mapa_tab(request):
+    return render(request, 'main_page/tabs/mapa_tab.html')
 

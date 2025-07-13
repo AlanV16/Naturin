@@ -1,0 +1,73 @@
+{% if multimedia_cards %}
+<div class="multimedia-grid">
+{% for card in multimedia_cards %}
+<div class="multimedia-card">
+    <div class="card-image-container">
+        {% if card.media_type == 'image' and card.image_file %}
+            <img src="{{ card.image_file.url }}" alt="{{ card.title }}" class="card-image">
+        {% elif card.media_type == 'video' %}
+            <div class="card-icon video"><i class="bi bi-play-circle-fill"></i></div>
+        {% elif card.media_type == 'audio' %}
+            <div class="card-icon audio"><i class="bi bi-music-note-beamed"></i></div>
+        {% elif card.media_type == 'document' %}
+            <div class="card-icon document"><i class="bi bi-file-earmark-text"></i></div>
+        {% else %}
+            <div class="card-icon link"><i class="bi bi-link-45deg"></i></div>
+        {% endif %}
+        <span class="card-badge">{{ card.get_media_type_display }}</span>
+        {% if card.is_featured %}
+        <span class="card-badge featured"><i class="bi bi-star-fill"></i> Destacada</span>
+        {% endif %}
+    </div>
+    <div class="card-content">
+        <h5 class="card-title">{{ card.title }}</h5>
+        <p class="card-description">{{ card.description|truncatewords:15 }}</p>
+        <div class="card-metadata">
+            <small><i class="bi bi-tag"></i> {{ card.category.name }} | <i class="bi bi-mortarboard"></i> {{ card.get_educational_level_display }}{% if card.duration %} | <i class="bi bi-clock"></i> {{ card.duration }} min{% endif %}</small>
+        </div>
+        <div class="card-stats">
+            <small><i class="bi bi-eye"></i> {{ card.views_count }} vistas | <i class="bi bi-download"></i> {{ card.downloads_count }} descargas</small>
+        </div>
+        <div class="card-actions">
+            <div class="btn-group">
+                <a href="{% url 'multimedia:detail' card.pk %}" class="btn btn-outline-success"><i class="bi bi-eye"></i> Ver detalles</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'multimedia:download' card.pk %}" class="btn btn-outline-primary"><i class="bi bi-download"></i> Descargar</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <small><i class="bi bi-person"></i> {{ card.author.username }} | <i class="bi bi-calendar"></i> {{ card.created_at|date:"d/m/Y" }}</small>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <i class="bi bi-collection-play"></i>
+    <h4>No se encontraron fichas multimedia</h4>
+    <p>Intenta ajustar los filtros o crear una nueva ficha.</p>
+    {% if user.is_authenticated %}
+    <a href="{% url 'multimedia:create' %}" class="btn btn-outline-success"><i class="bi bi-plus-circle"></i> Crear primera ficha</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if page_obj.has_other_pages %}
+<div class="multimedia-pagination">
+    {% if page_obj.has_previous %}
+    <button class="page-btn" data-page="{{ page_obj.previous_page_number }}" aria-label="Anterior">&laquo;</button>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <button class="page-btn active" disabled>{{ num }}</button>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <button class="page-btn" data-page="{{ num }}">{{ num }}</button>
+        {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <button class="page-btn" data-page="{{ page_obj.next_page_number }}" aria-label="Siguiente">&raquo;</button>
+    {% endif %}
+</div>
+{% endif %} 

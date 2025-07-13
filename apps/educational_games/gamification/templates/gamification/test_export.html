@@ -1,0 +1,100 @@
+{% extends 'gamification/base.html' %}
+{% load static %}
+
+{% block title %}Exportar Resultados - {{ test.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0" style="border-radius: 16px;">
+                <div class="card-header bg-success text-white border-0" style="border-radius: 16px 16px 0 0;">
+                    <h4 class="mb-0">
+                        <i class="bi bi-download me-2"></i>
+                        Exportar Resultados: {{ test.titulo }}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info" style="border-radius: 12px;">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-info-circle me-3" style="font-size: 1.5rem; margin-top: 2px;"></i>
+                            <div>
+                                <h6 class="mb-2 fw-semibold">Exportar Resultados</h6>
+                                <p class="mb-0 small">
+                                    Descarga los resultados de este test en formato CSV para análisis posterior. 
+                                    El archivo incluirá información detallada de cada estudiante.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información del Test -->
+                    <div class="card bg-light border-0 mb-4" style="border-radius: 12px;">
+                        <div class="card-body p-3">
+                            <h6 class="fw-bold text-success mb-3">Información del Test</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-calendar me-1"></i>Fecha de Inicio
+                                    </small>
+                                    <span class="fw-semibold">{{ test.fecha_inicio|date:"d/m/Y H:i" }}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-calendar-x me-1"></i>Fecha de Fin
+                                    </small>
+                                    <span class="fw-semibold">{{ test.fecha_fin|date:"d/m/Y H:i" }}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-people me-1"></i>Participantes
+                                    </small>
+                                    <span class="fw-semibold">{{ test.resultadotest_set.count }}</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-star me-1"></i>Puntuación Promedio
+                                    </small>
+                                    <span class="fw-semibold">
+                                        {% if test.resultadotest_set.all %}
+                                            {{ test.resultadotest_set.all|length|floatformat:1 }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Opciones de Exportación -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-success">
+                                <i class="bi bi-file-earmark-arrow-down me-2"></i>Formato de Exportación
+                            </label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="formato" id="formato_csv" value="csv" checked>
+                                <label class="form-check-label" for="formato_csv">
+                                    <i class="bi bi-file-earmark-text me-2"></i>CSV (Excel)
+                                    <small class="text-muted d-block">Formato compatible con Excel y Google Sheets</small>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-success btn-lg flex-fill">
+                                <i class="bi bi-download me-2"></i>Descargar Resultados
+                            </button>
+                            <a href="{% url 'gamification:test_results' test.IDtest %}" class="btn btn-outline-secondary btn-lg flex-fill">
+                                <i class="bi bi-arrow-left me-2"></i>Volver a Resultados
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,25 @@
+{% if pending_submissions %}
+    {% for submission in pending_submissions %}
+    <div class="activity-item">
+        <div class="activity-icon activity-enrollment">
+            <i class="bi bi-clipboard-check"></i>
+        </div>
+        <div class="flex-grow-1">
+            <h6 class="fw-bold mb-1">{{ submission.assignment.title }}</h6>
+            <small class="text-muted">{{ submission.student.get_full_name }} • {{ submission.assignment.course.name }}</small>
+            <div class="mt-1">
+                <small class="text-primary">
+                    <i class="bi bi-clock me-1"></i>
+                    Entregado {{ submission.submitted_at|timesince }} atrás
+                </small>
+            </div>
+        </div>
+        <button class="btn btn-outline-primary btn-sm" onclick="showGradeSubmissionModal('{{ submission.id }}', '{{ submission.assignment.title }}', '{{ submission.student.get_full_name }}')">Calificar</button>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="text-center py-4">
+    <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-2">¡Todas las tareas están calificadas!</p>
+</div>
+{% endif %} 

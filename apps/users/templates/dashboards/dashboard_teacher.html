@@ -10,141 +10,421 @@
 {% block extra_css %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+    <style>
+        /* Estilos para la cuadrícula de actividades */
+        .activities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .activity-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .activity-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .activity-card .card {
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .activity-card .card:hover {
+            border-color: #007bff;
+        }
+        
+        /* Estilos para la lista de actividades seleccionadas */
+        .selected-activity-item {
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Estilos para el código de clase */
+        .code-input-group {
+            border-radius: 8px;
+        }
+        
+        .code-input-group .form-control {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .activities-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 0.5rem;
+            }
+        }
+        
+        /* Estilos para el modal de perfil */
+        .profile-modal .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            object-fit: cover;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .profile-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .avatar-upload {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .avatar-upload input[type=file] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .credential-card {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-teacher-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-teacher-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            color: white;
+        }
+        
+        .alert-custom {
+            border-radius: 10px;
+            border: none;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid dashboard-bg py-4">
-    <!-- Fila del Contenido Principal -->
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar-dashboard">
-            <div class="text-center py-4">
-                <img src="{% static 'images/mascota/tuki.png' %}" alt="Owl" width="90" class="mb-3">
+<div class="teacher-dashboard-bg" data-user-type="2">
+    <div class="container-fluid py-2">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-none d-md-block">
+                <div class="sidebar-dashboard">
+                    <div class="text-center py-4">
+                        <img src="{% static 'images/mascota/tuki.png' %}" alt="Tuki" width="80" height="80" class="mb-3" loading="lazy">
+                        <h6 class="fw-bold text-primary">¡Hola, Profesor!</h6>
+                    </div>
+                    <nav class="nav flex-column px-2 pb-4">
+                        <a class="nav-link sidebar-btn active" href="{% url 'users:dashboard_teacher' user_id=user.id %}">
+                            <i class="bi bi-house-door-fill me-2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_courses' %}">
+                            <i class="bi bi-journal-bookmark-fill me-2"></i>
+                            <span>Mis Cursos</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_assignments' %}">
+                            <i class="bi bi-clipboard-check me-2"></i>
+                            <span>Tareas</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_grades' %}">
+                            <i class="bi bi-bar-chart-fill me-2"></i>
+                            <span>Calificaciones</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'pedagogical_guides:guide_list' %}">
+                            <i class="bi bi-file-earmark-text me-2"></i>
+                            <span>Guías Pedagógicas</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_students' %}">
+                            <i class="bi bi-people-fill me-2"></i>
+                            <span>Estudiantes</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_calendar' %}">
+                            <i class="bi bi-calendar3 me-2"></i>
+                            <span>Calendario</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_messages' %}">
+                            <i class="bi bi-chat-dots-fill me-2"></i>
+                            <span>Mensajes</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="#" onclick="showProfileModal()">
+                            <i class="bi bi-person-circle me-2"></i>
+                            <span>Mi Perfil</span>
+                        </a>
+                    </nav>
+                </div>
             </div>
-            <nav class="nav flex-column px-3">
-                <button class="nav-link active fw-bold sidebar-btn">
-                    <i class="bi bi-house-door-fill me-2"></i> Dashboard
-                </button>
-                <button class="nav-link active fw-bold sidebar-btn">
-                    <i class="bi bi-plus-circle me-2"></i> Clases
-                </button>
-                <button class="nav-link active fw-bold sidebar-btn">
-                    <i class="bi bi-folder-fill me-2"></i> Contenido
-                </button>
-                <a href="{% url 'pedagogical_guides:guide_list' %}" class="nav-link active fw-bold sidebar-btn">
-                    <i class="bi bi-file-earmark-text me-2"></i> Guías Pedagógicas
-                </a>
-                <button class="nav-link active fw-bold sidebar-btn">
-                    <i class="bi bi-chat-dots-fill me-2"></i> Mensajes
-                </button>
-                <button class="nav-link active fw-bold sidebar-btn">
-                    <i class="bi bi-gear-fill me-2"></i> Configuración
-                </button>
-            </nav>
-        </div>
 
-        <!-- Main Content -->
-        <div class="col-md-9 col-lg-10 px-4">
-            <div class="py-4">
-                <div class="row g-3 mb-4">
-                    <div class="col-12 col-md-3">
-                        <button class="btn-dashboard-create">
-                            <i class="bi bi-plus-circle me-2"></i> Crear Clase
-                        </button>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card-container text-center">
-                            <div class="fw-bold stats-number-primary">6</div>
-                            <div class="text-muted">Clases Activas</div>
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 px-3">
+                <!-- Welcome Section -->
+                <div class="dashboard-card">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3 class="fw-bold mb-2 text-primary">
+                                ¡Bienvenido de vuelta, {{ user.get_full_name|default:user.username }}! 👨‍🏫
+                            </h3>
+                            <p class="text-muted mb-0">Gestiona tus cursos, revisa las tareas de tus estudiantes y mantente al día con el progreso académico.</p>
                         </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card-container text-center">
-                            <div class="fw-bold stats-number-primary">24</div>
-                            <div class="text-muted">Estudiantes</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card-container text-center">
-                            <div class="fw-bold stats-number-primary">5</div>
-                            <div class="text-muted">Nuevos Mensajes</div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-teacher-primary" onclick="showCreateCourseModal()">
+                                <i class="bi bi-plus-circle"></i>
+                                Crear Nuevo Curso
+                            </button>
                         </div>
                     </div>
                 </div>
-                <div class="row g-4">
-                    <div class="col-lg-6">
-                        <div class="card-container">
-                            <h5 class="fw-bold mb-3 dashboard-title">Mis Clases</h5>
-                            <div class="course-item card-bg">
-                                <div class="course-content">
-                                    <i class="bi bi-book-fill me-2 course-icon"></i> Clase A <span class="text-secondary">4to Grado</span>
-                                </div>
-                                <div class="course-actions">
-                                    <a href="#" class="btn-dashboard-view">Ver</a>
-                                </div>
-                            </div>
-                            <div class="course-item card-bg">
-                                <div class="course-content">
-                                    <i class="bi bi-book-fill me-2 course-icon"></i> Clase B <span class="text-secondary">5to Grado</span>
-                                </div>
-                                <div class="course-actions">
-                                    <a href="#" class="btn-dashboard-view">Ver</a>
-                                </div>
-                            </div>
-                            <div class="course-item card-bg">
-                                <div class="course-content">
-                                    <i class="bi bi-book-fill me-2 course-icon"></i> Clase C <span class="text-secondary">6to Grado</span>
-                                </div>
-                                <div class="course-actions">
-                                    <a href="#" class="btn-dashboard-view">Ver</a>
-                                </div>
-                            </div>
+
+                <!-- Stats Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3 col-6">
+                        <div class="dashboard-card stat-card">
+                            <div class="stat-number">{{ active_courses|default:0 }}</div>
+                            <div class="stat-label">Cursos Activos</div>
                         </div>
-                        <div class="card-container">
-                            <h5 class="fw-bold mb-3 dashboard-title">Administrador de Contenido</h5>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <a href="#" class="btn-dashboard-secondary">
-                                        <i class="bi bi-plus-circle me-2"></i> Añadir nuevo contenido
-                                    </a>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="dashboard-card stat-card">
+                            <div class="stat-number">{{ total_students|default:0 }}</div>
+                            <div class="stat-label">Estudiantes Total</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="dashboard-card stat-card">
+                            <div class="stat-number">{{ pending_count|default:0 }}</div>
+                            <div class="stat-label">Por Calificar</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="dashboard-card stat-card">
+                            <div class="stat-number">{{ recent_achievements|length|default:0 }}</div>
+                            <div class="stat-label">Logros Recientes</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="dashboard-card">
+                    <h5 class="section-title">
+                        <i class="bi bi-lightning-fill"></i>
+                        Acciones Rápidas
+                    </h5>
+                    <div class="quick-actions">
+                        <div class="quick-action-card" onclick="showCreateAssignmentModal()">
+                            <div class="quick-action-icon">
+                                <i class="bi bi-clipboard-plus"></i>
+                            </div>
+                            <h6 class="fw-bold">Crear Tarea</h6>
+                            <small class="text-muted">Asigna nueva tarea a tus estudiantes</small>
+                        </div>
+                        <div class="quick-action-card" onclick="showUploadMaterialModal()">
+                            <div class="quick-action-icon">
+                                <i class="bi bi-upload"></i>
+                            </div>
+                            <h6 class="fw-bold">Subir Material</h6>
+                            <small class="text-muted">Comparte recursos con tus clases</small>
+                        </div>
+                        <div class="quick-action-card" onclick="showScheduleClassModal()">
+                            <div class="quick-action-icon">
+                                <i class="bi bi-calendar-event"></i>
+                            </div>
+                            <h6 class="fw-bold">Programar Clase</h6>
+                            <small class="text-muted">Agenda una nueva sesión</small>
+                        </div>
+                        <div class="quick-action-card" onclick="showReportsModal()">
+                            <div class="quick-action-icon">
+                                <i class="bi bi-graph-up"></i>
+                            </div>
+                            <h6 class="fw-bold">Ver Reportes</h6>
+                            <small class="text-muted">Analiza el progreso general</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Mis Cursos -->
+                    <div class="col-lg-6">
+                        <div class="dashboard-card">
+                            <h5 class="section-title">
+                                <i class="bi bi-journal-bookmark"></i>
+                                Mis Cursos
+                            </h5>
+                            <div id="teacherCoursesSection">
+                                {% if course_stats %}
+                                    {% for stat in course_stats %}
+                                    <div class="course-card">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="fw-bold mb-1">
+                                                    {{ stat.classroom.name }}
+                                                    <span class="badge {% if stat.status == 'active' %}bg-success{% else %}bg-secondary{% endif %} ms-2" style="font-size:0.8em;">
+                                                        {% if stat.status == 'active' %}Activo{% else %}Inactivo{% endif %}
+                                                    </span>
+                                                </h6>
+                                                <small class="text-muted">{{ stat.classroom.code }}</small>
+                                                {% if stat.pending_submissions > 0 %}
+                                                <span class="pending-badge ms-2">{{ stat.pending_submissions }} pendientes</span>
+                                                {% endif %}
+                                            </div>
+                                            <button class="btn btn-outline-primary btn-sm" onclick="showCourseDetails('{{ stat.classroom.id }}')">Ver</button>
+                                        </div>
+                                        <div class="course-stats">
+                                            <div class="course-stat-item">
+                                                <div class="fw-bold">{{ stat.students_count }}</div>
+                                                <small>Estudiantes</small>
+                                            </div>
+                                            <div class="course-stat-item">
+                                                <div class="fw-bold">{{ stat.avg_grade }}</div>
+                                                <small>Promedio</small>
+                                            </div>
+                                            <div class="course-stat-item">
+                                                <div class="fw-bold">{{ stat.assignments_count }}</div>
+                                                <small>Tareas</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-journal-x text-muted" style="font-size: 3rem;"></i>
+                                    <p class="text-muted mt-2">No tienes cursos asignados aún</p>
+                                    <button class="btn btn-teacher-primary" onclick="showCreateCourseModal()">Crear Primer Curso</button>
                                 </div>
-                                <div class="col-6">
-                                    <a href="#" class="btn-dashboard-secondary">
-                                        <i class="bi bi-download me-2"></i> Descargar reportes
-                                    </a>
-                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
+
+                    <!-- Tareas Pendientes de Calificar -->
                     <div class="col-lg-6">
-                        <!-- Sección de Guías Pedagógicas -->
-                        <div class="card-container">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5 class="fw-bold dashboard-title mb-0">Guías Pedagógicas</h5>
-                                <a href="{% url 'pedagogical_guides:guide_list' %}" class="btn-dashboard-secondary btn-sm">
-                                    <i class="bi bi-eye me-1"></i> Ver todas
-                                </a>
-                            </div>
-                            <div class="row g-2">
-                                <div class="col-12">
-                                    <a href="{% url 'pedagogical_guides:guide_upload' %}" class="btn-dashboard-secondary w-100">
-                                        <i class="bi bi-upload me-2"></i> Subir Nueva Guía
-                                    </a>
+                        <div class="dashboard-card">
+                            <h5 class="section-title">
+                                <i class="bi bi-clipboard-check"></i>
+                                Pendientes de Calificar
+                            </h5>
+                            <div id="teacherPendingSection">
+                                {% if pending_submissions %}
+                                    {% for submission in pending_submissions %}
+                                    <div class="activity-item">
+                                        <div class="activity-icon activity-enrollment">
+                                            <i class="bi bi-clipboard-check"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="fw-bold mb-1">{{ submission.assignment.title }}</h6>
+                                            <small class="text-muted">{{ submission.student.get_full_name }} • {{ submission.assignment.course.name }}</small>
+                                            <div class="mt-1">
+                                                <small class="text-primary">
+                                                    <i class="bi bi-clock me-1"></i>
+                                                    Entregado {{ submission.submitted_at|timesince }} atrás
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="showGradeSubmissionModal('{{ submission.id }}', '{{ submission.assignment.title }}', '{{ submission.student.get_full_name }}')">Calificar</button>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                                    <p class="text-muted mt-2">¡Todas las tareas están calificadas!</p>
                                 </div>
-                            </div>
-                            <div class="mt-3">
-                                <small class="text-muted">
-                                    <i class="bi bi-info-circle me-1"></i>
-                                    Accede a tus guías pedagógicas para descargarlas o subir nuevas.
-                                </small>
+                                {% endif %}
                             </div>
                         </div>
-                        
-                        <div class="card-container">
-                            <h5 class="fw-bold mb-3 dashboard-title">Nuevos Mensajes</h5>
-                            <ul class="list-unstyled mb-0">
-                                <li class="mb-2"><i class="bi bi-envelope-fill me-2 message-icon"></i> Message 1</li>
-                            </ul>
+                    </div>
+                </div>
+
+                <!-- Segunda fila: Actividad y Guías -->
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="dashboard-card">
+                            <h5 class="section-title">
+                                <i class="bi bi-activity"></i>
+                                Actividad Reciente
+                            </h5>
+                            {% if recent_activities %}
+                                {% for activity in recent_activities %}
+                                <div class="activity-item">
+                                    <div class="activity-icon activity-enrollment">
+                                        <i class="bi bi-person-plus"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold">{{ activity.student.get_full_name }}</div>
+                                        <small class="text-muted">{{ activity.description }}</small>
+                                        <div class="text-primary small">{{ activity.date|timesince }} atrás</div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-clock-history text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2">No hay actividad reciente</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="dashboard-card">
+                            <h5 class="section-title">
+                                <i class="bi bi-file-earmark-text"></i>
+                                Guías Pedagógicas
+                            </h5>
+                            <div class="text-center">
+                                <div class="mb-3">
+                                    <a href="{% url 'pedagogical_guides:guide_upload' %}" class="btn btn-teacher-primary">
+                                        <i class="bi bi-upload me-2"></i>
+                                        Subir Nueva Guía
+                                    </a>
+                                </div>
+                                <div class="mb-3">
+                                    <a href="{% url 'pedagogical_guides:guide_list' %}" class="btn btn-outline-primary">
+                                        <i class="bi bi-eye me-2"></i>
+                                        Ver Todas las Guías
+                                    </a>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Gestiona tus recursos pedagógicos
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -152,11 +432,778 @@
         </div>
     </div>
 </div>
+
+<!-- Modales para funcionalidades del profesor -->
+
+<!-- Modal Crear Curso -->
+<div class="modal fade" id="createCourseModal" tabindex="-1" aria-labelledby="createCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createCourseModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Crear Nueva Clase Virtual
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createCourseForm" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Formulario Principal -->
+                    <div class="form-section">
+                        <h6 class="text-primary mb-3">
+                            <i class="bi bi-info-circle me-2"></i>Información de la Clase
+                        </h6>
+                        
+                        <!-- Nombre de la Clase -->
+                        <div class="mb-3">
+                            <label for="courseName" class="form-label">Nombre de la Clase *</label>
+                            <input type="text" class="form-control" id="courseName" name="class_name" required>
+                            <div class="invalid-feedback">
+                                Por favor ingresa un nombre para la clase.
+                            </div>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="mb-3">
+                            <label for="courseDescription" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="courseDescription" name="description" rows="3" placeholder="Describe el propósito y contenido de esta clase..."></textarea>
+                        </div>
+
+                        <!-- Grado y Sección -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="courseGrade" class="form-label">Grado *</label>
+                                    <select class="form-select" id="courseGrade" name="grade" required>
+                                        <option value="">Seleccionar grado</option>
+                                        <option value="1">1° Grado</option>
+                                        <option value="2">2° Grado</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Por favor selecciona un grado.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="courseSection" class="form-label">Sección *</label>
+                                    <select class="form-select" id="courseSection" name="section" required>
+                                        <option value="">Seleccionar sección</option>
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="C">C</option>
+                                        <option value="D">D</option>
+                                        <option value="E">E</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Por favor selecciona una sección.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actividades -->
+                        <div class="mb-4">
+                            <label class="form-label">Adjuntar Actividades (Opcional)</label>
+                            <div class="activities-grid">
+                                <!-- Tareas -->
+                                <div class="activity-card">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-journal-check text-primary mb-2" style="font-size: 2rem;"></i>
+                                            <h6 class="fw-bold">Tareas</h6>
+                                            <small class="text-muted">Asignaciones para estudiantes</small>
+                                            <div class="mt-3">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="addActivity('assignment')">
+                                                    <i class="bi bi-plus-circle me-1"></i>Agregar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tests -->
+                                <div class="activity-card">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-clipboard-check text-success mb-2" style="font-size: 2rem;"></i>
+                                            <h6 class="fw-bold">Tests</h6>
+                                            <small class="text-muted">Evaluaciones interactivas</small>
+                                            <div class="mt-3">
+                                                <button type="button" class="btn btn-outline-success btn-sm" onclick="addActivity('test')">
+                                                    <i class="bi bi-plus-circle me-1"></i>Agregar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Lecturas -->
+                                <div class="activity-card">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-book text-info mb-2" style="font-size: 2rem;"></i>
+                                            <h6 class="fw-bold">Lecturas</h6>
+                                            <small class="text-muted">Material de lectura</small>
+                                            <div class="mt-3">
+                                                <button type="button" class="btn btn-outline-info btn-sm" onclick="addActivity('reading')">
+                                                    <i class="bi bi-plus-circle me-1"></i>Agregar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Fichas Educativas -->
+                                <div class="activity-card">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-file-earmark-text text-warning mb-2" style="font-size: 2rem;"></i>
+                                            <h6 class="fw-bold">Fichas Educativas</h6>
+                                            <small class="text-muted">Material estructurado</small>
+                                            <div class="mt-3">
+                                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="addActivity('worksheet')">
+                                                    <i class="bi bi-plus-circle me-1"></i>Agregar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Fichas Multimedia -->
+                                <div class="activity-card">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-image text-secondary mb-2" style="font-size: 2rem;"></i>
+                                            <h6 class="fw-bold">Fichas Multimedia</h6>
+                                            <small class="text-muted">Videos, imágenes, audios</small>
+                                            <div class="mt-3">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addActivity('multimedia')">
+                                                    <i class="bi bi-plus-circle me-1"></i>Agregar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Juegos -->
+                                <div class="activity-card">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-puzzle text-danger mb-2" style="font-size: 2rem;"></i>
+                                            <h6 class="fw-bold">Juegos</h6>
+                                            <small class="text-muted">Actividades interactivas</small>
+                                            <div class="mt-3">
+                                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="addActivity('game')">
+                                                    <i class="bi bi-plus-circle me-1"></i>Agregar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lista de Actividades Seleccionadas -->
+                        <div id="selectedActivitiesSection" class="mb-4" style="display: none;">
+                            <h6 class="text-success mb-3">
+                                <i class="bi bi-check-circle me-2"></i>Actividades Seleccionadas
+                            </h6>
+                            <div id="selectedActivitiesList" class="list-group">
+                                <!-- Se llenará dinámicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Código de la Clase -->
+                        <div class="mb-4">
+                            <label for="courseCode" class="form-label">Código de la Clase</label>
+                            <div class="input-group code-input-group">
+                                <input type="text" class="form-control" id="courseCode" name="class_code" readonly>
+                                <button type="button" class="btn btn-outline-primary" onclick="generateClassCode()">
+                                    <i class="bi bi-arrow-clockwise"></i> Regenerar
+                                </button>
+                                <button type="button" class="btn btn-outline-success" onclick="copyClassCode()">
+                                    <i class="bi bi-clipboard"></i> Copiar
+                                </button>
+                            </div>
+                            <small class="text-muted">Código único para que los estudiantes se unan a la clase</small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-success" onclick="submitCreateCourse()">
+                    <i class="bi bi-check-circle me-2"></i>Crear e ir a la clase
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crear Tarea -->
+<div class="modal fade" id="createAssignmentModal" tabindex="-1" aria-labelledby="createAssignmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createAssignmentModalLabel">
+                    <i class="bi bi-clipboard-plus me-2"></i>Crear Nueva Tarea
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createAssignmentForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="assignmentTitle" class="form-label">Título de la Tarea</label>
+                        <input type="text" class="form-control" id="assignmentTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignmentDescription" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="assignmentDescription" name="description" rows="4" required></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="assignmentCourse" class="form-label">Aula</label>
+                                <select class="form-select" id="assignmentCourse" name="course" required>
+                                    <option value="">Seleccionar aula (Grado y Sección)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="assignmentDueDate" class="form-label">Fecha de Entrega</label>
+                                <input type="datetime-local" class="form-control" id="assignmentDueDate" name="due_date" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignmentPoints" class="form-label">Puntos</label>
+                        <input type="number" class="form-control" id="assignmentPoints" name="points" min="1" max="100" value="100">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-teacher-primary" onclick="submitCreateAssignment()">
+                    <i class="bi bi-check-circle me-2"></i>Crear Tarea
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Calificar Tarea -->
+<div class="modal fade" id="gradeSubmissionModal" tabindex="-1" aria-labelledby="gradeSubmissionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="gradeSubmissionModalLabel">
+                    <i class="bi bi-clipboard-check me-2"></i>Calificar Tarea
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="submissionInfo" class="mb-3">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+                <form id="gradeSubmissionForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="submissionId" name="submission_id">
+                    <div class="mb-3">
+                        <label for="grade" class="form-label">Calificación</label>
+                        <input type="number" class="form-control" id="grade" name="grade" min="0" max="100" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="feedback" class="form-label">Comentarios</label>
+                        <textarea class="form-control" id="feedback" name="feedback" rows="3" placeholder="Escribe comentarios para el estudiante..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-teacher-primary" onclick="submitGrade()">
+                    <i class="bi bi-check-circle me-2"></i>Guardar Calificación
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Subir Material -->
+<div class="modal fade" id="uploadMaterialModal" tabindex="-1" aria-labelledby="uploadMaterialModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadMaterialModalLabel">
+                    <i class="bi bi-upload me-2"></i>Subir Material
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="uploadMaterialForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="materialTitle" class="form-label">Título del Material</label>
+                        <input type="text" class="form-control" id="materialTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="materialFile" class="form-label">Archivo</label>
+                        <input type="file" class="form-control" id="materialFile" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.png" required>
+                        <div class="form-text">Formatos permitidos: PDF, Word, PowerPoint, Imágenes</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="materialCourse" class="form-label">Curso</label>
+                        <select class="form-select" id="materialCourse" name="course" required>
+                            <option value="">Seleccionar curso</option>
+                            <!-- Aquí se cargarían los cursos del profesor -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="materialDescription" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="materialDescription" name="description" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-teacher-primary" onclick="submitUploadMaterial()">
+                    <i class="bi bi-upload me-2"></i>Subir Material
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Información (para funciones en desarrollo) -->
+<div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModalLabel">
+                    <i class="bi bi-info-circle me-2"></i>Información
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="bi bi-tools text-warning" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3">Función en Desarrollo</h5>
+                    <p class="text-muted">Esta funcionalidad estará disponible próximamente.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-teacher-primary" data-bs-dismiss="modal">Entendido</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Perfil -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileModalLabel">
+                    <i class="bi bi-person-circle me-2"></i>Mi Perfil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <div class="avatar-upload">
+                            <img src="{% if user.avatar %}{{ user.avatar.url }}{% else %}{% static 'images/avatars/avatar2.png' %}{% endif %}" 
+                                 alt="Avatar" class="profile-avatar" id="profileAvatar">
+                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('avatarInput').click()">
+                                <i class="bi bi-camera me-1"></i>Cambiar Foto
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="credential-card">
+                            <h6 class="fw-bold mb-3">Información Personal</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-light">Nombre Completo</small>
+                                    <div class="fw-bold">{{ user.get_full_name|default:"No especificado" }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-light">Usuario</small>
+                                    <div class="fw-bold">{{ user.username }}</div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-6">
+                                    <small class="text-light">Email</small>
+                                    <div class="fw-bold">{{ user.email }}</div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-light">Tipo de Usuario</small>
+                                    <div class="fw-bold">Docente</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <h6 class="fw-bold mb-3">Estadísticas</h6>
+                            <div class="row">
+                                <div class="col-4 text-center">
+                                    <div class="fw-bold text-primary">{{ active_courses|default:0 }}</div>
+                                    <small class="text-muted">Cursos</small>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <div class="fw-bold text-success">{{ total_students|default:0 }}</div>
+                                    <small class="text-muted">Estudiantes</small>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <div class="fw-bold text-warning">{{ pending_count|default:0 }}</div>
+                                    <small class="text-muted">Por Calificar</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="saveProfileChanges()">
+                    <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_scripts %}
     {{ block.super }}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/header_logged.js' %}"></script>
-    <script src="{% static 'js/notifications.js' %}"></script>
+    <script src="{% static 'js/dashboard_ajax.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar los tooltips de Bootstrap
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+
+            // Listener para el formulario de creación de curso
+            const createCourseForm = document.getElementById('createCourseForm');
+            if (createCourseForm) {
+                createCourseForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    submitCreateCourse();
+                });
+            }
+        });
+
+        // Variables globales para el modal de creación de clase
+        let currentStep = 1;
+        let selectedActivities = [];
+        let classData = {};
+
+        function showCreateCourseModal() {
+            // Resetear el modal
+            selectedActivities = [];
+            
+            // Obtener un nuevo código de clase antes de mostrar el modal
+            generateClassCode();
+            
+            // Limpiar el formulario
+            document.getElementById('createCourseForm').reset();
+            document.getElementById('createCourseForm').classList.remove('was-validated');
+            
+            // Ocultar la sección de actividades seleccionadas
+            document.getElementById('selectedActivitiesSection').style.display = 'none';
+            
+            const modal = new bootstrap.Modal(document.getElementById('createCourseModal'));
+            modal.show();
+        }
+
+        function generateClassCode() {
+            fetch("{% url 'users:generate_class_code' %}", {
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.code) {
+                    document.getElementById('courseCode').value = data.code;
+                } else if (data.error) {
+                    showAlert(data.error, 'error');
+                } else {
+                    showAlert('Error al generar el código', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error al generar el código', 'error');
+            });
+        }
+
+        function copyClassCode() {
+            const codeInput = document.getElementById('courseCode');
+            codeInput.select();
+            codeInput.setSelectionRange(0, 99999); // For mobile devices
+
+            navigator.clipboard.writeText(codeInput.value).then(() => {
+                showAlert('Código de la clase copiado al portapapeles', 'success');
+            }).catch(err => {
+                console.error('Error al copiar el código:', err);
+                showAlert('Error al copiar el código', 'error');
+            });
+        }
+
+        // Funciones para agregar actividades iniciales
+        function addActivity(type) {
+            let title = '';
+            let icon = '';
+            let color = '';
+
+            switch (type) {
+                case 'assignment':
+                    title = prompt('Ingresa el título de la tarea:');
+                    icon = 'bi-journal-check';
+                    color = 'primary';
+                    break;
+                case 'test':
+                    title = prompt('Ingresa el título del test:');
+                    icon = 'bi-clipboard-check';
+                    color = 'success';
+                    break;
+                case 'reading':
+                    title = prompt('Ingresa el título de la lectura:');
+                    icon = 'bi-book';
+                    color = 'info';
+                    break;
+                case 'worksheet':
+                    title = prompt('Ingresa el título de la ficha educativa:');
+                    icon = 'bi-file-earmark-text';
+                    color = 'warning';
+                    break;
+                case 'multimedia':
+                    title = prompt('Ingresa el título de la ficha multimedia:');
+                    icon = 'bi-image';
+                    color = 'secondary';
+                    break;
+                case 'game':
+                    title = prompt('Ingresa el título del juego educativo:');
+                    icon = 'bi-puzzle';
+                    color = 'danger';
+                    break;
+                default:
+                    return;
+            }
+
+            if (title) {
+                const activity = {
+                    type: type,
+                    title: title,
+                    icon: icon,
+                    color: color
+                };
+                addActivityToSelected(activity);
+            }
+        }
+
+        function addActivityToSelected(activity) {
+            selectedActivities.push(activity);
+            updateSelectedActivitiesList();
+        }
+
+        function removeActivity(index) {
+            selectedActivities.splice(index, 1);
+            updateSelectedActivitiesList();
+        }
+
+        function updateSelectedActivitiesList() {
+            const selectedActivitiesList = document.getElementById('selectedActivitiesList');
+            const selectedActivitiesSection = document.getElementById('selectedActivitiesSection');
+            
+            if (selectedActivities.length > 0) {
+                selectedActivitiesSection.style.display = 'block';
+                let html = '';
+                selectedActivities.forEach((activity, index) => {
+                    html += `
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <i class="bi ${activity.icon} me-2 text-${activity.color}"></i>
+                                <span>${activity.title}</span>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeActivity(${index})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+                selectedActivitiesList.innerHTML = html;
+            } else {
+                selectedActivitiesSection.style.display = 'none';
+            }
+        }
+
+        function submitCreateCourse() {
+            const form = document.getElementById('createCourseForm');
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            const formData = new FormData(form);
+            
+            // Agregar actividades seleccionadas al formData
+            formData.append('activities', JSON.stringify(selectedActivities));
+
+            fetch("{% url 'users:create_class_api' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showAlert('Clase creada exitosamente', 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createCourseModal'));
+                    modal.hide();
+                    
+                    // Mostrar información de debug si está disponible
+                    if (data.debug_info) {
+                        console.log('Debug info:', data.debug_info);
+                    }
+                    
+                    // Actualizar secciones del dashboard vía AJAX
+                    updateAfterCreateCourse();
+                    
+                    // Redirigir a la clase creada
+                    if (data.course_id) {
+                        console.log('Redirigiendo a clase ID:', data.course_id);
+                        // Usar setTimeout para asegurar que la actualización AJAX se complete
+                        setTimeout(() => {
+                            const url = `{% url 'users:class_teacher' 0 %}`.replace('0', data.course_id);
+                            console.log('URL de redirección:', url);
+                            
+                            // Verificar que la URL es válida antes de redirigir
+                            fetch(url, { method: 'HEAD' })
+                                .then(response => {
+                                    if (response.ok) {
+                                        window.location.href = url;
+                                    } else {
+                                        console.error('La clase no existe, redirigiendo al dashboard');
+                                        window.location.href = "{% url 'users:dashboard_teacher' user_id=user.id %}";
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error verificando la clase:', error);
+                                    window.location.href = "{% url 'users:dashboard_teacher' user_id=user.id %}";
+                                });
+                        }, 1000);
+                    } else {
+                        console.log('No hay course_id, recargando página');
+                        // Si no hay ID, recargar la página
+                        window.location.reload();
+                    }
+                } else {
+                    showAlert(data.error || 'Error al crear la clase', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error al crear la clase', 'error');
+            });
+        }
+
+        function getCsrfToken() {
+            const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+            return csrfInput ? csrfInput.value : '';
+        }
+        
+        // Funciones para el perfil
+        function showProfileModal() {
+            const modal = new bootstrap.Modal(document.getElementById('profileModal'));
+            modal.show();
+        }
+        
+        function saveProfileChanges() {
+            // Implementar guardado de cambios de perfil
+            showAlert('Cambios guardados exitosamente', 'success');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('profileModal'));
+            modal.hide();
+        }
+        
+        // Manejo de avatar
+        document.addEventListener('DOMContentLoaded', function() {
+            const avatarInput = document.getElementById('avatarInput');
+            if (avatarInput) {
+                avatarInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const formData = new FormData();
+                        formData.append('avatar', file);
+                        
+                        fetch('{% url "users:update_avatar" %}', {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-CSRFToken': getCsrfToken(),
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                document.getElementById('profileAvatar').src = URL.createObjectURL(file);
+                                showAlert('Avatar actualizado exitosamente', 'success');
+                            } else {
+                                showAlert(data.error || 'Error al actualizar avatar', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showAlert('Error al actualizar avatar', 'error');
+                        });
+                    }
+                });
+            }
+        });
+        
+        // Función para mostrar alertas
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-custom alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+            alertDiv.style.zIndex = '9999';
+            alertDiv.style.marginTop = '60px';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            // Autoclose after 5 seconds
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+    </script>
 {% endblock %}

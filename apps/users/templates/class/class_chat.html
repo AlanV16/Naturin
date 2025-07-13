@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <style>
+        .chat-container {
+            background: #f8f9fa;
+            min-height: calc(100vh - 100px);
+        }
+        
+        .chat-header {
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem;
+        }
+        
+        .chat-messages {
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 1rem;
+            max-width: 70%;
+        }
+        
+        .message.sent {
+            margin-left: auto;
+        }
+        
+        .message-content {
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            position: relative;
+        }
+        
+        .message.sent .message-content {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .message.received .message-content {
+            background: white;
+            border: 1px solid #e9ecef;
+        }
+        
+        .message-sender {
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        
+        .message-time {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        
+        .chat-input {
+            background: white;
+            border-top: 1px solid #e9ecef;
+            padding: 1rem;
+        }
+        
+        .back-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-header">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <a href="{% url 'users:class_teacher' class_id=classroom.IDaula %}" class="btn back-btn me-3">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Volver a la Clase
+                </a>
+                <div>
+                    <h5 class="mb-0">Chat de {{ classroom.NombreAula }}</h5>
+                    <small class="text-muted">
+                        {% if user.user_type == 2 %}
+                            Docente: {{ user.get_full_name }}
+                        {% else %}
+                            Estudiante: {{ user.get_full_name }}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-success">Activo</span>
+                <small class="text-muted ms-2">{{ conversation.participants.count }} participantes</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+        {% for message in messages %}
+        <div class="message {% if message.sender == user %}sent{% else %}received{% endif %}">
+            <div class="message-content">
+                {% if message.sender != user %}
+                <div class="message-sender">{{ message.sender.get_full_name }}</div>
+                {% endif %}
+                <div class="message-text">{{ message.content }}</div>
+                <div class="message-time text-end">
+                    {{ message.created_at|date:"H:i" }}
+                    {% if message.sender == user %}
+                        {% if message.is_read %}
+                            <i class="bi bi-check2-all text-primary ms-1"></i>
+                        {% else %}
+                            <i class="bi bi-check2 text-muted ms-1"></i>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <i class="bi bi-chat-dots text-muted" style="font-size: 3rem;"></i>
+            <h5 class="text-muted mt-3">No hay mensajes aún</h5>
+            <p class="text-muted">¡Sé el primero en escribir en el chat de la clase!</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="chat-input">
+        <form id="messageForm" method="post">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" class="form-control" id="messageInput" name="message" placeholder="Escribe un mensaje..." required>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Auto-scroll al último mensaje
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Enfoque automático en el input
+    document.getElementById('messageInput').focus();
+    
+    // Enviar mensaje con Enter
+    document.getElementById('messageForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value.trim();
+        
+        if (message) {
+            // Enviar mensaje vía AJAX
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `message=${encodeURIComponent(message)}`
+            })
+            .then(response => {
+                if (response.ok) {
+                    messageInput.value = '';
+                    // Recargar mensajes
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    });
+    
+    // Auto-refresh cada 3 segundos para chat de aula
+    setInterval(() => {
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(html => {
+                // Solo actualizar si hay cambios
+                const currentMessages = document.getElementById('chatMessages').innerHTML;
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newMessages = doc.getElementById('chatMessages').innerHTML;
+                
+                if (currentMessages !== newMessages) {
+                    document.getElementById('chatMessages').innerHTML = newMessages;
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }, 3000);
+</script>
+{% endblock %} 

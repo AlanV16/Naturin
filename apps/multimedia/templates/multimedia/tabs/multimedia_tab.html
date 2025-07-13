@@ -1,0 +1,84 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/multimedia_tab.css' %}">
+
+<div class="multimedia-tab-wrapper">
+    <div class="multimedia-tab-content">
+        <!-- Filtros laterales -->
+        <aside class="multimedia-filters">
+            <form id="multimedia-filter-form" method="get">
+                <div class="filter-group">
+                    <label for="search">Buscar</label>
+                    <input type="text" name="search" id="search" placeholder="Título, descripción..." value="{{ request.GET.search }}">
+                </div>
+                <div class="filter-group">
+                    <label for="media_type">Tipo de contenido</label>
+                    <select name="media_type" id="media_type">
+                        <option value="">Todos los tipos</option>
+                        {% for value, label in media_types %}
+                        <option value="{{ value }}" {% if request.GET.media_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="category">Categoría</label>
+                    <select name="category" id="category">
+                        <option value="">Todas las categorías</option>
+                        {% for category in categories %}
+                        <option value="{{ category.name }}" {% if request.GET.category == category.name %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="educational_level">Nivel educativo</label>
+                    <select name="educational_level" id="educational_level">
+                        <option value="">Todos los niveles</option>
+                        {% for value, label in educational_levels %}
+                        <option value="{{ value }}" {% if request.GET.educational_level == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="location">Ubicación</label>
+                    <select name="location" id="location">
+                        <option value="">Todas las ubicaciones</option>
+                        {% for location in locations %}
+                        <option value="{{ location.name }}" {% if request.GET.location == location.name %}selected{% endif %}>{{ location.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-outline-success"><i class="bi bi-search"></i> Aplicar Filtros</button>
+                    <a href="#" id="clear-filters" class="btn btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i> Limpiar</a>
+                </div>
+            </form>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main class="multimedia-main">
+            <div class="multimedia-header">
+                <h3 class="multimedia-title"><i class="bi bi-collection-play"></i> Fichas Multimedia Educativas</h3>
+                <p class="multimedia-subtitle">Explora contenido educativo multimedia sobre la naturaleza</p>
+                <div class="multimedia-stats">
+                    <div class="stat-card stat-total">
+                        <i class="bi bi-collection-play"></i>
+                        <div>
+                            <span class="stat-value">{{ page_obj.paginator.count }}</span>
+                            <span class="stat-label">Fichas disponibles</span>
+                        </div>
+                    </div>
+                    {% if user.is_authenticated %}
+                    <div class="multimedia-actions">
+                        <a href="{% url 'multimedia:create' %}" class="btn btn-outline-success"><i class="bi bi-plus-circle"></i> Crear Ficha</a>
+                        <a href="{% url 'multimedia:dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-person-circle"></i> Mi Dashboard</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Grid de fichas multimedia y paginación -->
+            <div id="multimedia-tab-grid-container">
+                {% include 'multimedia/tabs/multimedia_tab_grid.html' %}
+            </div>
+        </main>
+    </div>
+</div>

@@ -24,10 +24,10 @@
                 Explora la increíble biodiversidad del Parque Nacional de Tingo María a través de juegos, actividades y aventuras interactivas.
             </p>
             <div class="d-flex flex-wrap gap-3"> 
-                <a href="{% url 'species_list' %}" class="btn btn-success btn-lg px-4 py-2 home-btn-learn">
+                <a href="{% url 'main_page:species_list' %}" class="btn btn-success btn-lg px-4 py-2 home-btn-learn">
                     <i class="bi bi-journal-bookmark"></i> Comenzar a Aprender
                 </a>
-                <a href="{% url 'games' %}" class="btn btn-outline-dark btn-lg px-4 py-2 home-btn-play">
+                <a href="{% url 'main_page:games' %}" class="btn btn-outline-dark btn-lg px-4 py-2 home-btn-play">
                     <i class="bi bi-controller"></i> Jugar Ahora
                 </a>
             </div>
@@ -38,7 +38,7 @@
                     {% for place in places %}
                     <div class="carousel-item {% if forloop.first %}active{% endif %}">
                         <div class="bg-light rounded-4 shadow-sm p-0 card-explore mx-auto home-carousel-card">
-                            <a href="{% url 'explore_detail' place.slug %}" class="d-block text-decoration-none">
+                            <a href="{% url 'main_page:explore_detail' place.slug %}" class="d-block text-decoration-none">
                                 <img src="{% static place.image.0 %}" class="d-block w-100 img-zoom mb-2 home-carousel-img" alt="{{place.name}}">
                                 <span class="position-absolute bottom-0 start-0 m-3 badge rounded-pill px-3 py-2 shadow home-carousel-badge">
                                     {{place.name}}

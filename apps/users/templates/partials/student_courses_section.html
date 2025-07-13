@@ -1,0 +1,25 @@
+{% if course_details %}
+    {% for course in course_details %}
+    <div class="course-card">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h6 class="fw-bold mb-1">{{ course.name }}</h6>
+                <small class="text-muted">{{ course.teacher }}</small>
+            </div>
+            <a href="{% url 'users:course_detail' course_id=course.id %}" class="btn btn-outline-primary btn-sm" onclick="showCourseDetails('{{ course.id }}')">Ver</a>
+        </div>
+        <div class="mt-2">
+            <div class="progress-bar-custom">
+                <div class="progress-fill" style="width: {{ course.progress }}%"></div>
+            </div>
+            <small class="text-muted">Progreso: {{ course.progress|floatformat:1 }}%</small>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="text-center py-4">
+    <i class="bi bi-journal-x text-muted" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-2">No tienes cursos inscritos aún</p>
+    <button class="btn btn-student-primary" onclick="showJoinClassForm()">Unirse a Primer Curso</button>
+</div>
+{% endif %} 

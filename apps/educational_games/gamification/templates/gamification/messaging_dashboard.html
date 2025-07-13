@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Messaging Dashboard - NatureIn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .messaging-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .messaging-sidebar {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .conversation-item {
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .conversation-item:hover {
+        background-color: #e9ecef;
+    }
+    
+    .conversation-item.active {
+        background-color: #007bff;
+        color: white;
+    }
+    
+    .unread-badge {
+        background-color: #dc3545;
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        font-size: 12px;
+        margin-left: 10px;
+    }
+    
+    .classroom-chat-item {
+        background: #28a745;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        text-decoration: none;
+        display: block;
+    }
+    
+    .classroom-chat-item:hover {
+        background: #218838;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .messaging-actions {
+        margin-bottom: 20px;
+    }
+    
+    .btn-messaging {
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="messaging-container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="messaging-sidebar">
+                <h4><i class="fas fa-comments"></i> Conversations</h4>
+                
+                <div class="messaging-actions">
+                    <a href="{% url 'new_private_message' %}" class="btn btn-primary btn-messaging">
+                        <i class="fas fa-plus"></i> New Message
+                    </a>
+                    <a href="{% url 'search_users' %}" class="btn btn-outline-primary btn-messaging">
+                        <i class="fas fa-search"></i> Search Users
+                    </a>
+                </div>
+                
+                {% if conversations %}
+                    {% for conversation in conversations %}
+                        <div class="conversation-item" onclick="window.location.href='{% url 'private_conversation_detail' conversation.id %}'">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ conversation.get_other_user.user.username }}</strong>
+                                    {% if conversation.last_message %}
+                                        <br><small>{{ conversation.last_message.content|truncatechars:30 }}</small>
+                                    {% endif %}
+                                </div>
+                                {% if conversation.get_unread_count > 0 %}
+                                    <span class="unread-badge">{{ conversation.get_unread_count }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No conversations yet. Start a new conversation!</p>
+                {% endif %}
+                
+                <hr>
+                
+                <h5><i class="fas fa-users"></i> Classroom Chats</h5>
+                {% if classrooms %}
+                    {% for classroom in classrooms %}
+                        <a href="{% url 'classroom_chat' classroom.IDaula %}" class="classroom-chat-item">
+                            <i class="fas fa-chalkboard-teacher"></i> {{ classroom.NombreAula }}
+                        </a>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No classrooms available for chat.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-inbox"></i> Messaging Dashboard</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <i class="fas fa-comment fa-3x text-primary mb-3"></i>
+                                    <h5>Private Messages</h5>
+                                    <p>Send and receive private messages with other users</p>
+                                    <a href="{% url 'private_conversation_list' %}" class="btn btn-primary">View Conversations</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <i class="fas fa-users fa-3x text-success mb-3"></i>
+                                    <h5>Classroom Chats</h5>
+                                    <p>Participate in group discussions with your classmates</p>
+                                    {% if classrooms %}
+                                        <a href="{% url 'classroom_chat' classrooms.first.IDaula %}" class="btn btn-success">Join Chat</a>
+                                    {% else %}
+                                        <span class="btn btn-secondary disabled">No Classrooms</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h6><i class="fas fa-bell"></i> Recent Activity</h6>
+                            {% if unread_count > 0 %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> You have {{ unread_count }} unread message{{ unread_count|pluralize }}.
+                                    <a href="{% url 'message_notifications' %}" class="alert-link">View notifications</a>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No new messages.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh unread count
+    function updateUnreadCount() {
+        fetch('{% url "get_unread_count_api" %}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.count > 0) {
+                    // Update notification badge if exists
+                    const badge = document.querySelector('.unread-badge');
+                    if (badge) {
+                        badge.textContent = data.count;
+                    }
+                }
+            });
+    }
+    
+    // Update every 30 seconds
+    setInterval(updateUnreadCount, 30000);
+</script>
+{% endblock %} 

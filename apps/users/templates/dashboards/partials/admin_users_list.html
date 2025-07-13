@@ -1,0 +1,27 @@
+{% if users %}
+    {% for user in users %}
+    <div class="bg-[#E1F0DA] p-4 rounded-lg flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <span>👤</span>
+            <span>{{ user.get_full_name|default:user.username }}</span>
+            <span class="badge bg-{{ user.user_type_color }} text-white small">
+                {% if user.user_type == 2 %}
+                    <i class="bi bi-vector-pen"></i> Docente
+                {% elif user.user_type == 3 %}
+                    <i class="bi bi-house-door"></i> Padre/Madre
+                {% elif user.user_type == 4 %}
+                    <i class="bi bi-sliders"></i> Admin
+                {% else %}
+                    <i class="bi bi-journal-bookmark"></i> Estudiante
+                {% endif %}
+            </span>
+        </div>
+        <button class="text-sm bg-[#4C956C] text-white px-4 py-1 rounded" onclick="showUserDetails('{{ user.id }}')">Ver</button>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="text-center py-4">
+    <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-2">No hay usuarios registrados</p>
+</div>
+{% endif %} 

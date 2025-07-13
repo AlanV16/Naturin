@@ -1,0 +1,898 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_student.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .class-sidebar {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            min-height: 100vh;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .class-sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .class-sidebar .sidebar-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .class-content {
+            background: #fafbfc;
+            min-height: 100vh;
+        }
+        
+        .class-header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1.5rem 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .class-nav {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .class-nav .nav-link {
+            color: #6b7280;
+            border: none;
+            border-radius: 0;
+            padding: 1rem 1.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .class-nav .nav-link.active {
+            color: #28a745;
+            border-bottom: 3px solid #28a745;
+            background: transparent;
+        }
+        
+        .class-nav .nav-link:hover {
+            color: #28a745;
+            background: #f8fafc;
+        }
+        
+        .class-tab-content {
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            margin: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .sidebar-brand {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 2rem;
+        }
+        
+        .sidebar-brand img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            margin-bottom: 1rem;
+        }
+        
+        .sidebar-brand h5 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .sidebar-brand h6 {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+        
+        .sidebar-brand small {
+            opacity: 0.8;
+            font-size: 0.85rem;
+        }
+        
+        .sidebar-nav {
+            padding: 0 1rem;
+        }
+        
+        .sidebar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9);
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .sidebar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .sidebar-nav .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .sidebar-nav .nav-link i {
+            width: 20px;
+            margin-right: 0.75rem;
+        }
+        
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .sidebar-footer .btn {
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-footer .btn:hover {
+            background: white;
+            color: #28a745;
+            transform: translateY(-2px);
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stats-card h6 {
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 1rem 0;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .activity-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .activity-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .activity-card:hover {
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .activity-card h6 {
+            color: #111827;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .activity-card p {
+            color: #6b7280;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        
+        .chat-container {
+            height: 500px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background: #fafbfc;
+        }
+        
+        .chat-input {
+            border-top: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            background: white;
+        }
+        
+        .message {
+            margin-bottom: 1rem;
+            padding: 1rem 1.25rem;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        
+        .message.sent {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 6px;
+        }
+        
+        .message.received {
+            background: white;
+            border: 1px solid #e5e7eb;
+            color: #374151;
+            border-bottom-left-radius: 6px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6b7280;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -5px rgba(40, 167, 69, 0.4);
+        }
+        
+        .btn-outline-success {
+            border: 2px solid #28a745;
+            color: #28a745;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-outline-success:hover {
+            background: #28a745;
+            transform: translateY(-1px);
+        }
+        
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+        
+        .badge.bg-success {
+            background: linear-gradient(135deg, #28a745, #20c997) !important;
+        }
+        
+        .badge.bg-primary {
+            background: linear-gradient(135deg, #28a745, #20c997) !important;
+        }
+        
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            padding: 0.75rem 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+        }
+        
+        .input-group .btn {
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .progress-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#28a745 0deg 270deg, #e9ecef 270deg 360deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        
+        .progress-circle::before {
+            content: attr(data-progress) '%';
+            background: white;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .class-tab-content {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            .sidebar-brand {
+                padding: 1.5rem 1rem;
+            }
+            
+            .activity-card {
+                padding: 1rem;
+            }
+            
+            .stats-card {
+                padding: 1rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2">
+            <div class="class-sidebar d-flex flex-column">
+                <div class="sidebar-content">
+                    <div class="sidebar-brand">
+                        <img src="{% static 'images/mascota/tuki.png' %}" alt="Tuki">
+                        <h6>Clase Virtual</h6>
+                        <h5>{{ classroom.name }}</h5>
+                        <small>{{ classroom.teacher.get_full_name }}</small>
+                    </div>
+                    
+                    <nav class="sidebar-nav nav flex-column">
+                        <a class="nav-link active" href="#overview" data-bs-toggle="tab">
+                            <i class="bi bi-house-door"></i>
+                            <span>Vista General</span>
+                        </a>
+                        <a class="nav-link" href="#activities" data-bs-toggle="tab">
+                            <i class="bi bi-journal-check"></i>
+                            <span>Actividades</span>
+                        </a>
+                        <a class="nav-link" href="#progress" data-bs-toggle="tab">
+                            <i class="bi bi-graph-up"></i>
+                            <span>Mi Progreso</span>
+                        </a>
+                        <a class="nav-link" href="#chat" data-bs-toggle="tab">
+                            <i class="bi bi-chat-dots"></i>
+                            <span>Chat</span>
+                        </a>
+                        <a class="nav-link" href="#resources" data-bs-toggle="tab">
+                            <i class="bi bi-file-earmark"></i>
+                            <span>Recursos</span>
+                        </a>
+                        <a class="nav-link" href="#grades" data-bs-toggle="tab">
+                            <i class="bi bi-bar-chart"></i>
+                            <span>Mis Calificaciones</span>
+                        </a>
+                    </nav>
+                </div>
+                
+                <div class="sidebar-footer">
+                    <a href="{% url 'users:dashboard_student' user_id=user.id %}" class="btn btn-outline-light w-100">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Volver al Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10">
+            <div class="class-content">
+                <!-- Header -->
+                <div class="class-header">
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h4 class="page-title">{{ classroom.name }}</h4>
+                                <div class="page-subtitle">Código: {{ classroom.code }}</div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <span class="badge bg-success">Activa</span>
+                                <small class="text-muted ms-3">Docente: {{ classroom.teacher.get_full_name }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <div class="class-nav">
+                    <div class="container-fluid">
+                        <ul class="nav nav-tabs border-0" id="classTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                                    <i class="bi bi-house-door me-2"></i>Vista General
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="activities-tab" data-bs-toggle="tab" data-bs-target="#activities" type="button" role="tab">
+                                    <i class="bi bi-journal-check me-2"></i>Actividades
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="progress-tab" data-bs-toggle="tab" data-bs-target="#progress" type="button" role="tab">
+                                    <i class="bi bi-graph-up me-2"></i>Mi Progreso
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat" type="button" role="tab">
+                                    <i class="bi bi-chat-dots me-2"></i>Chat
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="resources-tab" data-bs-toggle="tab" data-bs-target="#resources" type="button" role="tab">
+                                    <i class="bi bi-file-earmark me-2"></i>Recursos
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="grades-tab" data-bs-toggle="tab" data-bs-target="#grades" type="button" role="tab">
+                                    <i class="bi bi-bar-chart me-2"></i>Mis Calificaciones
+                                </button>
+                            </li>
+                        </ul>
+    </div>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="classTabContent">
+                    <!-- Vista General -->
+                    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                        <div class="class-tab-content">
+                            <h5 class="section-title">Vista General de la Clase</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <div class="stats-card">
+                                        <h6>Información de la Clase</h6>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <div class="mb-3">
+                                                    <strong class="text-muted">Nombre:</strong>
+                                                    <div class="mt-1">{{ classroom.name }}</div>
+                </div>
+                                                <div class="mb-3">
+                                                    <strong class="text-muted">Código:</strong>
+                                                    <div class="mt-1">{{ classroom.code }}</div>
+            </div>
+        </div>
+                                            <div class="col-6">
+                                                <div class="mb-3">
+                                                    <strong class="text-muted">Docente:</strong>
+                                                    <div class="mt-1">{{ classroom.teacher.get_full_name }}</div>
+                </div>
+                            <div class="mb-3">
+                                                    <strong class="text-muted">Estado:</strong>
+                                                    <div class="mt-1"><span class="badge bg-success">Activa</span></div>
+                                                </div>
+                                    </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <div class="stats-card">
+                                        <h6>Mi Progreso</h6>
+                                        <div class="text-center">
+                                            <div class="progress-circle" data-progress="75"></div>
+                                            <p class="text-muted">75% Completado</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actividades -->
+                    <div class="tab-pane fade" id="activities" role="tabpanel">
+                        <div class="class-tab-content">
+                            <h5 class="section-title">Actividades Disponibles</h5>
+                            
+                            {% if activities %}
+                                {% for activity in activities %}
+                                <div class="activity-card">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <h6>{{ activity.title }}</h6>
+                                            <p>{{ activity.description }}</p>
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                {{ activity.due_date|date:"d M Y" }}
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-primary">{{ activity.type }}</span>
+                                            <div class="mt-2">
+                                                <button class="btn btn-success btn-sm">Participar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="empty-state">
+                                    <i class="bi bi-journal-x"></i>
+                                    <p>No hay actividades disponibles aún</p>
+                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Mi Progreso -->
+                    <div class="tab-pane fade" id="progress" role="tabpanel">
+                        <div class="class-tab-content">
+                            <h5 class="section-title">Mi Progreso en la Clase</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <div class="stats-card">
+                                        <h6>Progreso General</h6>
+                                        <div class="text-center">
+                                            <div class="progress-circle" data-progress="75"></div>
+                                            <p class="text-muted">75% Completado</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <div class="stats-card">
+                                        <h6>Estadísticas</h6>
+                                        <div class="row text-center">
+                                            <div class="col-4">
+                                                <div class="stat-item">
+                                                    <div class="stat-number text-success">8</div>
+                                                    <div class="stat-label">Actividades</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="stat-item">
+                                                    <div class="stat-number text-primary">6</div>
+                                                    <div class="stat-label">Completadas</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="stat-item">
+                                                    <div class="stat-number text-warning">2</div>
+                                                    <div class="stat-label">Pendientes</div>
+                            </div>
+                                    </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat -->
+                    <div class="tab-pane fade" id="chat" role="tabpanel">
+                        <div class="class-tab-content">
+                            <h5 class="section-title">Chat de la Clase</h5>
+                            
+                            <div class="chat-container">
+                                <div class="chat-messages" id="chatMessages">
+                                    <div class="empty-state">
+                                        <i class="bi bi-chat-dots"></i>
+                                        <p>No hay mensajes aún. ¡Inicia la conversación!</p>
+                                    </div>
+                                </div>
+                                <div class="chat-input">
+                                    <form id="chatForm" method="post">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                            <input type="text" class="form-control" id="messageInput" name="message" placeholder="Escribe un mensaje..." required>
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="bi bi-send"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+                    <!-- Recursos -->
+                    <div class="tab-pane fade" id="resources" role="tabpanel">
+                        <div class="class-tab-content">
+                            <h5 class="section-title">Recursos de la Clase</h5>
+                            
+                            <div class="empty-state">
+                                <i class="bi bi-folder"></i>
+                                <p>No hay recursos disponibles aún</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mis Calificaciones -->
+                    <div class="tab-pane fade" id="grades" role="tabpanel">
+                        <div class="class-tab-content">
+                            <h5 class="section-title">Mis Calificaciones</h5>
+                            
+                            <div class="empty-state">
+                                <i class="bi bi-bar-chart"></i>
+                                <p>No hay calificaciones registradas aún</p>
+                            </div>
+                        </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script src="{% static 'js/header_logged.js' %}"></script>
+    <script>
+        // Chat functionality
+        document.getElementById('chatForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (message) {
+                // Agregar mensaje al chat inmediatamente
+                addMessageToChat(message, 'sent');
+                messageInput.value = '';
+                
+                // Enviar mensaje vía AJAX
+                fetch('{% url "users:class_chat" class_id=classroom.id %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `message=${encodeURIComponent(message)}`
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al enviar mensaje');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Mensaje enviado exitosamente');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Opcional: mostrar mensaje de error al usuario
+                });
+            }
+        });
+        
+        function addMessageToChat(message, type) {
+            const chatMessages = document.getElementById('chatMessages');
+            const emptyState = chatMessages.querySelector('.empty-state');
+            
+            // Remover empty state si existe
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${type}`;
+            messageElement.textContent = message;
+            
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function loadChatMessages() {
+            // Implementar carga de mensajes desde el servidor
+            fetch('{% url "users:class_chat" class_id=classroom.id %}')
+                .then(response => response.json())
+                .then(data => {
+                    const chatMessages = document.getElementById('chatMessages');
+                    chatMessages.innerHTML = '';
+                    
+                    if (data.messages && data.messages.length > 0) {
+                        data.messages.forEach(msg => {
+                            addMessageToChat(msg.content, msg.sender_id === {{ user.id }} ? 'sent' : 'received');
+                        });
+                    } else {
+                        chatMessages.innerHTML = `
+                            <div class="empty-state">
+                                <i class="bi bi-chat-dots"></i>
+                                <p>No hay mensajes aún. ¡Inicia la conversación!</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar mensajes:', error);
+                });
+        }
+        
+        // Cargar mensajes al abrir la pestaña de chat
+        document.getElementById('chat-tab').addEventListener('click', function() {
+            setTimeout(loadChatMessages, 100);
+        });
+        
+        // Sincronizar navegación entre sidebar y tabs principales
+        document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = this.getAttribute('href');
+                
+                // Activar tab correspondiente
+                const tabButton = document.querySelector(`[data-bs-target="${target}"]`);
+                if (tabButton) {
+                    tabButton.click();
+                }
+                
+                // Actualizar estado activo en sidebar
+                document.querySelectorAll('.sidebar-nav .nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Mantener sincronización inversa
+        document.querySelectorAll('.class-nav .nav-link').forEach(tabButton => {
+            tabButton.addEventListener('click', function() {
+                const target = this.getAttribute('data-bs-target');
+                const sidebarLink = document.querySelector(`.sidebar-nav .nav-link[href="${target}"]`);
+                
+                if (sidebarLink) {
+                    document.querySelectorAll('.sidebar-nav .nav-link').forEach(l => l.classList.remove('active'));
+                    sidebarLink.classList.add('active');
+                }
+            });
+        });
+        
+        // Mejorar interacción con cards
+        document.querySelectorAll('.activity-card, .stats-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+        
+        // Auto-scroll para mensajes de chat
+        function scrollChatToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Indicador de typing (para futuras implementaciones)
+        let typingTimer;
+        document.getElementById('messageInput').addEventListener('input', function() {
+            clearTimeout(typingTimer);
+            // Aquí podrías enviar una indicación de que el usuario está escribiendo
+            
+            typingTimer = setTimeout(() => {
+                // Parar indicador de typing
+            }, 1000);
+        });
+        
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar estadísticas adicionales si es necesario
+            console.log('Template mejorado cargado correctamente');
+            
+            // Auto-scroll al último mensaje si hay mensajes
+            setTimeout(scrollChatToBottom, 500);
+        });
+        
+        // Función para mostrar alertas
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+            alertDiv.style.zIndex = '9999';
+            alertDiv.style.marginTop = '60px';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            // Autoclose after 5 seconds
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+    </script>
+{% endblock %}

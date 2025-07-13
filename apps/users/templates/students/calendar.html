@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load calendar_extras %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/student/courses.css' %}">
+<link rel="stylesheet" href="{% static 'css/student/calendar.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+    <title>Mi Calendario - Naturin Amy</title>
+    <meta name="description" content="Gestiona tus tareas, clases y eventos académicos en tu calendario personal.">
+
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Back to Dashboard -->
+            <a href="{% url 'users:dashboard_student' user_id=user.id %}" class="back-to-dashboard">
+                <i class="bi bi-arrow-left me-2"></i>
+                Volver
+            </a>
+            
+            <!-- Header -->
+            <div class="calendar-header">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h2 class="fw-bold mb-2">
+                            <i class="bi bi-calendar3 me-2"></i>Mi Calendario
+                        </h2>
+                        <p class="mb-0">Gestiona tus tareas, clases y eventos académicos</p>
+                    </div>
+                </div>
+                
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <span class="stat-number">{{ total_assignments }}</span>
+                        <span class="stat-label">Tareas del Mes</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">{{ pending_assignments }}</span>
+                        <span class="stat-label">Pendientes</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">{{ total_classes }}</span>
+                        <span class="stat-label">Clases</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">{{ total_exams }}</span>
+                        <span class="stat-label">Exámenes</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Calendar -->
+                    <div class="calendar-container">
+                        <!-- Navigation -->
+                        <div class="calendar-nav">
+                            <button class="nav-btn" onclick="navigateMonth({{ prev_year }}, {{ prev_month }})">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <div class="month-year">
+                                {{ month_name }} {{ year }}
+                            </div>
+                            <button class="nav-btn" onclick="navigateMonth({{ next_year }}, {{ next_month }})">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Calendar Grid -->
+                        <div class="calendar-grid">
+                            <!-- Days of week headers -->
+                            <div class="calendar-header-day">Dom</div>
+                            <div class="calendar-header-day">Lun</div>
+                            <div class="calendar-header-day">Mar</div>
+                            <div class="calendar-header-day">Mié</div>
+                            <div class="calendar-header-day">Jue</div>
+                            <div class="calendar-header-day">Vie</div>
+                            <div class="calendar-header-day">Sáb</div>
+                            
+                            <!-- Calendar days -->
+                            {% for week in calendar_data %}
+                                {% for day in week %}
+                                    {% if day == 0 %}
+                                        <div class="calendar-day other-month"></div>
+                                    {% else %}
+                                        {% with day_date=year|stringformat:"d"|add:"-"|add:month|stringformat:"02d"|add:"-"|add:day|stringformat:"02d" %}
+                                        <div class="calendar-day {% if day_date == today|date:'Y-m-d' %}today{% endif %}" 
+                                             data-date="{{ day_date }}" 
+                                             onclick="showDayEvents('{{ day_date }}')">
+                                            <div class="day-number">{{ day }}</div>
+                                            <div class="day-events">
+                                                {% if day_date in events_by_date %}
+                                                    {% for event in events_by_date|get_item:day_date %}
+                                                        {% if forloop.counter <= 3 %}
+                                                        <div class="event-item event-{{ event.type }} {% if event.status == 'submitted' %}submitted{% endif %}"
+                                                             data-bs-toggle="tooltip" 
+                                                             title="{{ event.title }} - {{ event.course }}">
+                                                            <i class="bi bi-{{ event.icon }} me-1"></i>
+                                                            {{ event.title|truncatechars:15 }}
+                                                        </div>
+                                                        {% elif forloop.counter == 4 %}
+                                                        <div class="more-events">
+                                                            +{{ events_by_date|get_item:day_date|length|add:"-3" }} más
+                                                        </div>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <!-- Today's Events -->
+                    <div class="sidebar-events">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-calendar-event me-2"></i>
+                            Eventos de Hoy
+                        </h5>
+                        
+                        {% with today_events=events_by_date|get_item:today|date:"Y-m-d" %}
+                        {% if today_events %}
+                            {% for event in today_events %}
+                            <div class="event-card {{ event.type }}">
+                                <div class="event-title">
+                                    <i class="bi bi-{{ event.icon }}"></i>
+                                    {{ event.title }}
+                                </div>
+                                <div class="event-details">
+                                    <strong>{{ event.course }}</strong><br>
+                                    {{ event.description|truncatechars:80 }}
+                                </div>
+                                <div class="event-time">
+                                    <i class="bi bi-clock me-1"></i>
+                                    {{ event.time|time:"H:i" }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-calendar-x" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <p>No tienes eventos programados para hoy</p>
+                            </div>
+                        {% endif %}
+                        {% endwith %}
+                        
+                        <!-- Upcoming Events -->
+                        <h5 class="fw-bold mb-3 mt-4">
+                            <i class="bi bi-clock me-2"></i>
+                            Próximos Eventos
+                        </h5>
+                        
+                        {% for event in events %}
+                            {% if event.date > today and forloop.counter <= 5 %}
+                            <div class="event-card {{ event.type }}">
+                                <div class="event-title">
+                                    <i class="bi bi-{{ event.icon }}"></i>
+                                    {{ event.title }}
+                                </div>
+                                <div class="event-details">
+                                    <strong>{{ event.course }}</strong><br>
+                                    {{ event.description|truncatechars:80 }}
+                                </div>
+                                <div class="event-time">
+                                    <i class="bi bi-calendar-date me-1"></i>
+                                    {{ event.date|date:"d M" }} - {{ event.time|time:"H:i" }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% empty %}
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-calendar-check" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <p>No tienes eventos próximos</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Detail Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="eventModalBody">
+                <!-- Event details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Navigate between months
+    function navigateMonth(year, month) {
+        window.location.href = `?year=${year}&month=${month}`;
+    }
+
+    // Show day events in modal
+    function showDayEvents(date) {
+        const events = {
+            {% for date_str, day_events in events_by_date.items %}
+                '{{ date_str }}': {{ day_events|safe }},
+            {% endfor %}
+        };
+        
+        const dayEvents = events[date] || [];
+        
+        if (dayEvents.length > 0) {
+            let modalTitle = `Eventos del ${new Date(date).toLocaleDateString('es-ES', { 
+                day: 'numeric', 
+                month: 'long', 
+                year: 'numeric' 
+            })}`;
+            
+            let modalBody = '';
+            dayEvents.forEach(event => {
+                modalBody += `
+                    <div class="event-card ${event.type} mb-3">
+                        <div class="event-title">
+                            <i class="bi bi-${event.icon}"></i>
+                            ${event.title}
+                        </div>
+                        <div class="event-details">
+                            <strong>${event.course}</strong><br>
+                            ${event.description}
+                        </div>
+                        <div class="event-time">
+                            <i class="bi bi-clock me-1"></i>
+                            ${event.time}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('eventModalTitle').textContent = modalTitle;
+            document.getElementById('eventModalBody').innerHTML = modalBody;
+            
+            new bootstrap.Modal(document.getElementById('eventModal')).show();
+        }
+    }
+
+    // Add click events to calendar days
+    document.querySelectorAll('.calendar-day').forEach(day => {
+        day.addEventListener('click', function() {
+            const date = this.getAttribute('data-date');
+            if (date) {
+                showDayEvents(date);
+            }
+        });
+    });
+</script>
+{% endblock %}

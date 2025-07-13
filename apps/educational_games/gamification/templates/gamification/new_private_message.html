@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}New Message - NatureIn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .message-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .message-form {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .recipient-input {
+        border-radius: 20px;
+        padding: 12px 15px;
+    }
+    
+    .subject-input {
+        border-radius: 10px;
+        padding: 12px 15px;
+    }
+    
+    .content-textarea {
+        border-radius: 10px;
+        padding: 15px;
+        min-height: 150px;
+        resize: vertical;
+    }
+    
+    .back-btn {
+        margin-bottom: 20px;
+    }
+    
+    .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        border: 1px solid #f5c6cb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="message-container">
+    <a href="{% url 'messaging_dashboard' %}" class="btn btn-outline-secondary back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Messages
+    </a>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-edit"></i> New Private Message</h5>
+        </div>
+        <div class="card-body">
+            {% if error %}
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                </div>
+            {% endif %}
+            
+            <form method="post" class="message-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="recipient">
+                        <i class="fas fa-user"></i> Recipient Username
+                    </label>
+                    <input type="text" id="recipient" name="recipient" 
+                           class="form-control recipient-input" 
+                           placeholder="Enter username of the person you want to message"
+                           value="{{ request.GET.recipient|default:'' }}" required>
+                    <small class="form-text text-muted">
+                        Enter the exact username of the person you want to send a message to.
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="subject">
+                        <i class="fas fa-tag"></i> Subject
+                    </label>
+                    <input type="text" id="subject" name="subject" 
+                           class="form-control subject-input" 
+                           placeholder="Enter a subject for your message" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="content">
+                        <i class="fas fa-comment"></i> Message Content
+                    </label>
+                    <textarea id="content" name="content" 
+                              class="form-control content-textarea" 
+                              placeholder="Type your message here..." required></textarea>
+                    <small class="form-text text-muted">
+                        Write your message. Be respectful and appropriate in your communication.
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'messaging_dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Send Message
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h6><i class="fas fa-info-circle"></i> Tips for Messaging</h6>
+        </div>
+        <div class="card-body">
+            <ul class="mb-0">
+                <li>Make sure you have the correct username of the person you want to message</li>
+                <li>Be clear and respectful in your communication</li>
+                <li>Use appropriate language for an educational environment</li>
+                <li>You can search for users in the messaging dashboard</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-focus on recipient input
+    document.querySelector('#recipient').focus();
+    
+    // Character counter for content
+    const contentTextarea = document.querySelector('#content');
+    const subjectInput = document.querySelector('#subject');
+    
+    contentTextarea.addEventListener('input', function() {
+        const remaining = 1000 - this.value.length;
+        if (remaining < 0) {
+            this.value = this.value.substring(0, 1000);
+        }
+    });
+    
+    // Auto-generate subject if empty
+    contentTextarea.addEventListener('input', function() {
+        if (!subjectInput.value && this.value.length > 10) {
+            subjectInput.value = this.value.substring(0, 50) + '...';
+        }
+    });
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const recipient = document.querySelector('#recipient').value.trim();
+        const subject = document.querySelector('#subject').value.trim();
+        const content = document.querySelector('#content').value.trim();
+        
+        if (!recipient || !subject || !content) {
+            e.preventDefault();
+            alert('Please fill in all fields');
+            return;
+        }
+        
+        if (content.length < 5) {
+            e.preventDefault();
+            alert('Message content must be at least 5 characters long');
+            return;
+        }
+    });
+</script>
+{% endblock %} 

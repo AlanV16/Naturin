@@ -1,11 +1,12 @@
 from django.urls import path
 from . import views
+from apps.main_page.views import mapa_tab
 
 app_name = 'multimedia'
 
 urlpatterns = [
     # Vistas principales
-    path('', views.MultimediaCardListView.as_view(), name='list'),
+    # La lista principal ahora se gestiona por multimedia_tab.html y AJAX
     path('search/', views.multimedia_search, name='search'),
     path('dashboard/', views.multimedia_dashboard, name='dashboard'),
     
@@ -21,4 +22,7 @@ urlpatterns = [
     
     # Vistas por categoría
     path('category/<int:category_id>/', views.multimedia_by_category, name='by_category'),
+    
+    path('tab/', views.multimedia_tab, name='multimedia_tab'),
+    path('mapa-especies/tab/', mapa_tab, name='mapa_tab'),
 ] 

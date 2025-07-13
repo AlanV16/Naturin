@@ -1,0 +1,36 @@
+{% if course_stats %}
+    {% for stat in course_stats %}
+    <div class="course-card">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h6 class="fw-bold mb-1">{{ stat.course.name }}</h6>
+                <small class="text-muted">{{ stat.course.code }}</small>
+                {% if stat.pending_submissions > 0 %}
+                <span class="pending-badge ms-2">{{ stat.pending_submissions }} pendientes</span>
+                {% endif %}
+            </div>
+            <button class="btn btn-outline-primary btn-sm" onclick="showCourseDetails('{{ stat.course.id }}')">Ver</button>
+        </div>
+        <div class="course-stats">
+            <div class="course-stat-item">
+                <div class="fw-bold">{{ stat.students_count }}</div>
+                <small>Estudiantes</small>
+            </div>
+            <div class="course-stat-item">
+                <div class="fw-bold">{{ stat.avg_grade }}</div>
+                <small>Promedio</small>
+            </div>
+            <div class="course-stat-item">
+                <div class="fw-bold">{{ stat.assignments_count }}</div>
+                <small>Tareas</small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="text-center py-4">
+    <i class="bi bi-journal-x text-muted" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-2">No tienes cursos asignados aún</p>
+    <button class="btn btn-teacher-primary" onclick="showCreateCourseModal()">Crear Primer Curso</button>
+</div>
+{% endif %} 

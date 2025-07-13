@@ -1,0 +1,546 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/student/courses.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+<style>
+    .assignments-header {
+        background: var(--teacher-primary-gradient);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .assignment-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        border-left: 4px solid #e9ecef;
+        box-shadow: var(--teacher-card-shadow);
+        position: relative;
+    }
+    
+    .assignment-card.active {
+        border-left-color: #28a745;
+        background: linear-gradient(135deg, #f1f8e9 0%, #f8fff9 100%);
+    }
+    
+    .assignment-card.draft {
+        border-left-color: #6c757d;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    }
+    
+    .assignment-card.closed {
+        border-left-color: #dc3545;
+        background: linear-gradient(135deg, #f8d7da 0%, #fff5f5 100%);
+    }
+    
+    .assignment-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--teacher-card-shadow-hover);
+    }
+    
+    .assignment-icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+    
+    .assignment-card.active .assignment-icon {
+        color: #28a745;
+    }
+    
+    .assignment-card.draft .assignment-icon {
+        color: #6c757d;
+    }
+    
+    .assignment-card.closed .assignment-icon {
+        color: #dc3545;
+    }
+    
+    .assignment-status {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .status-active {
+        background: #28a745;
+        color: white;
+    }
+    
+    .status-draft {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .status-closed {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .assignment-due {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        padding: 5px 10px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-block;
+        margin-top: 10px;
+    }
+    
+    .assignment-due.urgent {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        animation: pulse 2s infinite;
+    }
+    
+    .course-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        background: var(--teacher-primary-gradient);
+        color: white;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+    
+    .stats-overview {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: var(--teacher-card-shadow);
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .stat-active {
+        background: linear-gradient(135deg, #d4edda, #a8e6cf);
+        color: #155724;
+    }
+    
+    .stat-submissions {
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        color: #856404;
+    }
+    
+    .stat-graded {
+        background: linear-gradient(135deg, #cce5ff, #99d6ff);
+        color: #004085;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .section-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .assignment-actions {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-assignment {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+        flex: 1;
+        min-width: 100px;
+    }
+    
+    .btn-edit {
+        background: linear-gradient(135deg, #17a2b8, #007bff);
+        color: white;
+    }
+    
+    .btn-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+        color: white;
+    }
+    
+    .btn-grade {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+    
+    .btn-grade:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        color: white;
+    }
+    
+    .btn-view {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+        color: white;
+    }
+    
+    .btn-view:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        color: white;
+    }
+    
+    .submission-count {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        padding: 5px 10px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 10px;
+    }
+    
+    .submission-count.pending {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+</style>
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+                            <a href="{% url 'users:dashboard_teacher' user_id=user.id %}" class="back-to-dashboard">
+                <i class="bi bi-arrow-left me-2"></i>
+                Volver 
+            </a>
+            
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-2">
+                        <i class="bi bi-clipboard-check me-2"></i>Gestión de Tareas
+                    </h2>
+                    <p class="text-muted mb-0">Administra las tareas de tus cursos y revisa las entregas</p>
+                </div>
+                <button class="btn btn-teacher-primary" onclick="showCreateAssignmentModal()">
+                    <i class="bi bi-plus-lg me-2"></i>Crear Nueva Tarea
+                </button>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="stats-overview">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-item stat-active">
+                            <div class="stat-number">{{ active_assignments|default:0 }}</div>
+                            <div class="stat-label">Tareas Activas</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item stat-submissions">
+                            <div class="stat-number">{{ pending_submissions|default:0 }}</div>
+                            <div class="stat-label">Por Calificar</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item stat-graded">
+                            <div class="stat-number">{{ graded_submissions|default:0 }}</div>
+                            <div class="stat-label">Calificadas</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item stat-active">
+                            <div class="stat-number">{{ avg_grade|default:0|floatformat:1 }}</div>
+                            <div class="stat-label">Promedio General</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">Todas</button>
+                <button class="filter-tab" data-filter="active">Activas</button>
+                <button class="filter-tab" data-filter="draft">Borradores</button>
+                <button class="filter-tab" data-filter="closed">Cerradas</button>
+            </div>
+
+            {% if assignments %}
+                <!-- Active Assignments -->
+                <div class="assignment-section" data-section="active">
+                    <h3 class="section-title">
+                        <i class="bi bi-play-circle-fill" style="color: #28a745;"></i>
+                        Tareas Activas
+                    </h3>
+                    <div class="row">
+                        {% for assignment in assignments %}
+                        {% if assignment.status == 'active' %}
+                        <div class="col-md-6 col-lg-4 mb-3 assignment-item" data-status="active">
+                            <div class="assignment-card active">
+                                <span class="assignment-status status-active">Activa</span>
+                                <div class="text-center">
+                                    <i class="assignment-icon bi bi-clipboard-check"></i>
+                                    <div class="course-badge">{{ assignment.course.name }}</div>
+                                    <h5 class="fw-bold">{{ assignment.title }}</h5>
+                                    <p class="text-muted small">{{ assignment.description|truncatechars:100 }}</p>
+                                    
+                                    <div class="assignment-due">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        Vence: {{ assignment.due_date|date:"d M Y" }}
+                                    </div>
+                                    
+                                    <div class="submission-count pending">
+                                        <i class="bi bi-clock-fill me-1"></i>
+                                        {{ assignment.pending_submissions|default:0 }} por calificar
+                                    </div>
+                                </div>
+                                
+                                <div class="assignment-actions">
+                                    <button class="btn btn-assignment btn-edit" onclick="editAssignment('{{ assignment.id }}')">
+                                        <i class="bi bi-pencil me-1"></i>Editar
+                                    </button>
+                                    <button class="btn btn-assignment btn-grade" onclick="gradeAssignment('{{ assignment.id }}')">
+                                        <i class="bi bi-check-square me-1"></i>Calificar
+                                    </button>
+                                    <button class="btn btn-assignment btn-view" onclick="viewSubmissions('{{ assignment.id }}')">
+                                        <i class="bi bi-eye me-1"></i>Ver Entregas
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Draft Assignments -->
+                <div class="assignment-section" data-section="draft">
+                    <h3 class="section-title">
+                        <i class="bi bi-file-earmark-text" style="color: #6c757d;"></i>
+                        Borradores
+                    </h3>
+                    <div class="row">
+                        {% for assignment in assignments %}
+                        {% if assignment.status == 'draft' %}
+                        <div class="col-md-6 col-lg-4 mb-3 assignment-item" data-status="draft">
+                            <div class="assignment-card draft">
+                                <span class="assignment-status status-draft">Borrador</span>
+                                <div class="text-center">
+                                    <i class="assignment-icon bi bi-file-earmark"></i>
+                                    <div class="course-badge">{{ assignment.course.name }}</div>
+                                    <h5 class="fw-bold">{{ assignment.title }}</h5>
+                                    <p class="text-muted small">{{ assignment.description|truncatechars:100 }}</p>
+                                    
+                                    <div class="assignment-due">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        Programada: {{ assignment.due_date|date:"d M Y" }}
+                                    </div>
+                                </div>
+                                
+                                <div class="assignment-actions">
+                                    <button class="btn btn-assignment btn-edit" onclick="editAssignment('{{ assignment.id }}')">
+                                        <i class="bi bi-pencil me-1"></i>Editar
+                                    </button>
+                                    <button class="btn btn-assignment btn-grade" onclick="publishAssignment('{{ assignment.id }}')">
+                                        <i class="bi bi-upload me-1"></i>Publicar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <div class="empty-state-image">
+                        <img src="{% static 'images/miscellaneous/not_found.png' %}" alt="Sin tareas" class="img-fluid">
+                    </div>
+                    <h4>¡No tienes tareas creadas!</h4>
+                    <p>Crea tu primera tarea para comenzar a evaluar a tus estudiantes.</p>
+                    <button class="btn btn-teacher-primary" onclick="showCreateAssignmentModal()">
+                        <i class="bi bi-plus-lg me-2"></i>Crear Primera Tarea
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crear Tarea -->
+<div class="modal fade" id="createAssignmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-clipboard-plus me-2"></i>Crear Nueva Tarea
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createAssignmentForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="assignmentTitle" class="form-label">Título de la Tarea</label>
+                        <input type="text" class="form-control" id="assignmentTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignmentDescription" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="assignmentDescription" name="description" rows="4" required></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="assignmentCourse" class="form-label">Curso</label>
+                                <select class="form-select" id="assignmentCourse" name="course" required>
+                                    <option value="">Seleccionar curso</option>
+                                    <!-- Aquí se cargarían los cursos del profesor -->
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="assignmentDueDate" class="form-label">Fecha de Entrega</label>
+                                <input type="datetime-local" class="form-control" id="assignmentDueDate" name="due_date" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignmentPoints" class="form-label">Puntos</label>
+                        <input type="number" class="form-control" id="assignmentPoints" name="points" min="1" max="100" value="100">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="saveDraft()">Guardar como Borrador</button>
+                    <button type="button" class="btn btn-teacher-primary" onclick="submitCreateAssignment()">
+                        <i class="bi bi-check-circle me-2"></i>Crear y Publicar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Funciones para gestión de tareas
+    function showCreateAssignmentModal() {
+        const modal = new bootstrap.Modal(document.getElementById('createAssignmentModal'));
+        modal.show();
+    }
+
+    function submitCreateAssignment() {
+        const form = document.getElementById('createAssignmentForm');
+        const formData = new FormData(form);
+        
+        alert('Funcionalidad de crear tarea en desarrollo. La tarea se publicará próximamente.');
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('createAssignmentModal'));
+        modal.hide();
+    }
+
+    function saveDraft() {
+        const form = document.getElementById('createAssignmentForm');
+        const formData = new FormData(form);
+        
+        alert('Funcionalidad de guardar borrador en desarrollo. La tarea se guardará como borrador próximamente.');
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('createAssignmentModal'));
+        modal.hide();
+    }
+
+    function editAssignment(assignmentId) {
+        alert(`Editar tarea #${assignmentId} - Funcionalidad en desarrollo`);
+    }
+
+    function gradeAssignment(assignmentId) {
+        alert(`Calificar entregas de tarea #${assignmentId} - Funcionalidad en desarrollo`);
+    }
+
+    function viewSubmissions(assignmentId) {
+        alert(`Ver entregas de tarea #${assignmentId} - Funcionalidad en desarrollo`);
+    }
+
+    function publishAssignment(assignmentId) {
+        alert(`Publicar tarea #${assignmentId} - Funcionalidad en desarrollo`);
+    }
+
+    // Filter functionality
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            const filter = this.getAttribute('data-filter');
+            const assignments = document.querySelectorAll('.assignment-item');
+            
+            assignments.forEach(assignment => {
+                const status = assignment.getAttribute('data-status');
+                
+                if (filter === 'all') {
+                    assignment.style.display = 'block';
+                } else if (filter === status) {
+                    assignment.style.display = 'block';
+                } else {
+                    assignment.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+</script>
+{% endblock %}

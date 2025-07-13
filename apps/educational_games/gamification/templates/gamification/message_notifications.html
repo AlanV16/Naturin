@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Message Notifications - NatureIn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notifications-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .notification-item {
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        transition: box-shadow 0.3s;
+    }
+    
+    .notification-item:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .notification-item.unread {
+        background: #f8f9fa;
+        border-left: 4px solid #007bff;
+    }
+    
+    .notification-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .notification-sender {
+        font-weight: bold;
+        color: #007bff;
+    }
+    
+    .notification-time {
+        font-size: 12px;
+        color: #6c757d;
+    }
+    
+    .notification-content {
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .notification-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .back-btn {
+        margin-bottom: 20px;
+    }
+    
+    .no-notifications {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+    }
+    
+    .mark-all-read {
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <a href="{% url 'messaging_dashboard' %}" class="btn btn-outline-secondary back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Messages
+    </a>
+    
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5><i class="fas fa-bell"></i> Message Notifications</h5>
+            {% if notifications %}
+                <button class="btn btn-outline-primary btn-sm" onclick="markAllAsRead()">
+                    <i class="fas fa-check-double"></i> Mark All as Read
+                </button>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if notifications %}
+                {% for notification in notifications %}
+                    <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                        <div class="notification-header">
+                            <div>
+                                <span class="notification-sender">
+                                    <i class="fas fa-user"></i> {{ notification.message.sender.username }}
+                                </span>
+                                <span class="text-muted"> sent you a message</span>
+                            </div>
+                            <span class="notification-time">
+                                {{ notification.created_at|timesince }} ago
+                            </span>
+                        </div>
+                        
+                        <div class="notification-content">
+                            <strong>Subject:</strong> {{ notification.message.subject }}
+                            <br>
+                            <strong>Content:</strong> {{ notification.message.content|truncatechars:100 }}
+                        </div>
+                        
+                        <div class="notification-actions">
+                            <a href="{% url 'private_conversation_detail' notification.message.id %}" 
+                               class="btn btn-primary btn-sm">
+                                <i class="fas fa-reply"></i> Reply
+                            </a>
+                            <a href="{% url 'messaging_dashboard' %}" 
+                               class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-inbox"></i> View All Messages
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-notifications">
+                    <i class="fas fa-bell-slash fa-3x mb-3"></i>
+                    <h5>No Notifications</h5>
+                    <p>You don't have any message notifications at the moment.</p>
+                    <a href="{% url 'messaging_dashboard' %}" class="btn btn-primary">
+                        <i class="fas fa-comments"></i> Go to Messages
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function markAllAsRead() {
+        // In a real implementation, you'd make an AJAX call to mark all as read
+        // For now, we'll just reload the page
+        fetch('{% url "message_notifications" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        }).then(() => {
+            location.reload();
+        });
+    }
+    
+    // Auto-refresh notifications every 30 seconds
+    setInterval(() => {
+        location.reload();
+    }, 30000);
+</script>
+{% endblock %} 

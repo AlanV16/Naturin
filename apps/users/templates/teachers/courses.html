@@ -1,0 +1,397 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/student/courses.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+                            <a href="{% url 'users:dashboard_teacher' user_id=user.id %}" class="back-to-dashboard">
+                <i class="bi bi-arrow-left"></i>
+                Volver 
+            </a>
+            
+            <!-- Header Section -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-2">
+                        <i class="bi bi-journal-bookmark me-2"></i>Mis Cursos
+                    </h2>
+                    <p class="text-muted mb-0">Gestiona y administra todos tus cursos</p>
+                </div>
+                <button class="btn btn-teacher-primary" onclick="showCreateCourseModal()">
+                    <i class="bi bi-plus-lg me-2"></i>Crear Nuevo Curso
+                </button>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="position-relative">
+                        <input type="text" class="form-control search-bar" placeholder="Buscar cursos..." id="courseSearch">
+                        <i class="bi bi-search position-absolute" style="right: 20px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="filter-tabs d-flex">
+                        <button class="filter-tab active" data-filter="all">Todos</button>
+                        <button class="filter-tab" data-filter="active">Activos</button>
+                        <button class="filter-tab" data-filter="completed">Finalizados</button>
+                        <button class="filter-tab" data-filter="draft">Borradores</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="dashboard-card stat-card text-center">
+                        <div class="stat-number">{{ total_courses|default:0 }}</div>
+                        <div class="stat-label">Cursos Totales</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card stat-card text-center">
+                        <div class="stat-number">{{ total_students|default:0 }}</div>
+                        <div class="stat-label">Estudiantes</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card stat-card text-center">
+                        <div class="stat-number">{{ pending_submissions|default:0 }}</div>
+                        <div class="stat-label">Por Calificar</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card stat-card text-center">
+                        <div class="stat-number">{{ avg_completion|default:0 }}%</div>
+                        <div class="stat-label">Progreso Promedio</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Courses Grid -->
+            <div class="row g-4" id="coursesGrid">
+                {% if courses %}
+                    {% for course in courses %}
+                    <div class="col-md-6 col-lg-4 course-item" data-status="{{ course.status }}">
+                        <div class="card course-card">
+                            <div class="course-header {{ course.subject|lower }}">
+                                <div class="course-icon">
+                                    <i class="bi bi-{{ course.icon|default:'book' }}"></i>
+                                </div>
+                                <div class="course-actions">
+                                    <button class="btn btn-sm btn-outline-light" onclick="editCourse({{ course.id }})" title="Editar curso">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-light" onclick="showCourseSettings({{ course.id }})" title="Configuración">
+                                        <i class="bi bi-gear"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="course-body">
+                                <div>
+                                    <div class="course-title">{{ course.name }}</div>
+                                    <div class="course-teacher">
+                                        <i class="bi bi-person-badge me-1"></i>
+                                        {{ user.get_full_name|default:user.username }}
+                                    </div>
+                                    <div class="course-code">
+                                        <i class="bi bi-tag me-1"></i>
+                                        Código: {{ course.code }}
+                                    </div>
+                                </div>
+                                <div class="course-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-number">{{ course.students_count|default:0 }}</span>
+                                        <span class="stat-label">Estudiantes</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number">{{ course.assignments_count|default:0 }}</span>
+                                        <span class="stat-label">Tareas</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number">{{ course.avg_grade|default:0|floatformat:1 }}</span>
+                                        <span class="stat-label">Promedio</span>
+                                    </div>
+                                </div>
+                                <div class="course-quick-actions mt-3">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="manageCourse({{ course.id }})">
+                                        <i class="bi bi-gear-fill me-1"></i>Gestionar
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success" onclick="viewStudents({{ course.id }})">
+                                        <i class="bi bi-people me-1"></i>Estudiantes
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning" onclick="createAssignment({{ course.id }})">
+                                        <i class="bi bi-plus me-1"></i>Tarea
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Empty State -->
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <div class="empty-state-image">
+                                <img src="{% static 'images/miscellaneous/not_found.png' %}" alt="Sin cursos" class="img-fluid">
+                            </div>
+                            <h4>¡Aún no tienes cursos creados!</h4>
+                            <p>Crea tu primer curso para comenzar a enseñar y gestionar estudiantes</p>
+                            <button class="btn btn-teacher-primary" onclick="showCreateCourseModal()">
+                                <i class="bi bi-plus-lg me-2"></i>Crear Primer Curso
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para crear curso -->
+<div class="modal fade" id="createCourseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle me-2"></i>Crear Nuevo Curso
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createCourseForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="courseName" class="form-label">Nombre del Curso</label>
+                                <input type="text" class="form-control" id="courseName" name="course_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="courseCode" class="form-label">Código del Curso</label>
+                                <input type="text" class="form-control" id="courseCode" name="course_code" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="courseDescription" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="courseDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="courseSubject" class="form-label">Materia</label>
+                                <select class="form-select" id="courseSubject" name="subject" required>
+                                    <option value="">Seleccionar materia</option>
+                                    <option value="animals">Animales</option>
+                                    <option value="plants">Plantas</option>
+                                    <option value="environment">Medio Ambiente</option>
+                                    <option value="general">General</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="courseGrade" class="form-label">Grado</label>
+                                <select class="form-select" id="courseGrade" name="grade" required>
+                                    <option value="">Seleccionar grado</option>
+                                    <option value="1">1° Grado</option>
+                                    <option value="2">2° Grado</option>
+                                    <option value="3">3° Grado</option>
+                                    <option value="4">4° Grado</option>
+                                    <option value="5">5° Grado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-teacher-primary" onclick="submitCreateCourse()">
+                        <i class="bi bi-check-circle me-2"></i>Crear Curso
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Funciones para gestión de cursos
+function showCreateCourseModal() {
+    const modal = new bootstrap.Modal(document.getElementById('createCourseModal'));
+    modal.show();
+}
+
+function submitCreateCourse() {
+    const form = document.getElementById('createCourseForm');
+    const formData = new FormData(form);
+    
+    // Aquí iría la lógica para enviar al backend
+    alert('Funcionalidad de crear curso en desarrollo. Los datos del formulario se procesarán próximamente.');
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('createCourseModal'));
+    modal.hide();
+}
+
+function manageCourse(courseId) {
+    alert(`Gestionar curso #${courseId} - Funcionalidad en desarrollo`);
+}
+
+function viewStudents(courseId) {
+    alert(`Ver estudiantes del curso #${courseId} - Funcionalidad en desarrollo`);
+}
+
+function createAssignment(courseId) {
+    alert(`Crear tarea para curso #${courseId} - Funcionalidad en desarrollo`);
+}
+
+function editCourse(courseId) {
+    alert(`Editar curso #${courseId} - Funcionalidad en desarrollo`);
+}
+
+function showCourseSettings(courseId) {
+    alert(`Configuración del curso #${courseId} - Funcionalidad en desarrollo`);
+}
+
+// Funcionalidad de búsqueda
+document.getElementById('courseSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const courseItems = document.querySelectorAll('.course-item');
+    
+    courseItems.forEach(item => {
+        const courseName = item.querySelector('.course-title').textContent.toLowerCase();
+        const courseCode = item.querySelector('.course-code').textContent.toLowerCase();
+        
+        if (courseName.includes(searchTerm) || courseCode.includes(searchTerm)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
+
+// Funcionalidad de filtros
+document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        // Actualizar tabs activos
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Filtrar cursos
+        const filter = this.dataset.filter;
+        const courseItems = document.querySelectorAll('.course-item');
+        
+        courseItems.forEach(item => {
+            if (filter === 'all' || item.dataset.status === filter) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Animaciones
+document.addEventListener('DOMContentLoaded', function() {
+    const courseCards = document.querySelectorAll('.course-card');
+    courseCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+
+<style>
+.course-header {
+    position: relative;
+    background: var(--teacher-primary-gradient);
+    color: white;
+    padding: 20px;
+    border-radius: var(--teacher-border-radius) var(--teacher-border-radius) 0 0;
+    text-align: center;
+}
+
+.course-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.course-code {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.course-quick-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.course-quick-actions .btn {
+    flex: 1;
+    min-width: 80px;
+}
+
+.animals { background: linear-gradient(135deg, #28a745, #20c997); }
+.plants { background: linear-gradient(135deg, #28a745, #34ce57); }
+.environment { background: linear-gradient(135deg, #17a2b8, #007bff); }
+.general { background: var(--teacher-primary-gradient); }
+
+.search-bar {
+    border-radius: 25px;
+    padding: 12px 20px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.search-bar:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.filter-tabs {
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-tab {
+    padding: 10px 20px;
+    border: 2px solid #dee2e6;
+    border-radius: 25px;
+    background: white;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.filter-tab.active,
+.filter-tab:hover {
+    border-color: #667eea;
+    background: #667eea;
+    color: white;
+}
+</style>
+{% endblock %}

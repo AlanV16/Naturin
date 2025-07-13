@@ -1,0 +1,537 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/dashboard_optimized.css' %}">
+    <style>
+        .messages-container {
+            height: calc(100vh - 200px);
+            overflow: hidden;
+        }
+        
+        .conversation-list {
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        .conversation-item {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .conversation-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .conversation-item.active {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .conversation-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            margin-right: 15px;
+        }
+        
+        .chat-area {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            background-color: #f8f9fa;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+        }
+        
+        .message.sent {
+            justify-content: flex-end;
+        }
+        
+        .message.received {
+            justify-content: flex-start;
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        
+        .message.sent .message-content {
+            background-color: #2196f3;
+            color: white;
+        }
+        
+        .message.received .message-content {
+            background-color: #f1f3f4;
+            color: #333;
+        }
+        
+        .message-time {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            background-color: #fff;
+        }
+        
+        .unread-badge {
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            margin-left: auto;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-bg">
+    <div class="container-fluid py-2">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-none d-md-block">
+                <div class="sidebar-dashboard">
+                    <div class="text-center py-4">
+                        <img src="{% static 'images/mascota/tuki.png' %}" alt="Tuki" width="80" class="mb-3">
+                        <h6 class="fw-bold text-primary">¡Hola, Estudiante!</h6>
+                    </div>
+                    <nav class="nav flex-column px-2 pb-4">
+                        <a class="nav-link sidebar-btn" href="{% url 'users:dashboard_student' user_id=user.id %}">
+                            <i class="bi bi-house-door-fill me-2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:student_courses' %}">
+                            <i class="bi bi-journal-bookmark-fill me-2"></i>
+                            <span>Mis Cursos</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:student_assignments' %}">
+                            <i class="bi bi-clipboard-check me-2"></i>
+                            <span>Tareas</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:student_grades' %}">
+                            <i class="bi bi-bar-chart-fill me-2"></i>
+                            <span>Calificaciones</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:student_achievements' %}">
+                            <i class="bi bi-trophy-fill me-2"></i>
+                            <span>Logros</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:user_calendar' %}">
+                            <i class="bi bi-calendar3 me-2"></i>
+                            <span>Calendario</span>
+                        </a>
+                        <a class="nav-link sidebar-btn active" href="{% url 'users:student_messages' %}">
+                            <i class="bi bi-chat-dots-fill me-2"></i>
+                            <span>Mensajes</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:student_resources' %}">
+                            <i class="bi bi-book-fill me-2"></i>
+                            <span>Recursos</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 px-3">
+                <div class="row h-100 messages-container">
+                    <!-- Lista de conversaciones -->
+                    <div class="col-lg-4">
+                        <div class="dashboard-card h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold mb-0">
+                                    <i class="bi bi-chat-dots"></i>
+                                    Mensajes
+                                </h5>
+                                <span class="badge bg-primary">{{ total_unread }}</span>
+                            </div>
+                            
+                            <!-- Barra de búsqueda -->
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="searchConversations" placeholder="Buscar conversaciones...">
+                                </div>
+                            </div>
+
+                            <!-- Lista de conversaciones -->
+                            <div class="conversation-list" id="conversationList">
+                                {% for message in direct_messages %}
+                                    <div class="conversation-item" onclick="selectMessage({{ message.id }})">
+                                        <div class="d-flex align-items-center">
+                                            <div class="conversation-avatar" style="background-color: #007bff;">
+                                                {% if message.sender != user %}
+                                                    {{ message.sender.first_name|first|upper }}{{ message.sender.last_name|first|upper }}
+                                                {% else %}
+                                                    {{ message.recipient.first_name|first|upper }}{{ message.recipient.last_name|first|upper }}
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-semibold">
+                                                    {% if message.sender != user %}
+                                                        {{ message.sender.get_full_name }}
+                                                    {% else %}
+                                                        Para: {{ message.recipient.get_full_name }}
+                                                    {% endif %}
+                                                </div>
+                                                <div class="text-muted small">{{ message.subject|truncatechars:30 }}</div>
+                                                <div class="text-muted small">{{ message.created_at|timesince }} atrás</div>
+                                            </div>
+                                            {% if not message.is_read and message.recipient == user %}
+                                                <div class="unread-badge">1</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <div class="empty-state">
+                                        <i class="bi bi-chat-square-text"></i>
+                                        <h6>No tienes mensajes</h6>
+                                        <p class="small">Los mensajes de tus profesores aparecerán aquí</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat área -->
+                    <div class="col-lg-8">
+                        <div class="dashboard-card h-100">
+                            <div class="chat-area" id="chatArea">
+                                <!-- Estado vacío -->
+                                <div class="empty-state" id="emptyChatState">
+                                    <i class="bi bi-chat-dots"></i>
+                                    <h6>Selecciona una conversación</h6>
+                                    <p class="small">Elige un mensaje para comenzar a chatear</p>
+                                </div>
+
+                                <!-- Chat activo (oculto por defecto) -->
+                                <div id="activeChat" style="display: none;">
+                                    <!-- Header del chat -->
+                                    <div class="chat-header" id="chatHeader">
+                                        <div class="d-flex align-items-center">
+                                            <div class="conversation-avatar me-3" id="chatAvatar" style="background-color: #007bff;">
+                                                <!-- Se llenará dinámicamente -->
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold mb-0" id="chatName">Nombre del contacto</h6>
+                                                <small class="text-success" id="chatStatus">
+                                                    <i class="bi bi-circle-fill"></i>
+                                                    En línea
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mensajes -->
+                                    <div class="chat-messages" id="chatMessages">
+                                        <!-- Los mensajes se cargarán dinámicamente -->
+                                    </div>
+
+                                    <!-- Input del chat -->
+                                    <div class="chat-input">
+                                        <form id="messageForm" onsubmit="sendMessage(event)">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="messageInput" placeholder="Escribe un mensaje..." autocomplete="off">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="bi bi-send"></i>
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nuevo mensaje -->
+<div class="modal fade" id="newMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle me-2"></i>Nuevo Mensaje
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newMessageForm">
+                    <div class="mb-3">
+                        <label for="recipientSelect" class="form-label">Destinatario</label>
+                        <select class="form-select" id="recipientSelect" required>
+                            <option value="">Seleccionar destinatario</option>
+                            <!-- Se llenará dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="messageSubject" class="form-label">Asunto</label>
+                        <input type="text" class="form-control" id="messageSubject" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="messageContent" class="form-label">Mensaje</label>
+                        <textarea class="form-control" id="messageContent" rows="4" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="sendNewMessage()">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script src="{% static 'js/header_logged.js' %}"></script>
+    <script>
+        let currentMessageId = null;
+        let currentConversationId = null;
+
+        // Función para seleccionar un mensaje
+        function selectMessage(messageId) {
+            currentMessageId = messageId;
+            currentConversationId = null;
+            
+            // Actualizar UI
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Mostrar chat
+            showChat();
+            
+            // Cargar mensaje
+            loadMessage(messageId);
+        }
+
+        // Función para seleccionar una conversación
+        function selectConversation(conversationId) {
+            currentConversationId = conversationId;
+            currentMessageId = null;
+            
+            // Actualizar UI
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Mostrar chat
+            showChat();
+            
+            // Cargar conversación
+            loadConversation(conversationId);
+        }
+
+        // Mostrar área de chat
+        function showChat() {
+            document.getElementById('emptyChatState').style.display = 'none';
+            document.getElementById('activeChat').style.display = 'flex';
+        }
+
+        // Cargar mensaje individual
+        function loadMessage(messageId) {
+            fetch(`/accounts/api/message/${messageId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayMessage(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // Cargar conversación
+        function loadConversation(conversationId) {
+            fetch(`/accounts/api/conversation/${conversationId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayConversation(data.conversation, data.messages);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // Mostrar mensaje individual
+        function displayMessage(message) {
+            const chatName = document.getElementById('chatName');
+            const chatAvatar = document.getElementById('chatAvatar');
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // Configurar header
+            chatName.textContent = message.sender_name;
+            chatAvatar.textContent = message.sender_initials;
+            
+            // Mostrar mensaje
+            chatMessages.innerHTML = `
+                <div class="message received">
+                    <div class="message-content">
+                        <div>${message.content}</div>
+                        <div class="message-time">${message.created_at}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Mostrar conversación
+        function displayConversation(conversation, messages) {
+            const chatName = document.getElementById('chatName');
+            const chatAvatar = document.getElementById('chatAvatar');
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // Configurar header
+            chatName.textContent = conversation.participant_name;
+            chatAvatar.textContent = conversation.participant_initials;
+            
+            // Mostrar mensajes
+            chatMessages.innerHTML = messages.map(message => `
+                <div class="message ${message.is_sent ? 'sent' : 'received'}">
+                    <div class="message-content">
+                        <div>${message.content}</div>
+                        <div class="message-time">${message.created_at}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Scroll al final
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Enviar mensaje
+        function sendMessage(event) {
+            event.preventDefault();
+            
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+            
+            if (!content) return;
+            
+            const messageData = {
+                content: content,
+                message_id: currentMessageId,
+                conversation_id: currentConversationId
+            };
+            
+            fetch('/accounts/api/send-message/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify(messageData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    input.value = '';
+                    // Recargar mensajes
+                    if (currentMessageId) {
+                        loadMessage(currentMessageId);
+                    } else if (currentConversationId) {
+                        loadConversation(currentConversationId);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        // Búsqueda de conversaciones
+        document.getElementById('searchConversations').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const conversations = document.querySelectorAll('.conversation-item');
+            
+            conversations.forEach(conversation => {
+                const text = conversation.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    conversation.style.display = 'block';
+                } else {
+                    conversation.style.display = 'none';
+                }
+            });
+        });
+
+        // Obtener token CSRF
+        function getCsrfToken() {
+            const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+            return csrfInput ? csrfInput.value : '';
+        }
+
+        // Auto-refresh cada 30 segundos
+        setInterval(() => {
+            if (currentMessageId || currentConversationId) {
+                // Recargar mensajes actuales
+                if (currentMessageId) {
+                    loadMessage(currentMessageId);
+                } else if (currentConversationId) {
+                    loadConversation(currentConversationId);
+                }
+            }
+        }, 30000);
+    </script>
+{% endblock %}
+
+

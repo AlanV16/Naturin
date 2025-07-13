@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/student/courses.css' %}">
+<link rel="stylesheet" href="{% static 'css/student/achievements.css' %}">
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Back to Dashboard -->
+            <a href="{% url 'users:dashboard_student' user_id=user.id %}" class="back-to-dashboard">
+                <i class="bi bi-arrow-left me-2"></i>
+                Volver al Dashboard
+            </a>
+            
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-2">
+                        <i class="bi bi-trophy me-2"></i>Mis Logros
+                    </h2>
+                    <p class="text-muted mb-0">Descubre y desbloquea todos los logros disponibles</p>
+                </div>
+            </div>
+
+            {% if achievements_data %}
+                <!-- Stats Header -->
+                <div class="achievements-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <div class="progress-ring">
+                                <div class="progress-circle" style="--percentage: {{ completion_percentage|floatformat:0|add:'%' }}">
+                                    <span class="progress-text">{{ completion_percentage|floatformat:0 }}%</span>
+                                </div>
+                            </div>
+                            <small>Progreso de Logros</small>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-value">{{ earned_count }}</div>
+                                    <div class="stat-label">Logros Obtenidos</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">{{ total_achievements }}</div>
+                                    <div class="stat-label">Total Disponibles</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">{{ total_points }}</div>
+                                    <div class="stat-label">Puntos Totales</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Achievements by Difficulty -->
+                {% if easy_achievements %}
+                <div class="category-section">
+                    <h3 class="category-title">
+                        <i class="bi bi-star me-2"></i>Logros Fáciles
+                        <span class="difficulty-badge difficulty-easy">1-25 pts</span>
+                    </h3>
+                    <div class="row">
+                        {% for achievement in easy_achievements %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="achievement-card {{ achievement.css_class }}" 
+                                 data-bs-toggle="tooltip" 
+                                 data-bs-placement="top" 
+                                 title="{{ achievement.description }}">
+                                
+                                <div class="achievement-points">{{ achievement.points }} pts</div>
+                                
+                                <div class="text-center">
+                                    <i class="bi bi-{{ achievement.icon }} achievement-icon"></i>
+                                    <h5 class="fw-bold mb-2">{{ achievement.name }}</h5>
+                                    <p class="text-muted small mb-2">{{ achievement.description }}</p>
+                                    
+                                    {% if achievement.earned %}
+                                        <div class="achievement-date">
+                                            <i class="bi bi-calendar-check me-1"></i>
+                                            Obtenido el {{ achievement.earned_at|date:"d M Y" }}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-muted small">
+                                            <i class="bi bi-lock me-1"></i>
+                                            Logro bloqueado
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if medium_achievements %}
+                <div class="category-section">
+                    <h3 class="category-title">
+                        <i class="bi bi-award me-2"></i>Logros Intermedios
+                        <span class="difficulty-badge difficulty-medium">26-50 pts</span>
+                    </h3>
+                    <div class="row">
+                        {% for achievement in medium_achievements %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="achievement-card {{ achievement.css_class }}" 
+                                 data-bs-toggle="tooltip" 
+                                 data-bs-placement="top" 
+                                 title="{{ achievement.description }}">
+                                
+                                <div class="achievement-points">{{ achievement.points }} pts</div>
+                                
+                                <div class="text-center">
+                                    <i class="bi bi-{{ achievement.icon }} achievement-icon"></i>
+                                    <h5 class="fw-bold mb-2">{{ achievement.name }}</h5>
+                                    <p class="text-muted small mb-2">{{ achievement.description }}</p>
+                                    
+                                    {% if achievement.earned %}
+                                        <div class="achievement-date">
+                                            <i class="bi bi-calendar-check me-1"></i>
+                                            Obtenido el {{ achievement.earned_at|date:"d M Y" }}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-muted small">
+                                            <i class="bi bi-lock me-1"></i>
+                                            Logro bloqueado
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if hard_achievements %}
+                <div class="category-section">
+                    <h3 class="category-title">
+                        <i class="bi bi-gem me-2"></i>Logros Difíciles
+                        <span class="difficulty-badge difficulty-hard">50+ pts</span>
+                    </h3>
+                    <div class="row">
+                        {% for achievement in hard_achievements %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="achievement-card {{ achievement.css_class }}" 
+                                 data-bs-toggle="tooltip" 
+                                 data-bs-placement="top" 
+                                 title="{{ achievement.description }}">
+                                
+                                <div class="achievement-points">{{ achievement.points }} pts</div>
+                                
+                                <div class="text-center">
+                                    <i class="bi bi-{{ achievement.icon }} achievement-icon"></i>
+                                    <h5 class="fw-bold mb-2">{{ achievement.name }}</h5>
+                                    <p class="text-muted small mb-2">{{ achievement.description }}</p>
+                                    
+                                    {% if achievement.earned %}
+                                        <div class="achievement-date">
+                                            <i class="bi bi-calendar-check me-1"></i>
+                                            Obtenido el {{ achievement.earned_at|date:"d M Y" }}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-muted small">
+                                            <i class="bi bi-lock me-1"></i>
+                                            Logro bloqueado
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <div class="empty-state-image">
+                        <img src="{% static 'images/miscellaneous/not_found.png' %}" alt="Sin logros" class="img-fluid">
+                    </div>
+                    <h4>¡Aún no hay logros disponibles!</h4>
+                    <a href="{% url 'users:student_courses' %}" class="btn join-course-btn">
+                        <i class="bi bi-book me-2"></i>Explorar Logros
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Achievement card animations
+    document.querySelectorAll('.achievement-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            if (this.classList.contains('earned')) {
+                this.querySelector('.achievement-icon').style.transform = 'scale(1.1)';
+            }
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.querySelector('.achievement-icon').style.transform = 'scale(1)';
+        });
+    });
+
+    // Update progress ring
+    const progressPercentage = {{ completion_percentage|floatformat:1 }};
+    const progressDegrees = (progressPercentage / 100) * 360;
+    document.querySelector('.progress-circle').style.setProperty('--percentage', progressDegrees + 'deg');
+</script>
+{% endblock %}

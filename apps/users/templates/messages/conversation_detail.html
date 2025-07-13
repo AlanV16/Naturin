@@ -1,0 +1,137 @@
+<div class="chat-header">
+    <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <div class="conversation-avatar me-3">
+                {% for participant in conversation.participants.all %}
+                    {% if participant != user %}
+                        {{ participant.get_full_name|first|upper }}
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div>
+                <h6 class="mb-0">
+                    {% for participant in conversation.participants.all %}
+                        {% if participant != user %}
+                            {{ participant.get_full_name }}
+                        {% endif %}
+                    {% endfor %}
+                </h6>
+                <small class="text-muted">
+                    {% if conversation.participants.count == 2 %}
+                        Conversación privada
+                    {% else %}
+                        {{ conversation.participants.count }} participantes
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-three-dots"></i>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#"><i class="bi bi-search me-2"></i>Buscar mensajes</a></li>
+                <li><a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Descargar conversación</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Eliminar conversación</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="chat-messages" id="chatMessages">
+    {% for message in messages %}
+    <div class="message {% if message.sender == user %}sent{% else %}received{% endif %}">
+        <div class="message-content">
+            <div class="message-text">{{ message.content }}</div>
+            <div class="message-time text-end">
+                {{ message.created_at|date:"H:i" }}
+                {% if message.sender == user %}
+                    {% if message.is_read %}
+                        <i class="bi bi-check2-all text-primary ms-1"></i>
+                    {% else %}
+                        <i class="bi bi-check2 text-muted ms-1"></i>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5">
+        <i class="bi bi-chat-dots text-muted" style="font-size: 3rem;"></i>
+        <h5 class="text-muted mt-3">No hay mensajes aún</h5>
+        <p class="text-muted">¡Sé el primero en escribir!</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="chat-input">
+    <form id="messageForm" method="post">
+        {% csrf_token %}
+        <div class="input-group">
+            <input type="text" class="form-control" id="messageInput" name="message" placeholder="Escribe un mensaje..." required>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-send"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Auto-scroll al último mensaje
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Enfoque automático en el input
+    document.getElementById('messageInput').focus();
+    
+    // Enviar mensaje con Enter
+    document.getElementById('messageForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value.trim();
+        
+        if (message) {
+            // Enviar mensaje vía AJAX
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `message=${encodeURIComponent(message)}`
+            })
+            .then(response => {
+                if (response.ok) {
+                    messageInput.value = '';
+                    // Recargar mensajes
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    });
+    
+    // Auto-refresh cada 5 segundos
+    setInterval(() => {
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(html => {
+                // Solo actualizar si hay cambios
+                const currentMessages = document.getElementById('chatMessages').innerHTML;
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newMessages = doc.getElementById('chatMessages').innerHTML;
+                
+                if (currentMessages !== newMessages) {
+                    document.getElementById('chatMessages').innerHTML = newMessages;
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }, 5000);
+</script> 

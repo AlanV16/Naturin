@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_student.css' %}">
+    <style>
+        .messages-container {
+            background: #f8f9fa;
+            min-height: calc(100vh - 100px);
+        }
+        
+        .messages-sidebar {
+            background: white;
+            border-right: 1px solid #e9ecef;
+            height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+        
+        .messages-content {
+            background: white;
+            height: calc(100vh - 100px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .conversation-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .conversation-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .conversation-item.active {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .conversation-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .unread-badge {
+            background: #ff5722;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .chat-header {
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 1rem;
+            max-width: 70%;
+        }
+        
+        .message.sent {
+            margin-left: auto;
+        }
+        
+        .message-content {
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            position: relative;
+        }
+        
+        .message.sent .message-content {
+            background: #2196f3;
+            color: white;
+        }
+        
+        .message.received .message-content {
+            background: white;
+            border: 1px solid #e9ecef;
+        }
+        
+        .message-time {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        
+        .chat-input {
+            background: white;
+            border-top: 1px solid #e9ecef;
+            padding: 1rem;
+        }
+        
+        .new-conversation-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .new-conversation-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="messages-container">
+    <div class="row g-0 h-100">
+        <!-- Sidebar con conversaciones -->
+        <div class="col-md-4 col-lg-3">
+            <div class="messages-sidebar">
+                <div class="p-3 border-bottom">
+                    <h5 class="mb-3">Mensajes</h5>
+                    <button class="btn new-conversation-btn w-100" onclick="showNewConversationModal()">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Nueva Conversación
+                    </button>
+                </div>
+                
+                <div class="conversations-list">
+                    {% for conversation in conversations %}
+                    <div class="conversation-item" onclick="loadConversation({{ conversation.id }})">
+                        <div class="d-flex align-items-center">
+                            <div class="conversation-avatar me-3">
+                                {{ conversation.participants.first.get_full_name|first|upper }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ conversation.name|default:conversation.participants.first.get_full_name }}</h6>
+                                <small class="text-muted">{{ conversation.updated_at|timesince }} atrás</small>
+                            </div>
+                            {% if conversation.unread_count > 0 %}
+                            <div class="unread-badge">
+                                {{ conversation.unread_count }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-chat-dots text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No hay conversaciones aún</p>
+                        <button class="btn btn-primary btn-sm" onclick="showNewConversationModal()">
+                            Iniciar Conversación
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido del chat -->
+        <div class="col-md-8 col-lg-9">
+            <div class="messages-content">
+                <div class="chat-header">
+                    <div class="d-flex align-items-center">
+                        <div class="conversation-avatar me-3">
+                            <i class="bi bi-chat-dots"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Selecciona una conversación</h6>
+                            <small class="text-muted">Para comenzar a chatear</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-messages d-flex align-items-center justify-content-center">
+                    <div class="text-center">
+                        <i class="bi bi-chat-dots text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mt-3">Selecciona una conversación</h5>
+                        <p class="text-muted">Elige una conversación del panel izquierdo para comenzar a chatear</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nueva conversación -->
+<div class="modal fade" id="newConversationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nueva Conversación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Seleccionar usuario</label>
+                    <select class="form-select" id="userSelect">
+                        <option value="">Seleccionar...</option>
+                        {% for user in available_users %}
+                        <option value="{{ user.id }}">{{ user.get_full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="startNewConversation()">Iniciar Conversación</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script src="{% static 'js/header_logged.js' %}"></script>
+    <script>
+        let currentConversationId = null;
+        
+        function showNewConversationModal() {
+            const modal = new bootstrap.Modal(document.getElementById('newConversationModal'));
+            modal.show();
+        }
+        
+        function startNewConversation() {
+            const userId = document.getElementById('userSelect').value;
+            if (userId) {
+                window.location.href = `{% url 'users:start_conversation' 0 %}`.replace('0', userId);
+            }
+        }
+        
+        function loadConversation(conversationId) {
+            currentConversationId = conversationId;
+            
+            // Actualizar UI
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.conversation-item').classList.add('active');
+            
+            // Cargar conversación vía AJAX
+            fetch(`{% url 'users:conversation_detail' 0 %}`.replace('0', conversationId))
+                .then(response => response.text())
+                .then(html => {
+                    // Actualizar el contenido del chat
+                    const chatContent = document.querySelector('.messages-content');
+                    chatContent.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+        
+        // Auto-refresh de conversaciones cada 30 segundos
+        setInterval(() => {
+            if (!currentConversationId) return;
+            
+            fetch(`{% url 'users:conversation_detail' 0 %}`.replace('0', currentConversationId))
+                .then(response => response.text())
+                .then(html => {
+                    // Solo actualizar si hay cambios
+                    const chatContent = document.querySelector('.messages-content');
+                    if (chatContent.innerHTML !== html) {
+                        chatContent.innerHTML = html;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }, 30000);
+    </script>
+{% endblock %} 

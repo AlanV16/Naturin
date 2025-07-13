@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/student/courses.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Back to Dashboard -->
+            <a href="{% url 'users:dashboard_student' user_id=user.id %}" class="back-to-dashboard">
+                <i class="bi bi-arrow-left me-2"></i>
+                Volver
+            </a>
+            
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-2">
+                        <i class="bi bi-bar-chart me-2"></i>Mis Notas
+                    </h2>
+                    <p class="text-muted mb-0">Revisa tu rendimiento académico y calificaciones</p>
+                </div>
+            </div>
+
+            {% if submissions %}
+                <!-- Stats Overview -->
+                <div class="stats-overview">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <h3 class="mb-1">{{ average_grade }}</h3>
+                            <small>Promedio General</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h3 class="mb-1">{{ highest_grade }}</h3>
+                            <small>Nota Más Alta</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h3 class="mb-1">{{ total_assignments }}</h3>
+                            <small>Tareas Calificadas</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h3 class="mb-1">{{ excellent_count }}</h3>
+                            <small>Notas Excelentes (9+)</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grades by Course -->
+                {% for course_name, course_data in grades_by_course.items %}
+                <div class="course-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold mb-0">
+                            <i class="bi bi-book me-2"></i>{{ course_name }}
+                        </h4>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge bg-primary">{{ course_data.count }} tareas</span>
+                            <span class="grade-badge 
+                                {% if course_data.average >= 9 %}grade-excellent
+                                {% elif course_data.average >= 8 %}grade-good
+                                {% elif course_data.average >= 7 %}grade-satisfactory
+                                {% else %}grade-needs-improvement{% endif %}">
+                                {{ course_data.average|floatformat:1 }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Assignments for this course -->
+                    {% for submission in course_data.submissions %}
+                    <div class="assignment-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h6 class="mb-1">{{ submission.assignment.title }}</h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    Entregado: {{ submission.submitted_at|date:"d M Y" }}
+                                </small>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="grade-badge 
+                                    {% if submission.grade >= 9 %}grade-excellent
+                                    {% elif submission.grade >= 8 %}grade-good
+                                    {% elif submission.grade >= 7 %}grade-satisfactory
+                                    {% else %}grade-needs-improvement{% endif %}">
+                                    {{ submission.grade }}/10
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                {% if submission.feedback %}
+                                    <small class="text-muted">
+                                        <i class="bi bi-chat-text me-1"></i>
+                                        {{ submission.feedback|truncatechars:50 }}
+                                    </small>
+                                {% else %}
+                                    <small class="text-muted">Sin comentarios</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                <!-- Grade Distribution -->
+                <div class="grade-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-pie-chart me-2"></i>Distribución de Calificaciones
+                        </h5>
+                        <div class="row text-center">
+                            <div class="col-3">
+                                <div class="grade-excellent" style="border-radius: 10px; padding: 15px;">
+                                    <h4>{{ excellent_count }}</h4>
+                                    <small>Excelente (9-10)</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="grade-good" style="border-radius: 10px; padding: 15px;">
+                                    <h4>{{ good_count }}</h4>
+                                    <small>Bueno (8-8.9)</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="grade-satisfactory" style="border-radius: 10px; padding: 15px;">
+                                    <h4>{{ satisfactory_count }}</h4>
+                                    <small>Satisfactorio (7-7.9)</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="grade-needs-improvement" style="border-radius: 10px; padding: 15px;">
+                                    <h4>{{ needs_improvement_count }}</h4>
+                                    <small>Necesita Mejorar (<7)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <img src="{% static 'images/miscellaneous/no_courses.png' %}" alt="Sin calificaciones" class="img-fluid mb-4">
+                    <h4>¡Aún no tienes calificaciones!</h4>
+                    <p class="text-muted">Completa y entrega tus tareas para ver tus calificaciones aquí</p>
+                    <a href="{% url 'users:student_courses' %}" class="btn btn-primary">
+                        <i class="bi bi-book me-2"></i>Ver Mis Cursos
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Add hover effects
+    document.querySelectorAll('.assignment-item').forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(10px)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,496 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load user_extras %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/dashboard_optimized.css' %}">
+    <link rel="stylesheet" href="{% static 'css/student/calendar.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-bg">
+    <div class="container-fluid py-2">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-none d-md-block">
+                <div class="sidebar-dashboard">
+                    <div class="text-center py-4">
+                        <img src="{% static 'images/mascota/tuki.png' %}" alt="Tuki" width="80" height="80" class="mb-3" loading="lazy">
+                        <h6 class="fw-bold text-primary">¡Hola, Profesor!</h6>
+                    </div>
+                    <nav class="nav flex-column px-2 pb-4">
+                        <a class="nav-link sidebar-btn" href="{% url 'users:dashboard_teacher' user_id=user.id %}">
+                            <i class="bi bi-house-door-fill me-2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_courses' %}">
+                            <i class="bi bi-journal-bookmark-fill me-2"></i>
+                            <span>Mis Cursos</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_assignments' %}">
+                            <i class="bi bi-clipboard-check me-2"></i>
+                            <span>Tareas</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_grades' %}">
+                            <i class="bi bi-bar-chart-fill me-2"></i>
+                            <span>Calificaciones</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'pedagogical_guides:guide_list' %}">
+                            <i class="bi bi-file-earmark-text me-2"></i>
+                            <span>Guías Pedagógicas</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_students' %}">
+                            <i class="bi bi-people-fill me-2"></i>
+                            <span>Estudiantes</span>
+                        </a>
+                        <a class="nav-link sidebar-btn active" href="{% url 'users:teacher_calendar' %}">
+                            <i class="bi bi-calendar3 me-2"></i>
+                            <span>Calendario</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_messages' %}">
+                            <i class="bi bi-chat-dots-fill me-2"></i>
+                            <span>Mensajes</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 px-3">
+                <div class="dashboard-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold mb-0">
+                            <i class="bi bi-calendar3"></i>
+                            Mi Calendario
+                        </h4>
+                        <button class="btn btn-teacher-primary" onclick="showNewEventModal()">
+                            <i class="bi bi-plus"></i>
+                            Nuevo Evento
+                        </button>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <!-- Calendar -->
+                            <div class="calendar-container">
+                                <!-- Navigation -->
+                                <div class="calendar-nav">
+                                    <button class="nav-btn" onclick="navigateMonth({{ prev_year }}, {{ prev_month }})">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                    <div class="month-year">
+                                        {{ month_name }} {{ year }}
+                                    </div>
+                                    <button class="nav-btn" onclick="navigateMonth({{ next_year }}, {{ next_month }})">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Calendar Grid -->
+                                <div class="calendar-grid">
+                                    <!-- Days of week headers -->
+                                    <div class="calendar-header-day">Dom</div>
+                                    <div class="calendar-header-day">Lun</div>
+                                    <div class="calendar-header-day">Mar</div>
+                                    <div class="calendar-header-day">Mié</div>
+                                    <div class="calendar-header-day">Jue</div>
+                                    <div class="calendar-header-day">Vie</div>
+                                    <div class="calendar-header-day">Sáb</div>
+                                    
+                                    <!-- Calendar days -->
+                                    {% for week in month_days %}
+                                        {% for day in week %}
+                                            {% if day == 0 %}
+                                                <div class="calendar-day other-month"></div>
+                                            {% else %}
+                                                <div class="calendar-day {% if day == today.day and month == today.month and year == today.year %}today{% endif %}"
+                                                     data-date="{{ year }}-{{ month|stringformat:'02d' }}-{{ day|stringformat:'02d' }}"
+                                                     onclick="showDayEvents('{{ year }}-{{ month|stringformat:'02d' }}-{{ day|stringformat:'02d' }}')">
+                                                    <div class="day-number">{{ day }}</div>
+                                                    <div class="day-events">
+                                                        {% if day in events_by_day %}
+                                                            {% for event in events_by_day|get_item:day %}
+                                                                {% if forloop.counter <= 3 %}
+                                                                <div class="event-item event-{{ event.event_type }}"
+                                                                     data-bs-toggle="tooltip"
+                                                                     title="{{ event.title }} - {{ event.course.name }}">
+                                                                    <i class="bi bi-{% if event.event_type == 'class' %}camera-video{% elif event.event_type == 'exam' %}clipboard-check{% elif event.event_type == 'meeting' %}people{% else %}gear{% endif %} me-1"></i>
+                                                                    {{ event.title|truncatechars:15 }}
+                                                                </div>
+                                                                {% elif forloop.counter == 4 %}
+                                                                <div class="more-events">
+                                                                    +{{ events_by_day|get_item:day|length|add:"-3" }} más
+                                                                </div>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <!-- Today's Events -->
+                            <div class="sidebar-events">
+                                <h5 class="fw-bold mb-3">
+                                    <i class="bi bi-calendar-event me-2"></i>
+                                    Eventos de Hoy
+                                </h5>
+                                {% if today.day in events_by_day %}
+                                    {% for event in events_by_day|get_item:today.day %}
+                                        <div class="event-card {{ event.event_type }}">
+                                            <div class="event-title">
+                                                <i class="bi bi-{% if event.event_type == 'class' %}camera-video{% elif event.event_type == 'exam' %}clipboard-check{% elif event.event_type == 'meeting' %}people{% else %}gear{% endif %}"></i>
+                                                {{ event.title }}
+                                            </div>
+                                            <div class="event-details">
+                                                <strong>{{ event.course.name }}</strong><br>
+                                                {{ event.description|truncatechars:80 }}
+                                            </div>
+                                            <div class="event-time">
+                                                <i class="bi bi-clock me-1"></i>
+                                                {{ event.start_date|date:"H:i" }}
+                                                {% if event.location %}
+                                                    <br><i class="bi bi-geo-alt me-1"></i>
+                                                    {{ event.location }}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center text-muted py-4">
+                                        <i class="bi bi-calendar-x" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                        <p>No tienes eventos programados para hoy</p>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Upcoming Events -->
+                                <h5 class="fw-bold mb-3 mt-4">
+                                    <i class="bi bi-clock me-2"></i>
+                                    Próximos Eventos
+                                </h5>
+                                {% for event in upcoming_events %}
+                                    <div class="event-card {{ event.event_type }}">
+                                        <div class="event-title">
+                                            <i class="bi bi-{% if event.event_type == 'class' %}camera-video{% elif event.event_type == 'exam' %}clipboard-check{% elif event.event_type == 'meeting' %}people{% else %}gear{% endif %}"></i>
+                                            {{ event.title }}
+                                        </div>
+                                        <div class="event-details">
+                                            <strong>{{ event.course.name }}</strong><br>
+                                            {{ event.description|truncatechars:80 }}
+                                        </div>
+                                        <div class="event-time">
+                                            <i class="bi bi-calendar-date me-1"></i>
+                                            {{ event.start_date|date:"d M" }} - {{ event.start_date|date:"H:i" }}
+                                            {% if event.location %}
+                                                <br><i class="bi bi-geo-alt me-1"></i>
+                                                {{ event.location }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <div class="text-center text-muted py-4">
+                                        <i class="bi bi-calendar-check" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                        <p>No tienes eventos próximos</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Detail Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalTitle">Eventos del Día</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="eventModalBody">
+                <!-- Events will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Event Modal -->
+<div class="modal fade" id="newEventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-calendar-plus"></i>
+                    Nuevo Evento
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newEventForm">
+                    <div class="mb-3">
+                        <label for="eventTitle" class="form-label">Título del evento:</label>
+                        <input type="text" class="form-control" id="eventTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="eventType" class="form-label">Tipo de evento:</label>
+                        <select class="form-select" id="eventType" required>
+                            <option value="">Seleccionar tipo...</option>
+                            <option value="class">Clase</option>
+                            <option value="exam">Examen</option>
+                            <option value="meeting">Reunión</option>
+                            <option value="workshop">Taller</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="eventCourse" class="form-label">Curso:</label>
+                        <select class="form-select" id="eventCourse" required>
+                            <option value="">Seleccionar curso...</option>
+                            <!-- Se llenarán dinámicamente con los cursos del profesor -->
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="eventDate" class="form-label">Fecha:</label>
+                            <input type="date" class="form-control" id="eventDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="eventTime" class="form-label">Hora:</label>
+                            <input type="time" class="form-control" id="eventTime" required>
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label for="eventLocation" class="form-label">Ubicación:</label>
+                        <input type="text" class="form-control" id="eventLocation" placeholder="Ej. Aula 101, Laboratorio, Virtual">
+                    </div>
+                    <div class="mb-3">
+                        <label for="eventDescription" class="form-label">Descripción:</label>
+                        <textarea class="form-control" id="eventDescription" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-teacher-primary" onclick="createNewEvent()">Crear Evento</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Navigate between months
+function navigateMonth(year, month) {
+    window.location.href = `?year=${year}&month=${month}`;
+}
+
+// Show new event modal
+function showNewEventModal() {
+    new bootstrap.Modal(document.getElementById('newEventModal')).show();
+}
+
+// Show day events in modal
+function showDayEvents(date) {
+    const eventsByDay = {
+        {% for day, day_events in events_by_day.items %}
+            {{ day }}: [
+                {% for event in day_events %}
+                {
+                    title: "{{ event.title|escapejs }}",
+                    course: "{{ event.course.name|escapejs }}",
+                    description: "{{ event.description|escapejs }}",
+                    start_time: "{{ event.start_date|date:'H:i' }}",
+                    end_time: "{{ event.end_date|date:'H:i' }}",
+                    location: "{{ event.location|escapejs }}",
+                    type: "{{ event.event_type }}"
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+    
+    const dateObj = new Date(date);
+    const day = dateObj.getDate();
+    const dayEvents = eventsByDay[day] || [];
+    
+    if (dayEvents.length > 0) {
+        let modalTitle = `Eventos del ${dateObj.toLocaleDateString('es-ES', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        })}`;
+        
+        let modalBody = '';
+        dayEvents.forEach(event => {
+            const iconMap = {
+                'class': 'camera-video',
+                'exam': 'clipboard-check',
+                'meeting': 'people',
+                'workshop': 'gear'
+            };
+            
+            modalBody += `
+                <div class="event-card ${event.type} mb-3">
+                    <div class="event-title">
+                        <i class="bi bi-${iconMap[event.type] || 'calendar'}"></i>
+                        ${event.title}
+                    </div>
+                    <div class="event-details">
+                        <strong>${event.course}</strong><br>
+                        ${event.description}
+                    </div>
+                    <div class="event-time">
+                        <i class="bi bi-clock me-1"></i>
+                        ${event.start_time} - ${event.end_time}
+                        ${event.location ? `<br><i class="bi bi-geo-alt me-1"></i>${event.location}` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        document.getElementById('eventModalTitle').textContent = modalTitle;
+        document.getElementById('eventModalBody').innerHTML = modalBody;
+        new bootstrap.Modal(document.getElementById('eventModal')).show();
+    }
+}
+
+// Create new event
+function createNewEvent() {
+    const title = document.getElementById('eventTitle').value;
+    const type = document.getElementById('eventType').value;
+    const course = document.getElementById('eventCourse').value;
+    const date = document.getElementById('eventDate').value;
+    const time = document.getElementById('eventTime').value;
+    const location = document.getElementById('eventLocation').value;
+    const description = document.getElementById('eventDescription').value;
+    
+    if (title && type && course && date && time) {
+        const formData = {
+            title: title,
+            event_type: type,
+            course_id: course,
+            date: date,
+            time: time,
+            location: location,
+            description: description
+        };
+        
+        fetch('{% url "users:create_event_api" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Evento creado exitosamente');
+                bootstrap.Modal.getInstance(document.getElementById('newEventModal')).hide();
+                document.getElementById('newEventForm').reset();
+                // Recargar la página para mostrar el nuevo evento
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al crear el evento');
+        });
+    } else {
+        alert('Por favor, completa todos los campos obligatorios');
+    }
+}
+
+// Initialize tooltips and populate courses
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Populate courses in the modal
+    const courseSelect = document.getElementById('eventCourse');
+    if (courseSelect) {
+        // Add courses from Django context
+        {% for course in teacher_courses %}
+            const option = document.createElement('option');
+            option.value = '{{ course.id }}';
+            option.textContent = '{{ course.name|escapejs }}';
+            courseSelect.appendChild(option);
+        {% endfor %}
+    }
+});
+</script>
+
+<style>
+/* Teacher-specific calendar styles */
+.btn-teacher-primary {
+    background: linear-gradient(135deg, #1976D2, #1565C0);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+}
+
+.btn-teacher-primary:hover {
+    background: linear-gradient(135deg, #1565C0, #0D47A1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(25, 118, 210, 0.3);
+    color: white;
+}
+
+.event-card.class {
+    border-left-color: #1976D2;
+}
+
+.event-card.exam {
+    border-left-color: #F44336;
+}
+
+.event-card.meeting {
+    border-left-color: #4CAF50;
+}
+
+.event-card.workshop {
+    border-left-color: #FF9800;
+}
+
+.event-item.class {
+    background-color: #1976D2;
+}
+
+.event-item.exam {
+    background-color: #F44336;
+}
+
+.event-item.meeting {
+    background-color: #4CAF50;
+}
+
+.event-item.workshop {
+    background-color: #FF9800;
+}
+</style>
+{% endblock %}

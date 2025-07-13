@@ -1,0 +1,161 @@
+{% extends 'gamification/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Gamificación{% endblock %}
+
+{% block gamification_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card gamification-card mb-4">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">
+                        <i class="bi bi-trophy-fill me-3"></i>
+                        Bienvenido a la Gamificación
+                    </h2>
+                    <p class="text-center mb-4">
+                        Completa actividades, juega y gana puntos para subir de nivel
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Estadísticas del usuario -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-star-fill mb-2" style="font-size: 2rem;"></i>
+                    <h4>{{ total_points|default:0 }}</h4>
+                    <p class="mb-0">Puntos Totales</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-controller mb-2" style="font-size: 2rem;"></i>
+                    <h4>{{ total_games_played|default:0 }}</h4>
+                    <p class="mb-0">Juegos Jugados</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-award mb-2" style="font-size: 2rem;"></i>
+                    <h4>{{ user_badges.count|default:0 }}</h4>
+                    <p class="mb-0">Insignias</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up mb-2" style="font-size: 2rem;"></i>
+                    <h4>{{ user_level|default:1 }}</h4>
+                    <p class="mb-0">Nivel Actual</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-4">
+        <!-- Juegos populares -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-controller me-2"></i>
+                        Juegos Populares
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if popular_games %}
+                        {% for game in popular_games %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="mb-1">{{ game.NombreJuego }}</h6>
+                                <small class="text-muted">{{ game.Descripcion }}</small>
+                            </div>
+                            <span class="badge bg-primary">{{ game.NivelDificultad }}/5</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No hay juegos disponibles</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Actividades recientes -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clipboard-check me-2"></i>
+                        Actividades Recientes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if actividades_asignadas %}
+                        {% for actividad in actividades_asignadas %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="mb-1">{{ actividad.Titulo }}</h6>
+                                <small class="text-muted">{{ actividad.Instrucciones|truncatewords:10 }}</small>
+                            </div>
+                            <span class="badge bg-success">Activa</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No hay actividades asignadas</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enlaces rápidos -->
+    <div class="row g-4 mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning me-2"></i>
+                        Acciones Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="{% url 'gamification:game_list' %}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-controller me-2"></i>Jugar
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'gamification:desafios_list' %}" class="btn btn-outline-warning w-100">
+                                <i class="bi bi-star me-2"></i>Desafíos
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'gamification:rankings_list' %}" class="btn btn-outline-success w-100">
+                                <i class="bi bi-list-ol me-2"></i>Rankings
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'gamification:estadisticas_personales' %}" class="btn btn-outline-info w-100">
+                                <i class="bi bi-graph-up me-2"></i>Estadísticas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

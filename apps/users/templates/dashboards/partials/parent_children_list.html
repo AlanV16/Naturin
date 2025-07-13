@@ -1,0 +1,23 @@
+{% if children %}
+    {% for child in children %}
+    <div class="col-md-6 mb-3">
+        <div class="card child-card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <img src="{% static 'images/child_placeholder.png' %}" alt="Foto del niño" class="rounded-circle" width="80">
+                </div>
+                <h6 class="card-title fw-bold">{{ child.name }}</h6>
+                <p class="small text-muted mb-2">Grado: {{ child.grade }}</p>
+                <div class="progress mb-2">
+                    <div class="progress-bar bg-success" role="progressbar" aria-valuenow="{{ child.progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ child.progress }}%"></div>
+                </div>
+                <p class="small mb-0">Progreso: {{ child.progress }}%</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="col-12">
+    <p class="text-muted">No hay hijos registrados.</p>
+</div>
+{% endif %} 

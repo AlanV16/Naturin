@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Search Users - NatureIn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .search-form {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+    
+    .user-card {
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        transition: box-shadow 0.3s;
+    }
+    
+    .user-card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 15px;
+    }
+    
+    .user-info {
+        flex: 1;
+    }
+    
+    .user-type-badge {
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 10px;
+    }
+    
+    .user-type-student { background: #28a745; color: white; }
+    .user-type-teacher { background: #007bff; color: white; }
+    .user-type-parent { background: #ffc107; color: black; }
+    .user-type-admin { background: #dc3545; color: white; }
+    
+    .back-btn {
+        margin-bottom: 20px;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-container">
+    <a href="{% url 'messaging_dashboard' %}" class="btn btn-outline-secondary back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Messages
+    </a>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-search"></i> Search Users</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="search-form">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" 
+                           placeholder="Search by username, first name, or last name..." 
+                           value="{{ query }}" required>
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            {% if query %}
+                <h6>Search Results for "{{ query }}"</h6>
+                
+                {% if users %}
+                    {% for user in users %}
+                        <div class="user-card">
+                            <div class="d-flex align-items-center">
+                                {% if user.avatar %}
+                                    <img src="{{ user.avatar.url }}" alt="{{ user.username }}" class="user-avatar">
+                                {% else %}
+                                    <div class="user-avatar bg-secondary d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="user-info">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">{{ user.get_full_name|default:user.username }}</h6>
+                                            <small class="text-muted">@{{ user.username }}</small>
+                                        </div>
+                                        <span class="user-type-badge user-type-{% if user.user_type == 1 %}student{% elif user.user_type == 2 %}teacher{% elif user.user_type == 3 %}parent{% else %}admin{% endif %}">
+                                            {% if user.user_type == 1 %}Student{% elif user.user_type == 2 %}Teacher{% elif user.user_type == 3 %}Parent{% else %}Admin{% endif %}
+                                        </span>
+                                    </div>
+                                    
+                                    {% if user.email %}
+                                        <small class="text-muted">
+                                            <i class="fas fa-envelope"></i> {{ user.email }}
+                                        </small>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="ml-3">
+                                    <a href="{% url 'new_private_message' %}?recipient={{ user.username }}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-comment"></i> Message
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-results">
+                        <i class="fas fa-search fa-3x mb-3"></i>
+                        <h5>No users found</h5>
+                        <p>Try searching with a different term.</p>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center text-muted">
+                    <i class="fas fa-search fa-3x mb-3"></i>
+                    <h5>Search for Users</h5>
+                    <p>Enter a username, first name, or last name to find users to message.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-focus on search input
+    document.querySelector('input[name="q"]').focus();
+    
+    // Handle search form submission
+    document.querySelector('.search-form').addEventListener('submit', function(e) {
+        const query = document.querySelector('input[name="q"]').value.trim();
+        if (!query) {
+            e.preventDefault();
+            alert('Please enter a search term');
+        }
+    });
+</script>
+{% endblock %} 

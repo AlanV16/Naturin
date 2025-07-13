@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="container-fluid py-5" style="background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);">
+    <div class="container">
+        <div class="row align-items-center text-white">
+            <div class="col-md-6">
+                <h1 class="display-3 fw-bold mb-3">Cascada "El León"</h1>
+                <p class="lead fs-4 mb-4">Una joya natural en el corazón de la selva amazónica</p>
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
+                        <i class="fas fa-water me-2"></i>25 metros de altura
+                    </span>
+                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
+                        <i class="fas fa-thermometer-half me-2"></i>Clima cálido y húmedo
+                    </span>
+                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
+                        <i class="fas fa-map-marker-alt me-2"></i>Tingo María, Huánuco
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div id="carouselCascada" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#carouselCascada" data-bs-slide-to="0" class="active"></button>
+                        <button type="button" data-bs-target="#carouselCascada" data-bs-slide-to="1"></button>
+                        <button type="button" data-bs-target="#carouselCascada" data-bs-slide-to="2"></button>
+                    </div>
+                    <div class="carousel-inner rounded-4 shadow-lg">
+                        <div class="carousel-item active">
+                            <img src="{% static 'images/explore/catarata_leon.png' %}" class="d-block w-100 img-zoom" style="height:400px;object-fit:cover;" alt="Cascada El León">
+                            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-2">
+                                <h5>Vista principal</h5>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'images/explore/catarata_leon2.png' %}" class="d-block w-100 img-zoom" style="height:400px;object-fit:cover;" alt="Cascada El León">
+                            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-2">
+                                <h5>Paisaje natural</h5>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'images/explore/catarata_leon3.png' %}" class="d-block w-100 img-zoom" style="height:400px;object-fit:cover;" alt="Cascada El León">
+                            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-2">
+                                <h5>Entorno selvático</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselCascada" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                        <span class="visually-hidden">Anterior</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselCascada" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                        <span class="visually-hidden">Siguiente</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container py-5">
+    
+    <!-- Description Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3" style="color:#1976d2;">Biodiversidad en estado puro</h2>
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <p class="lead text-muted fs-5">La Cascada "El León" es una hermosa caída de agua rica en biodiversidad debido a su ubicación estratégica en la selva alta peruana. Este destino único es ideal para el ecoturismo y la observación de la fascinante biodiversidad amazónica.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flora y Fauna Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-header bg-light text-dark text-center py-3 border-bottom">
+                    <h3 class="fw-bold mb-0" style="color:#2d5016;">
+                        <i class="fas fa-leaf me-2"></i>Flora destacada
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-seedling text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-1">Heliconias</h6>
+                                    <p class="text-muted mb-0 small">Plantas ornamentales tropicales de gran belleza.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-tree text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-1">Bromelias</h6>
+                                    <p class="text-muted mb-0 small">Epífitas que crecen en los árboles.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-spa text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-1">Helechos</h6>
+                                    <p class="text-muted mb-0 small">Especies perfectamente adaptadas a la humedad.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-leaf text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-1">Musgos</h6>
+                                    <p class="text-muted mb-0 small">Abundantes en las rocas húmedas.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-flower text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-1">Orquídeas</h6>
+                                    <p class="text-muted mb-0 small">Variedad de especies epífitas exóticas.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-header bg-light text-dark text-center py-3 border-bottom">
+                    <h3 class="fw-bold mb-0" style="color:#2d5016;">
+                        <i class="fas fa-paw me-2"></i>Fauna destacada
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-dove text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Aves acuáticas</h6>
+                                    <p class="text-muted mb-0 small">Garzas y patos silvestres en su hábitat natural.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-fish text-info"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Peces</h6>
+                                    <p class="text-muted mb-0 small">Diversas especies de agua dulce amazónica.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-dragon text-warning"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Reptiles</h6>
+                                    <p class="text-muted mb-0 small">Lagartijas y serpientes de la selva.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-frog text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Anfibios</h6>
+                                    <p class="text-muted mb-0 small">Ranas y sapos adaptados al ambiente húmedo.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-danger bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-bug text-danger"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Insectos</h6>
+                                    <p class="text-muted mb-0 small">Mariposas coloridas y libélulas acuáticas.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map and Activities Section -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header bg-light text-dark py-3 border-bottom">
+                    <h4 class="fw-bold mb-0" style="color:#2d5016;">
+                        <i class="fas fa-map-marked-alt me-2"></i>Ubicación en el mapa
+                    </h4>
+                </div>
+                <div class="card-body p-0">
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.google.com/maps?q=-9.295,-76.012&z=14&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 d-flex flex-column gap-3">
+            <div class="card border-0 shadow-lg" style="min-height:120px;">
+                <div class="card-header bg-light text-dark py-2 border-bottom">
+                    <h4 class="fw-bold mb-0 fs-5" style="color:#1976d2;">
+                        <i class="fas fa-binoculars me-2"></i>Actividades
+                    </h4>
+                </div>
+                <div class="card-body py-3 px-4">
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2 d-flex align-items-center"><i class="fas fa-hiking text-success me-2"></i>Ecoturismo</li>
+                        <li class="mb-2 d-flex align-items-center"><i class="fas fa-route text-primary me-2"></i>Senderos interpretativos</li>
+                        <li class="mb-2 d-flex align-items-center"><i class="fas fa-eye text-warning me-2"></i>Miradores naturales</li>
+                        <li class="d-flex align-items-center"><i class="fas fa-camera text-info me-2"></i>Fotografía de naturaleza</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card border-0 shadow-lg flex-fill">
+                <div class="card-header bg-light text-dark py-2 border-bottom">
+                    <h4 class="fw-bold mb-0 fs-5" style="color:#1976d2;">
+                        <i class="fas fa-clock me-2"></i>Horarios y acceso
+                    </h4>
+                </div>
+                <div class="card-body py-3 px-4">
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-clock text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1" style="color:#1976d2;">Horario de atención</h6>
+                            <p class="text-muted mb-0 small">Lunes a domingo<br>8:00 a.m. - 5:00 p.m.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-map-marker-alt text-info"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1" style="color:#1976d2;">Acceso</h6>
+                            <p class="text-muted mb-0 small">Carretera a Huánuco, desvío a Tambillo Chico<br>14 km de Tingo María</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start">
+                        <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-info-circle text-warning"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-2" style="color:#1976d2;">Recomendaciones</h6>
+                            <div class="small text-muted">
+                                <div class="mb-1">• Calzado antideslizante</div>
+                                <div class="mb-1">• Llevar agua</div>
+                                <div>• Respetar señalización</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #e3f2fd 0%, #e1f5fe 100%);">
+                <div class="card-body text-center py-5">
+                    <h3 class="fw-bold mb-3" style="color:#1976d2;">
+                        <i class="fas fa-water me-2"></i>Un paraíso para el ecoturismo
+                    </h3>
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8">
+                            <p class="lead text-muted mb-4">La Cascada El León es un destino ideal para el ecoturismo, ofreciendo senderos interpretativos, miradores naturales y la oportunidad de observar la rica biodiversidad de la selva alta peruana. Es perfecta para la fotografía de naturaleza y la educación ambiental, brindando una experiencia inolvidable en contacto directo con la naturaleza amazónica.</p>
+                            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                                <span class="badge bg-primary px-3 py-2 rounded-pill fs-6">
+                                    <i class="fas fa-leaf me-1"></i>Ecoturismo
+                                </span>
+                                <span class="badge bg-info px-3 py-2 rounded-pill fs-6">
+                                    <i class="fas fa-water me-1"></i>Cascada Natural
+                                </span>
+                                <span class="badge bg-success px-3 py-2 rounded-pill fs-6">
+                                    <i class="fas fa-binoculars me-1"></i>Observación Wildlife
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

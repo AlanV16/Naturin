@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="{% static 'css/student/courses.css' %}">
+
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <a href="{% url 'users:dashboard_student' user_id=user.id %}" class="back-to-dashboard">
+                <i class="bi bi-arrow-left"></i>
+                Volver 
+            </a>
+            
+            <!-- Header Section -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-2">
+                        <i class="bi bi-journal-bookmark me-2"></i>Mis Cursos
+                    </h2>
+                    <p class="text-muted mb-0">Gestiona y accede a todos tus cursos</p>
+                </div>
+                <button class="btn join-course-btn" data-bs-toggle="modal" data-bs-target="#joinCourseModal">
+                    <i class="bi bi-plus-lg me-2"></i>Unirse a Curso
+                </button>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="position-relative">
+                        <input type="text" class="form-control search-bar" placeholder="Buscar cursos..." id="courseSearch">
+                        <i class="bi bi-search position-absolute" style="right: 20px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="filter-tabs d-flex">
+                        <button class="filter-tab active" data-filter="all">Todos</button>
+                        <button class="filter-tab" data-filter="active">Activos</button>
+                        <button class="filter-tab" data-filter="completed">Completados</button>
+                        <button class="filter-tab" data-filter="archived">Archivados</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Courses Grid -->
+            <div class="row g-4" id="coursesGrid">
+                {% if courses %}
+                    {% for course in courses %}
+                    <div class="col-md-6 col-lg-4 course-item" data-status="{{ course.status }}">
+                        <div class="card course-card" onclick="openCourse({{ course.id }})">
+                            <div class="course-header {{ course.subject|lower }}">
+                                <div class="course-icon">
+                                    <i class="bi bi-{{ course.icon }}"></i>
+                                </div>
+                            </div>
+                            <div class="course-body">
+                                <div>
+                                    <div class="course-title">{{ course.name }}</div>
+                                    <div class="course-teacher">{{ course.teacher_name }}</div>
+                                </div>
+                                <div class="course-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-number">{{ course.students_count }}</span>
+                                        <span class="stat-label">Estudiantes</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number">{{ course.assignments_count }}</span>
+                                        <span class="stat-label">Tareas</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number">{{ course.progress }}%</span>
+                                        <span class="stat-label">Progreso</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Empty State -->
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <div class="empty-state-image">
+                                <img src="{% static 'images/miscellaneous/not_found.png' %}" alt="Sin cursos" class="img-fluid">
+                            </div>
+                            <h4>¡Aún no tienes cursos!</h4>
+                            <p>Únete a tu primer curso para comenzar tu aventura de aprendizaje</p>
+                            <button class="btn join-course-btn" data-bs-toggle="modal" data-bs-target="#joinCourseModal">
+                                <i class="bi bi-plus-lg me-2"></i>Unirse a Curso
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para unirse a curso -->
+<div class="modal fade" id="joinCourseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Unirse a un Curso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{% url 'users:join_class' %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="course_code" class="form-label">Código del Curso</label>
+                        <input type="text" class="form-control" id="course_code" name="course_code" 
+                               placeholder="Ej: MAT101" required>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn join-course-btn">Unirse</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openCourse(courseId) {
+    window.location.href = `{% url 'users:course_detail' course_id=0 %}`.replace('0', courseId);
+}
+
+// Funcionalidad de búsqueda
+document.getElementById('courseSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const courseItems = document.querySelectorAll('.course-item');
+    
+    courseItems.forEach(item => {
+        const courseName = item.querySelector('.course-title').textContent.toLowerCase();
+        const teacherName = item.querySelector('.course-teacher').textContent.toLowerCase();
+        
+        if (courseName.includes(searchTerm) || teacherName.includes(searchTerm)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
+
+// Funcionalidad de filtros
+document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        // Actualizar tabs activos
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Filtrar cursos
+        const filter = this.dataset.filter;
+        const courseItems = document.querySelectorAll('.course-item');
+        
+        courseItems.forEach(item => {
+            if (filter === 'all' || item.dataset.status === filter) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Animaciones
+document.addEventListener('DOMContentLoaded', function() {
+    const courseCards = document.querySelectorAll('.course-card');
+    courseCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+
+        }, index * 100); // Animación escalonada
+
+    });
+});
+</script>
+{% endblock %}

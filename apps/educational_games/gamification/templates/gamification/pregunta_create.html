@@ -1,0 +1,317 @@
+{% extends 'gamification/base.html' %}
+{% load static %}
+
+{% block title %}Agregar Pregunta - {{ test.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm border-0" style="border-radius: 16px;">
+                <div class="card-header bg-primary text-white border-0" style="border-radius: 16px 16px 0 0;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-question-circle me-3" style="font-size: 2rem;"></i>
+                        <div>
+                            <h4 class="mb-0">Agregar Pregunta</h4>
+                            <p class="mb-0 opacity-75">{{ test.titulo }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" id="pregunta-form">
+                        {% csrf_token %}
+                        
+                        <!-- Información de la Pregunta -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="pregunta" class="form-label fw-semibold fs-5">
+                                        <i class="bi bi-question-circle me-2"></i>Pregunta *
+                                    </label>
+                                    <textarea class="form-control" 
+                                              id="pregunta" 
+                                              name="pregunta" 
+                                              rows="3"
+                                              placeholder="Escribe la pregunta aquí..."
+                                              required></textarea>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Formula la pregunta de manera clara y específica
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Configuración de la Pregunta -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="tipo_pregunta" class="form-label fw-semibold">
+                                        <i class="bi bi-tag me-2"></i>Tipo de Pregunta *
+                                    </label>
+                                    <select class="form-select" id="tipo_pregunta" name="tipo_pregunta" required>
+                                        <option value="">Selecciona un tipo</option>
+                                        <option value="opcion_multiple">Opción Múltiple</option>
+                                        <option value="verdadero_falso">Verdadero/Falso</option>
+                                        <option value="texto_corto">Texto Corto</option>
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Define el formato de respuesta esperado
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="puntos" class="form-label fw-semibold">
+                                        <i class="bi bi-star me-2"></i>Puntos *
+                                    </label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="puntos" 
+                                           name="puntos" 
+                                           value="10" 
+                                           min="1" 
+                                           max="50" 
+                                           required>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Entre 1 y 50 puntos
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="orden" class="form-label fw-semibold">
+                                        <i class="bi bi-list-ol me-2"></i>Orden *
+                                    </label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="orden" 
+                                           name="orden" 
+                                           value="1" 
+                                           min="1" 
+                                           required>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Posición en el test
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Opciones para preguntas de opción múltiple -->
+                        <div id="opciones-container" class="mb-4" style="display: none;">
+                            <div class="card border-primary" style="border-radius: 12px;">
+                                <div class="card-header bg-primary text-white border-0" style="border-radius: 12px 12px 0 0;">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-list-check me-2"></i>Opciones de Respuesta
+                                    </h6>
+                                    <small class="opacity-75">Marca la opción correcta con el radio button</small>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div id="opciones-list">
+                                        <!-- Opción 1 -->
+                                        <div class="row g-3 mb-3 opcion-item">
+                                            <div class="col-1 d-flex align-items-center justify-content-center">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="correcta" value="0" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-10">
+                                                <input type="text" 
+                                                       class="form-control opcion-input" 
+                                                       name="opciones[]" 
+                                                       placeholder="Opción 1"
+                                                       required>
+                                            </div>
+                                            <div class="col-1 d-flex align-items-center justify-content-center">
+                                                <button type="button" class="btn btn-outline-danger btn-sm remove-opcion" style="display: none;">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Opción 2 -->
+                                        <div class="row g-3 mb-3 opcion-item">
+                                            <div class="col-1 d-flex align-items-center justify-content-center">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="correcta" value="1" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-10">
+                                                <input type="text" 
+                                                       class="form-control opcion-input" 
+                                                       name="opciones[]" 
+                                                       placeholder="Opción 2"
+                                                       required>
+                                            </div>
+                                            <div class="col-1 d-flex align-items-center justify-content-center">
+                                                <button type="button" class="btn btn-outline-danger btn-sm remove-opcion" style="display: none;">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2 mt-3">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="agregar-opcion">
+                                            <i class="bi bi-plus-circle me-1"></i>Agregar Opción
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="quitar-opcion">
+                                            <i class="bi bi-dash-circle me-1"></i>Quitar Opción
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="alert alert-info mt-3" style="border-radius: 8px;">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            <div>
+                                                <small class="fw-semibold">Recuerda:</small>
+                                                <small class="d-block">Debes seleccionar exactamente una opción como correcta</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Información Importante -->
+                        <div class="alert alert-info" style="border-radius: 12px;">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-info-circle me-3" style="font-size: 1.5rem; margin-top: 2px;"></i>
+                                <div>
+                                    <h6 class="mb-2 fw-semibold">Tipos de Preguntas</h6>
+                                    <ul class="mb-0 small">
+                                        <li><strong>Opción Múltiple:</strong> El estudiante selecciona una respuesta de varias opciones</li>
+                                        <li><strong>Verdadero/Falso:</strong> El estudiante debe elegir entre verdadero o falso</li>
+                                        <li><strong>Texto Corto:</strong> El estudiante escribe una respuesta breve (requiere revisión manual)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botones de Acción -->
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg flex-fill">
+                                <i class="bi bi-check-circle me-2"></i>Guardar Pregunta
+                            </button>
+                            <a href="{% url 'gamification:test_detail' test.IDtest %}" class="btn btn-outline-secondary btn-lg flex-fill">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoPregunta = document.getElementById('tipo_pregunta');
+    const opcionesContainer = document.getElementById('opciones-container');
+    const agregarOpcionBtn = document.getElementById('agregar-opcion');
+    const quitarOpcionBtn = document.getElementById('quitar-opcion');
+    const opcionesList = document.getElementById('opciones-list');
+    let opcionCount = 2;
+    
+    // Mostrar/ocultar opciones según el tipo de pregunta
+    tipoPregunta.addEventListener('change', function() {
+        if (this.value === 'opcion_multiple') {
+            opcionesContainer.style.display = 'block';
+        } else {
+            opcionesContainer.style.display = 'none';
+        }
+    });
+    
+    // Agregar nueva opción
+    agregarOpcionBtn.addEventListener('click', function() {
+        if (opcionCount < 6) { // Máximo 6 opciones
+            const newOpcion = document.createElement('div');
+            newOpcion.className = 'row g-3 mb-3 opcion-item';
+            newOpcion.innerHTML = `
+                <div class="col-1 d-flex align-items-center justify-content-center">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="correcta" value="${opcionCount}" required>
+                    </div>
+                </div>
+                <div class="col-10">
+                    <input type="text" 
+                           class="form-control opcion-input" 
+                           name="opciones[]" 
+                           placeholder="Opción ${opcionCount + 1}"
+                           required>
+                </div>
+                <div class="col-1 d-flex align-items-center justify-content-center">
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-opcion">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            opcionesList.appendChild(newOpcion);
+            opcionCount++;
+            
+            // Mostrar botón de quitar opción si hay más de 2
+            if (opcionCount > 2) {
+                quitarOpcionBtn.style.display = 'inline-block';
+            }
+            
+            if (opcionCount >= 6) {
+                agregarOpcionBtn.style.display = 'none';
+            }
+        }
+    });
+    
+    // Quitar última opción
+    quitarOpcionBtn.addEventListener('click', function() {
+        if (opcionCount > 2) {
+            const lastOpcion = opcionesList.lastElementChild;
+            if (lastOpcion) {
+                lastOpcion.remove();
+                opcionCount--;
+                
+                if (opcionCount <= 2) {
+                    quitarOpcionBtn.style.display = 'none';
+                }
+                
+                if (opcionCount < 6) {
+                    agregarOpcionBtn.style.display = 'inline-block';
+                }
+            }
+        }
+    });
+    
+    // Validar formulario
+    document.getElementById('pregunta-form').addEventListener('submit', function(e) {
+        const tipo = tipoPregunta.value;
+        
+        if (tipo === 'opcion_multiple') {
+            const opciones = document.querySelectorAll('.opcion-input');
+            const correcta = document.querySelector('input[name="correcta"]:checked');
+            
+            if (!correcta) {
+                e.preventDefault();
+                alert('Debes seleccionar una opción correcta.');
+                return;
+            }
+            
+            let opcionesValidas = 0;
+            opciones.forEach(opcion => {
+                if (opcion.value.trim() !== '') {
+                    opcionesValidas++;
+                }
+            });
+            
+            if (opcionesValidas < 2) {
+                e.preventDefault();
+                alert('Debes agregar al menos 2 opciones válidas.');
+                return;
+            }
+        }
+    });
+});
+</script>
+{% endblock %} 

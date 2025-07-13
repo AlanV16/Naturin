@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Verificación de Email{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/forms/register.css' %}">
+<style>
+    .verification-container {
+        max-width: 500px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .verification-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .verification-icon {
+        font-size: 4rem;
+        color: #4CAF50;
+        margin-bottom: 1rem;
+    }
+    
+    .verification-title {
+        color: #2c3e50;
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .verification-subtitle {
+        color: #7f8c8d;
+        font-size: 1rem;
+        margin-bottom: 0;
+    }
+    
+    .email-info {
+        background: #f8f9fa;
+        border-left: 4px solid #4CAF50;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        border-radius: 5px;
+    }
+    
+    .code-input {
+        text-align: center;
+        font-size: 1.5rem;
+        letter-spacing: 0.5rem;
+        padding: 1rem;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        margin: 1rem 0;
+        transition: border-color 0.3s;
+    }
+    
+    .code-input:focus {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+    }
+    
+    .verify-btn {
+        width: 100%;
+        padding: 1rem;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .verify-btn:hover {
+        background: #45a049;
+    }
+    
+    .resend-section {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #eee;
+    }
+    
+    .resend-btn {
+        color: #4CAF50;
+        text-decoration: none;
+        font-weight: 500;
+        cursor: pointer;
+    }
+    
+    .resend-btn:hover {
+        text-decoration: underline;
+    }
+    
+    .countdown {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+    
+    .instructions {
+        background: #e3f2fd;
+        border: 1px solid #bbdefb;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
+    
+    .instructions h5 {
+        color: #1976d2;
+        margin-bottom: 1rem;
+    }
+    
+    .instructions ol {
+        margin: 0;
+        padding-left: 1.2rem;
+    }
+    
+    .instructions li {
+        margin-bottom: 0.5rem;
+        color: #455a64;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="verification-container">
+        <div class="verification-header">
+            <div class="verification-icon">📧</div>
+            <h2 class="verification-title">Verificación de Email</h2>
+            <p class="verification-subtitle">Confirma tu dirección de correo electrónico</p>
+        </div>
+
+        <div class="email-info">
+            <strong>👤 Usuario:</strong> {{ user.get_full_name|default:user.username }}<br>
+            <strong>📧 Email:</strong> {{ user.email }}<br>
+            <strong>👨‍🏫 Tipo:</strong> {{ user.get_user_type_display }}
+        </div>
+
+        <div class="instructions">
+            <h5>📋 Instrucciones:</h5>
+            <ol>
+                <li>Revisa tu bandeja de entrada (y spam) en <strong>{{ user.email }}</strong></li>
+                <li>Busca el correo de "NatureIn - Verificación de Cuenta"</li>
+                <li>Copia el código de 6 dígitos</li>
+                <li>Pégalo en el campo de abajo y haz clic en "Verificar"</li>
+            </ol>
+        </div>
+
+        <form method="post" id="verification-form">
+            {% csrf_token %}
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="mb-3">
+                <label for="{{ form.verification_code.id_for_label }}" class="form-label">
+                    <strong>🔢 Código de Verificación</strong>
+                </label>
+                {{ form.verification_code|add_class:"code-input form-control" }}
+                {% if form.verification_code.errors %}
+                    <div class="text-danger mt-2">
+                        {% for error in form.verification_code.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <small class="form-text text-muted">
+                    ⏰ El código expira en 15 minutos
+                </small>
+            </div>
+
+            <button type="submit" class="verify-btn">
+                🔍 Verificar Email
+            </button>
+        </form>
+
+        <div class="resend-section">
+            <p class="mb-2">¿No recibiste el código?</p>
+            <a href="#" class="resend-btn" id="resend-code" data-user-id="{{ user.id }}">
+                📨 Reenviar código
+            </a>
+            <div class="countdown" id="countdown" style="display: none;">
+                Puedes solicitar otro código en: <span id="timer">60</span> segundos
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <p class="text-muted">
+                <small>
+                    Si tienes problemas, contacta al soporte técnico.<br>
+                    <a href="{% url 'users:login' %}" class="text-decoration-none">← Volver al inicio de sesión</a>
+                </small>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const resendBtn = document.getElementById('resend-code');
+    const countdown = document.getElementById('countdown');
+    const timer = document.getElementById('timer');
+    
+    let countdownTime = 0;
+    let countdownInterval = null;
+    
+    function startCountdown(seconds) {
+        countdownTime = seconds;
+        resendBtn.style.display = 'none';
+        countdown.style.display = 'block';
+        
+        countdownInterval = setInterval(function() {
+            timer.textContent = countdownTime;
+            countdownTime--;
+            
+            if (countdownTime < 0) {
+                clearInterval(countdownInterval);
+                resendBtn.style.display = 'inline';
+                countdown.style.display = 'none';
+            }
+        }, 1000);
+    }
+    
+    resendBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const userId = this.getAttribute('data-user-id');
+        
+        fetch(`/accounts/reenviar-codigo/${userId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ ' + data.message);
+                startCountdown(60);
+            } else {
+                alert('❌ ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('❌ Error enviando el código. Intenta nuevamente.');
+        });
+    });
+    
+    // Auto-focus en el campo de código
+    document.getElementById('{{ form.verification_code.id_for_label }}').focus();
+});
+</script>
+{% endblock %}

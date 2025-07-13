@@ -1,0 +1,24 @@
+{% if recent_achievements %}
+    {% for achievement in recent_achievements %}
+    <div class="achievement-badge {{ achievement.css_class }}">
+        <i class="bi bi-{{ achievement.icon }}"></i>
+        <div class="fw-bold">{{ achievement.name }}</div>
+        <small>{{ achievement.points }} pts</small>
+        {% if achievement.earned %}
+            <div class="small">{{ achievement.earned_at|date:"d M" }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    <div class="text-center mt-3">
+        <a href="{% url 'users:student_achievements' %}" class="btn btn-outline-primary">
+            <i class="bi bi-eye me-2"></i>
+            Ver Todos los Logros
+        </a>
+    </div>
+{% else %}
+<div class="text-center py-4">
+    <i class="bi bi-trophy text-muted" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-2">¡Completa actividades para obtener logros!</p>
+    <a href="{% url 'users:student_achievements' %}" class="btn btn-student-primary">Ver Logros Disponibles</a>
+</div>
+{% endif %} 

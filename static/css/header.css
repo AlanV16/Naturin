@@ -34,6 +34,7 @@
     font-weight: 600;
 }
 
+
 .navbar-toggler {
     display: none;
     background: #fff;
@@ -145,7 +146,7 @@
     z-index: 1001;
 }
 
-/* --- MODO OSCURO --- */
+/* --- MODO OSCURO ---*/
 body.dark-mode .navbar,
 body.dark-mode header,
 body.dark-mode .navbar .container {
@@ -155,8 +156,17 @@ body.dark-mode .navbar .container {
 }
 
 body.dark-mode .navbar-nav .nav-link,
-body.dark-mode .brand-title {
+/*body.dark-mode .brand-title {
     color: #e1e1e1 !important;
+}*/
+
+/* Modifica esta parte en tu header.css */
+body.dark-mode .brand-title .text-success {
+    color: #388e3c !important; /* Verde en modo oscuro */
+}
+
+body.dark-mode .brand-title .text-warning {
+    color: #ffc107 !important; /* Amarillo en modo oscuro */
 }
 
 body.dark-mode .navbar-nav .nav-link:hover,
@@ -186,6 +196,16 @@ body.dark-mode .dropdown-item.role-option {
 body.dark-mode .dropdown-item.role-option:hover {
     background: #23272b !important;
     color: #d7d4c6 !important;
+}
+
+
+
+/* Transiciones suaves para el cambio de modo */
+body.dark-mode .navbar,
+body.dark-mode .nav-link,
+body.dark-mode .dropdown-menu,
+body.dark-mode .dropdown-item {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 /* --- RESPONSIVE Y MENÚ MÓVIL --- */
@@ -258,6 +278,7 @@ body.dark-mode .dropdown-item.role-option:hover {
         overflow: visible !important;
     }
 }
+
 
 /* Oculta el menú móvil y el botón hamburguesa en escritorio */
 @media (min-width: 992px) {

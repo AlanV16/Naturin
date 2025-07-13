@@ -1,0 +1,517 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load user_extras %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/dashboard_optimized.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-bg">
+    <div class="container-fluid py-2">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-none d-md-block">
+                <div class="sidebar-dashboard">
+                    <div class="text-center py-4">
+                        <img src="{% static 'images/mascota/tuki.png' %}" alt="Tuki" width="80" height="80" class="mb-3" loading="lazy">
+                        <h6 class="fw-bold text-primary">¡Hola, Profesor!</h6>
+                    </div>
+                    <nav class="nav flex-column px-2 pb-4">
+                        <a class="nav-link sidebar-btn" href="{% url 'users:dashboard_teacher' user_id=user.id %}">
+                            <i class="bi bi-house-door-fill me-2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_courses' %}">
+                            <i class="bi bi-journal-bookmark-fill me-2"></i>
+                            <span>Mis Cursos</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_assignments' %}">
+                            <i class="bi bi-clipboard-check me-2"></i>
+                            <span>Tareas</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_grades' %}">
+                            <i class="bi bi-bar-chart-fill me-2"></i>
+                            <span>Calificaciones</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'pedagogical_guides:guide_list' %}">
+                            <i class="bi bi-file-earmark-text me-2"></i>
+                            <span>Guías Pedagógicas</span>
+                        </a>
+                        <a class="nav-link sidebar-btn active" href="{% url 'users:teacher_students' %}">
+                            <i class="bi bi-people-fill me-2"></i>
+                            <span>Estudiantes</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_calendar' %}">
+                            <i class="bi bi-calendar3 me-2"></i>
+                            <span>Calendario</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_messages' %}">
+                            <i class="bi bi-chat-dots-fill me-2"></i>
+                            <span>Mensajes</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 px-3">
+                <div class="dashboard-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold mb-0">
+                            <i class="bi bi-people"></i>
+                            Mis Estudiantes
+                        </h4>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary" onclick="exportStudentList()">
+                                <i class="bi bi-download"></i>
+                                Exportar Lista
+                            </button>
+                            <button class="btn btn-teacher-primary" onclick="showStudentStats()">
+                                <i class="bi bi-bar-chart"></i>
+                                Estadísticas
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="stat-card text-center">
+                                <div class="stat-icon">
+                                    <i class="bi bi-people-fill"></i>
+                                </div>
+                                <div class="stat-number">{{ total_students }}</div>
+                                <div class="stat-label">Total Estudiantes</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card text-center">
+                                <div class="stat-icon">
+                                    <i class="bi bi-journal-bookmark"></i>
+                                </div>
+                                <div class="stat-number">{{ active_courses }}</div>
+                                <div class="stat-label">Cursos Activos</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card text-center">
+                                <div class="stat-icon">
+                                    <i class="bi bi-trophy"></i>
+                                </div>
+                                <div class="stat-number">{{ enrollments|length }}</div>
+                                <div class="stat-label">Inscripciones</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card text-center">
+                                <div class="stat-icon">
+                                    <i class="bi bi-graph-up"></i>
+                                </div>
+                                <div class="stat-number">{{ average_grade }}%</div>
+                                <div class="stat-label">Promedio General</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter and Search -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="searchStudent" placeholder="Buscar estudiante por nombre...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="filterCourse">
+                                <option value="">Todos los cursos</option>
+                                {% for course in teacher_courses %}
+                                    <option value="{{ course.id }}">{{ course.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="sortBy">
+                                <option value="name">Ordenar por nombre</option>
+                                <option value="course">Ordenar por curso</option>
+                                <option value="enrollment_date">Ordenar por fecha inscripción</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Students by Course -->
+                    <div class="row">
+                        {% for course_name, course_enrollments in students_by_course.items %}
+                            <div class="col-12 mb-4">
+                                <div class="course-section">
+                                    <div class="course-header">
+                                        <h5 class="fw-bold mb-0">
+                                            <i class="bi bi-journal-bookmark me-2"></i>
+                                            {{ course_name }}
+                                        </h5>
+                                        <span class="badge bg-primary">{{ course_enrollments|length }} estudiante{% if course_enrollments|length != 1 %}s{% endif %}</span>
+                                    </div>
+                                    
+                                    <div class="students-grid">
+                                        {% for enrollment in course_enrollments %}
+                                            <div class="student-card" data-course="{{ enrollment.course.id }}" data-name="{{ enrollment.student.get_full_name|lower }}">
+                                                <div class="student-avatar">
+                                                    {% if enrollment.student.avatar %}
+                                                        <img src="{{ enrollment.student.avatar.url }}" alt="{{ enrollment.student.get_full_name }}" class="rounded-circle" width="60" height="60">
+                                                    {% else %}
+                                                        <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: bold; font-size: 1.2rem;">
+                                                            {{ enrollment.student.first_name|first|upper }}{{ enrollment.student.last_name|first|upper }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="student-info">
+                                                    <h6 class="student-name">{{ enrollment.student.get_full_name }}</h6>
+                                                    <p class="student-email">{{ enrollment.student.email }}</p>
+                                                    <div class="student-meta">
+                                                        <small class="text-muted">
+                                                            <i class="bi bi-calendar-date me-1"></i>
+                                                            Inscrito: {{ enrollment.enrolled_at|date:"d/m/Y" }}
+                                                        </small>
+                                                    </div>
+                                                    <div class="student-progress">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <small>Progreso</small>
+                                                            <small>{{ enrollment.progress|floatformat:0 }}%</small>
+                                                        </div>
+                                                        <div class="progress" style="height: 6px;">
+                                                            <div class="progress-bar" role="progressbar" style="width: {{ enrollment.progress|floatformat:0 }}%" aria-valuenow="{{ enrollment.progress|floatformat:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="student-actions">
+                                                    <button class="btn btn-sm btn-outline-primary" onclick="viewStudentProfile({{ enrollment.student.id }})" title="Ver perfil">
+                                                        <i class="bi bi-person"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-success" onclick="viewStudentGrades({{ enrollment.student.id }}, {{ enrollment.course.id }})" title="Ver calificaciones">
+                                                        <i class="bi bi-graph-up"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-info" onclick="sendMessage({{ enrollment.student.id }})" title="Enviar mensaje">
+                                                        <i class="bi bi-chat"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="col-12">
+                                <div class="text-center text-muted py-5">
+                                    <i class="bi bi-people" style="font-size: 4rem; color: #B0BEC5;"></i>
+                                    <h5 class="mt-3">No tienes estudiantes aún</h5>
+                                    <p>Los estudiantes aparecerán aquí cuando se inscriban en tus cursos</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Search functionality
+document.getElementById('searchStudent').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const studentCards = document.querySelectorAll('.student-card');
+    
+    studentCards.forEach(card => {
+        const studentName = card.getAttribute('data-name');
+        if (studentName.includes(searchTerm)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+});
+
+// Filter by course
+document.getElementById('filterCourse').addEventListener('change', function() {
+    const selectedCourse = this.value;
+    const studentCards = document.querySelectorAll('.student-card');
+    
+    studentCards.forEach(card => {
+        if (!selectedCourse || card.getAttribute('data-course') === selectedCourse) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+});
+
+// View student profile
+function viewStudentProfile(studentId) {
+    fetch(`/users/api/teacher/student-details/${studentId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error: ' + data.error);
+                return;
+            }
+            
+            // Create modal content with real data
+            const modalContent = `
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        ${data.student.profile_picture ? 
+                            `<img src="${data.student.profile_picture}" class="rounded-circle mb-3" width="100" height="100" alt="${data.student.name}">` :
+                            `<div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 100px; height: 100px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: bold; font-size: 2rem;">
+                                ${data.student.name.split(' ').map(n => n[0]).join('')}
+                            </div>`
+                        }
+                        <h5>${data.student.name}</h5>
+                        <p class="text-muted">${data.student.email}</p>
+                    </div>
+                    <div class="col-md-8">
+                        <h6>Información General</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Nombre completo:</strong></td><td>${data.student.name}</td></tr>
+                            <tr><td><strong>Email:</strong></td><td>${data.student.email}</td></tr>
+                            <tr><td><strong>Fecha de registro:</strong></td><td>${data.student.date_joined}</td></tr>
+                            <tr><td><strong>Cursos activos:</strong></td><td>${data.courses.length}</td></tr>
+                            <tr><td><strong>Promedio general:</strong></td><td>${data.stats.average_grade}%</td></tr>
+                        </table>
+                        
+                        <h6 class="mt-3">Estadísticas</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <div class="h5 mb-0">${data.stats.completed_assignments}/${data.stats.total_assignments}</div>
+                                    <small class="text-muted">Tareas Completadas</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center">
+                                    <div class="h5 mb-0">${Math.round(data.stats.completion_rate)}%</div>
+                                    <small class="text-muted">Tasa de Compleción</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h6 class="mt-3">Cursos</h6>
+                        <div class="list-group">
+                            ${data.courses.map(course => `
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>${course.course_name}</strong><br>
+                                        <small class="text-muted">Inscrito: ${course.enrollment_date}</small>
+                                    </div>
+                                    <span class="badge bg-primary">${course.grade}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Show modal with student details
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="bi bi-person-circle"></i>
+                                Perfil de ${data.student.name}
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            ${modalContent}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" class="btn btn-primary" onclick="sendMessage(${studentId})">Enviar Mensaje</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+            
+            // Remove modal from DOM when hidden
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar el perfil del estudiante');
+        });
+}
+
+// View student grades
+function viewStudentGrades(studentId, courseId) {
+    alert('Funcionalidad de ver calificaciones en desarrollo. Estudiante ID: ' + studentId + ', Curso ID: ' + courseId);
+}
+
+// Send message to student
+function sendMessage(studentId) {
+    // Redirect to messages page with student pre-selected
+    window.location.href = `/users/teacher/messages/?student=${studentId}`;
+}
+
+// Show statistics
+function showStudentStats() {
+    alert('Funcionalidad de estadísticas en desarrollo');
+}
+
+// Export student list
+function exportStudentList() {
+    alert('Funcionalidad de exportar lista en desarrollo');
+}
+</script>
+
+<style>
+/* Teacher-specific styles */
+.btn-teacher-primary {
+    background: linear-gradient(135deg, #1976D2, #1565C0);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+}
+
+.btn-teacher-primary:hover {
+    background: linear-gradient(135deg, #1565C0, #0D47A1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(25, 118, 210, 0.3);
+    color: white;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    color: #1976D2;
+    margin-bottom: 10px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.course-section {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.course-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.students-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.student-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+
+.student-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    background: white;
+}
+
+.student-avatar {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.student-info {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.student-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.student-email {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.student-meta {
+    margin-bottom: 15px;
+}
+
+.student-progress {
+    margin-bottom: 15px;
+}
+
+.student-actions {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+.progress-bar {
+    background: linear-gradient(135deg, #1976D2, #1565C0);
+}
+
+@media (max-width: 768px) {
+    .students-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-card {
+        margin-bottom: 15px;
+    }
+}
+</style>
+{% endblock %}
