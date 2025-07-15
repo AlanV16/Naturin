@@ -93,7 +93,9 @@ class MultimediaCard(models.Model):
         Category,
         on_delete=models.CASCADE,
         related_name='multimedia_cards',
-        verbose_name="Categoría"
+        verbose_name="Categoría",
+        blank=True,
+        null=True
     )
     
     locations = models.ManyToManyField(

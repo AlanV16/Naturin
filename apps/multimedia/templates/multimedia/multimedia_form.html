@@ -10,7 +10,7 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'multimedia:list' %}">Fichas Multimedia</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'main_page:species_list' %}?tab=multimedia">Fichas Multimedia</a></li>
             <li class="breadcrumb-item active">
                 {% if form.instance.pk %}Editar{% else %}Crear{% endif %} Ficha
             </li>
@@ -228,7 +228,7 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="{{ form.category.id_for_label }}" class="form-label fw-bold">
-                                        {{ form.category.label }} <span class="text-danger">*</span>
+                                        {{ form.category.label }}
                                     </label>
                                     {{ form.category }}
                                     {% if form.category.errors %}
@@ -291,7 +291,7 @@
 
                         <!-- Botones de acción -->
                         <div class="d-flex gap-2 justify-content-end">
-                            <a href="{% url 'multimedia:list' %}" class="btn btn-outline-secondary">
+                            <a href="{% url 'multimedia:multimedia_tab' %}" class="btn btn-outline-secondary">
                                 <i class="bi bi-x-circle"></i> Cancelar
                             </a>
                             <button type="submit" class="btn btn-success">

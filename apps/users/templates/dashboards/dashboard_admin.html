@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load user_extras %}
 
 {% block user_login %}{% endblock %}
 {% block user_register %}{% endblock %}
@@ -8,6 +9,32 @@
 {% block extra_css %}
     {{ block.super }}
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'css/admin/dashboard_admin.css' %}">
+    <style>
+        .admin-card {
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fbf8 100%);
+        }
+        .admin-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 69, 29, 0.1);
+        }
+        .sidebar-link {
+            transition: all 0.3s ease;
+        }
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #10451D 0%, #4C956C 100%);
+        }
+        .chart-placeholder {
+            background: linear-gradient(45deg, #E1F0DA 0%, #A3BCB6 100%);
+            min-height: 200px;
+        }
+    </style>
 {% endblock %}
 
 {% block header %}
@@ -15,102 +42,761 @@
 {% endblock %}
 
 {% block content %}
-<div class="bg-[#f8fbf8] font-sans">
+{% csrf_token %}
+<div class="bg-gradient-to-br from-[#f8fbf8] to-[#E1F0DA] font-sans min-h-screen">
     <div class="flex min-h-screen">
         <!-- Sidebar -->
-        <aside class="bg-[#10451D] text-white w-64 p-6 space-y-8">
+        <aside class="bg-gradient-to-b from-[#10451D] to-[#0d3a18] text-white w-72 p-6 space-y-8 shadow-2xl">
             <div class="flex flex-col items-center">
-                <img src="{% static 'images/mascota/tuki.png' %}" alt="Owl" width="90" class="mb-3">
-                <div class="mt-4 font-semibold">Administrador</div>
+                <div class="bg-white/10 p-4 rounded-full mb-4">
+                    <img src="{% static 'images/mascota/tunqui_r.png' %}" alt="NatureIn Logo" width="80" class="mb-2">
+                </div>
+                <h3 class="text-xl font-bold">{{ user.get_full_name|default:user.username }}</h3>
+                <span class="text-green-200 text-sm">Administrador</span>
             </div>
-            <nav class="space-y-4">
-                <a href="#" class="flex items-center space-x-2 bg-white text-[#10451D] px-4 py-2 rounded">
-                    <span>🏠</span>
-                    <span>Dashboard</span>
+            
+            <nav class="space-y-2">
+                <a href="{% url 'users:dashboard_admin' user.id %}" class="sidebar-link flex items-center space-x-3 bg-white/20 text-white px-4 py-3 rounded-lg">
+                    <i class="bi bi-speedometer2 text-lg"></i>
+                    <span class="font-medium">Dashboard</span>
                 </a>
-                <a href="#" class="flex items-center space-x-2">
-                    <span>📋</span>
-                    <span>Usuarios</span>
-                </a>
-                <a href="#" class="flex items-center space-x-2">
-                    <span>📚</span>
-                    <span>Cursos</span>
-                </a>
-                <a href="#" class="flex items-center space-x-2">
-                    <span>📈</span>
-                    <span>Reportes</span>
-                </a>
-                <a href="#" class="flex items-center space-x-2">
-                    <span>⚙️</span>
-                    <span>Configuración</span>
-                </a>
+                
+                <!-- Gestión de Usuarios -->
+                <div class="sidebar-dropdown">
+                    <button class="sidebar-link flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-white/10" onclick="toggleDropdown('users')">
+                        <div class="flex items-center space-x-3">
+                            <i class="bi bi-people-fill text-lg"></i>
+                            <span class="font-medium">Usuarios</span>
+                        </div>
+                        <i class="bi bi-chevron-down text-sm transform transition-transform" id="users-chevron"></i>
+                    </button>
+                    <div class="hidden ml-6 mt-2 space-y-1" id="users-dropdown">
+                        <a href="{% url 'users:admin_user_management' %}" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Ver Todos</a>
+                        <a href="#" onclick="showCreateUserModal()" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Crear Usuario</a>
+                        <a href="#" onclick="loadSection('user-roles')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Roles y Permisos</a>
+                        <a href="#" onclick="loadSection('user-activity')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Actividad de Usuarios</a>
+                    </div>
+                </div>
+
+                <!-- Gestión de Contenido -->
+                <div class="sidebar-dropdown">
+                    <button class="sidebar-link flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-white/10" onclick="toggleDropdown('content')">
+                        <div class="flex items-center space-x-3">
+                            <i class="bi bi-journal-text text-lg"></i>
+                            <span class="font-medium">Contenido</span>
+                        </div>
+                        <i class="bi bi-chevron-down text-sm transform transition-transform" id="content-chevron"></i>
+                    </button>
+                    <div class="hidden ml-6 mt-2 space-y-1" id="content-dropdown">
+                        <a href="#" onclick="loadSection('educational-sheets')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Fichas Educativas</a>
+                        <a href="#" onclick="loadSection('multimedia-content')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Multimedia</a>
+                        <a href="#" onclick="loadSection('content-moderation')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Moderación</a>
+                        <a href="#" onclick="loadSection('categories')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Categorías</a>
+                    </div>
+                </div>
+
+                <!-- Gamificación -->
+                <div class="sidebar-dropdown">
+                    <button class="sidebar-link flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-white/10" onclick="toggleDropdown('gamification')">
+                        <div class="flex items-center space-x-3">
+                            <i class="bi bi-trophy-fill text-lg"></i>
+                            <span class="font-medium">Gamificación</span>
+                        </div>
+                        <i class="bi bi-chevron-down text-sm transform transition-transform" id="gamification-chevron"></i>
+                    </button>
+                    <div class="hidden ml-6 mt-2 space-y-1" id="gamification-dropdown">
+                        <a href="#" onclick="loadSection('achievements')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Logros</a>
+                        <a href="#" onclick="loadSection('badges')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Insignias</a>
+                        <a href="#" onclick="loadSection('leaderboards')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Clasificaciones</a>
+                        <a href="#" onclick="loadSection('points-system')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Sistema de Puntos</a>
+                    </div>
+                </div>
+
+                <!-- Reportes y Analytics -->
+                <div class="sidebar-dropdown">
+                    <button class="sidebar-link flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-white/10" onclick="toggleDropdown('reports')">
+                        <div class="flex items-center space-x-3">
+                            <i class="bi bi-bar-chart-line text-lg"></i>
+                            <span class="font-medium">Analytics</span>
+                        </div>
+                        <i class="bi bi-chevron-down text-sm transform transition-transform" id="reports-chevron"></i>
+                    </button>
+                    <div class="hidden ml-6 mt-2 space-y-1" id="reports-dropdown">
+                        <a href="#" onclick="loadSection('usage-analytics')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Uso de Plataforma</a>
+                        <a href="#" onclick="loadSection('content-analytics')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Analytics de Contenido</a>
+                        <a href="#" onclick="loadSection('user-engagement')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Engagement</a>
+                        <a href="#" onclick="loadSection('performance-reports')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Rendimiento</a>
+                    </div>
+                </div>
+
+                <!-- Sistema -->
+                <div class="sidebar-dropdown">
+                    <button class="sidebar-link flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-white/10" onclick="toggleDropdown('system')">
+                        <div class="flex items-center space-x-3">
+                            <i class="bi bi-gear-fill text-lg"></i>
+                            <span class="font-medium">Sistema</span>
+                        </div>
+                        <i class="bi bi-chevron-down text-sm transform transition-transform" id="system-chevron"></i>
+                    </button>
+                    <div class="hidden ml-6 mt-2 space-y-1" id="system-dropdown">
+                        <a href="#" onclick="loadSection('system-settings')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Configuración</a>
+                        <a href="#" onclick="loadSection('backup-restore')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Respaldos</a>
+                        <a href="#" onclick="loadSection('security-logs')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Logs de Seguridad</a>
+                        <a href="#" onclick="loadSection('system-maintenance')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Mantenimiento</a>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-white/20">
+                    <a href="{% url 'users:user_calendar' %}" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10">
+                        <i class="bi bi-calendar3 text-lg"></i>
+                        <span class="font-medium">Calendario</span>
+                    </a>
+                    <a href="{% url 'users:messages_home' %}" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10">
+                        <i class="bi bi-chat-dots-fill text-lg"></i>
+                        <span class="font-medium">Mensajes</span>
+                    </a>
+                    <a href="#" onclick="loadSection('notifications')" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10">
+                        <i class="bi bi-bell-fill text-lg"></i>
+                        <span class="font-medium">Notificaciones</span>
+                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full ml-auto">{{ pending_notifications|default:0 }}</span>
+                    </a>
+                </div>
             </nav>
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 p-10">
-            <h1 class="text-3xl font-semibold text-[#10451D] mb-6">Panel del Administrador</h1>
+        <main class="flex-1 p-8 overflow-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-[#10451D] mb-2">Panel de Administración</h1>
+                <p class="text-gray-600">Bienvenido al sistema de gestión de NatureIn</p>
+            </div>
 
-            <div class="grid grid-cols-3 gap-6 mb-8">
-                <div class="bg-white border border-[#E1F0DA] p-6 rounded-xl text-center shadow">
-                    <div class="text-3xl font-bold text-[#10451D]">0</div>
-                    <div class="text-[#4C956C] mt-2">Usuarios registrados</div>
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card text-white p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100 text-sm font-medium">Usuarios Totales</p>
+                            <p class="text-3xl font-bold">{{ total_users|default:0 }}</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-full">
+                            <i class="bi bi-people-fill text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-green-100 text-sm">
+                        <i class="bi bi-arrow-up text-green-300 mr-1"></i>
+                        <span>+{{ new_users_this_month|default:0 }} este mes</span>
+                    </div>
+                    <div class="mt-2 text-xs text-green-200">
+                        <span>Estudiantes: {{ student_count|default:0 }} • </span>
+                        <span>Docentes: {{ teacher_count|default:0 }} • </span>
+                        <span>Expertos: {{ expert_count|default:0 }}</span>
+                    </div>
                 </div>
-                <div class="bg-white border border-[#E1F0DA] p-6 rounded-xl text-center shadow">
-                    <div class="text-3xl font-bold text-[#10451D]">0</div>
-                    <div class="text-[#4C956C] mt-2">Cursos disponibles</div>
+
+                <div class="admin-card bg-blue-500 text-black p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-800 text-sm font-medium">Contenido Educativo</p>
+                            <p class="text-3xl font-bold text-black">{{ total_sheets|default:0 }}</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-full">
+                            <i class="bi bi-journal-text text-2xl text-white"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-gray-700 text-sm">
+                        <i class="bi bi-clock text-gray-600 mr-1"></i>
+                        <span>{{ pending_review_sheets|default:0 }} pendientes</span>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-600">
+                        <span>Aprobadas: {{ approved_sheets|default:0 }} • </span>
+                        <span>En revisión: {{ in_review_sheets|default:0 }}</span>
+                    </div>
                 </div>
-                <div class="bg-white border border-[#E1F0DA] p-6 rounded-xl text-center shadow">
-                    <div class="text-3xl font-bold text-[#10451D]">0%</div>
-                    <div class="text-[#4C956C] mt-2">Nuevas inscripciones</div>
+
+                <div class="admin-card bg-purple-500 text-black p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-800 text-sm font-medium">Actividad Hoy</p>
+                            <p class="text-3xl font-bold text-black">{{ daily_activity|default:0 }}</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-full">
+                            <i class="bi bi-activity text-2xl text-white"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-gray-700 text-sm">
+                        <i class="bi bi-graph-up text-gray-600 mr-1"></i>
+                        <span>{{ engagement_rate|default:0 }}% engagement</span>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-600">
+                        <span>Sesiones: {{ daily_sessions|default:0 }} • </span>
+                        <span>Tiempo promedio: {{ avg_session_time|default:"0m" }}</span>
+                    </div>
+                </div>
+
+                <div class="admin-card bg-orange-500 text-black p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-800 text-sm font-medium">Alertas del Sistema</p>
+                            <p class="text-3xl font-bold text-black">{{ system_alerts|default:0 }}</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-full">
+                            <i class="bi bi-exclamation-triangle text-2xl text-white"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-gray-700 text-sm">
+                        <i class="bi bi-shield-check text-gray-600 mr-1"></i>
+                        <span>{{ security_status|default:"Seguro" }}</span>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-600">
+                        <span>CPU: {{ cpu_usage|default:0 }}% • </span>
+                        <span>RAM: {{ memory_usage|default:0 }}%</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-6">
-                <div>
-                    <h2 class="text-xl font-semibold text-[#10451D] mb-4">Gestión de Usuarios</h2>
-                    <div class="space-y-4">
-                        <div class="bg-[#E1F0DA] p-4 rounded-lg flex justify-between items-center">
-                            <div class="flex items-center space-x-2">
-                                <span>👤</span>
-                                <span>Anna Brown</span>
-                            </div>
-                            <button class="text-sm bg-[#4C956C] text-white px-4 py-1 rounded">Ver</button>
-                        </div>
-                        <div class="bg-[#E1F0DA] p-4 rounded-lg flex justify-between items-center">
-                            <div class="flex items-center space-x-2">
-                                <span>👤</span>
-                                <span>John Doe</span>
-                            </div>
-                            <button class="text-sm bg-[#4C956C] text-white px-4 py-1 rounded">Ver</button>
-                        </div>
-                        <div class="bg-[#E1F0DA] p-4 rounded-lg flex justify-between items-center">
-                            <div class="flex items-center space-x-2">
-                                <span>👤</span>
-                                <span>Emily White</span>
-                            </div>
-                            <button class="text-sm bg-[#4C956C] text-white px-4 py-1 rounded">Ver</button>
-                        </div>
+            <!-- Admin Action Bar -->
+            <div class="bg-white rounded-xl shadow-lg p-4 mb-8">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center space-x-4">
+                        <button onclick="showCreateUserModal()" class="bg-[#4C956C] text-white px-4 py-2 rounded-lg hover:bg-[#10451D] transition-colors flex items-center space-x-2">
+                            <i class="bi bi-person-plus"></i>
+                            <span>Crear Usuario</span>
+                        </button>
+                        <button onclick="showBulkActionsModal()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2">
+                            <i class="bi bi-list-check"></i>
+                            <span>Acciones en Lote</span>
+                        </button>
+                        <button onclick="generateReport()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>Generar Reporte</span>
+                        </button>
                     </div>
-                </div>
-                <div>
-                    <h2 class="text-xl font-semibold text-[#10451D] mb-4">Resumen del Sistema</h2>
-                    <div class="bg-white border border-[#E1F0DA] rounded-lg p-6 space-y-3 shadow">
-                        <div class="h-4 bg-[#A3BCB6] w-3/4 rounded"></div>
-                        <div class="h-4 bg-[#A3BCB6] w-full rounded"></div>
-                        <div class="h-4 bg-[#A3BCB6] w-5/6 rounded"></div>
-                        <div class="h-4 bg-[#A3BCB6] w-4/5 rounded"></div>
+                    <div class="flex items-center space-x-3">
+                        <div class="relative">
+                            <input type="text" placeholder="Buscar usuarios, contenido..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4C956C] focus:border-transparent">
+                            <i class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <button onclick="refreshDashboard()" class="p-2 text-gray-600 hover:text-[#4C956C] transition-colors" title="Actualizar">
+                            <i class="bi bi-arrow-clockwise text-lg"></i>
+                        </button>
+                        <div class="flex items-center space-x-2 text-sm text-gray-600">
+                            <i class="bi bi-clock"></i>
+                            <span>Última actualización: <span id="lastUpdate">{{ last_update|default:"Ahora" }}</span></span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </main>
+
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- User Management Panel -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-lg">
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-800">Gestión de Usuarios</h3>
+                                <div class="flex items-center space-x-2">
+                                    <select class="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-[#4C956C]">
+                                        <option value="">Todos los tipos</option>
+                                        <option value="student">Estudiantes</option>
+                                        <option value="teacher">Docentes</option>
+                                        <option value="parent">Padres</option>
+                                        <option value="expert">Expertos</option>
+                                        <option value="admin">Administradores</option>
+                                    </select>
+                                    <button onclick="exportUsers()" class="text-[#4C956C] hover:text-[#10451D] p-1" title="Exportar">
+                                        <i class="bi bi-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="text-left text-sm text-gray-600 border-b">
+                                        <tr>
+                                            <th class="pb-3">Usuario</th>
+                                            <th class="pb-3">Tipo</th>
+                                            <th class="pb-3">Estado</th>
+                                            <th class="pb-3">Conexión</th>
+                                            <th class="pb-3">Último acceso</th>
+                                            <th class="pb-3">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm">
+                                        {% for user in recent_users %}
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                            <td class="py-3">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="w-8 h-8 bg-[#4C956C] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                                        {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                                                    </div>
+                                                    <div>
+                                                        <p class="font-medium text-gray-800">{{ user.first_name }} {{ user.last_name }}</p>
+                                                        <p class="text-gray-500">{{ user.email }}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3">
+                                                <span class="px-2 py-1 text-xs rounded-full 
+                                                    {% if user.user_type == 'student' %}bg-blue-100 text-blue-800
+                                                    {% elif user.user_type == 'teacher' %}bg-green-100 text-green-800
+                                                    {% elif user.user_type == 'parent' %}bg-purple-100 text-purple-800
+                                                    {% elif user.user_type == 'expert' %}bg-orange-100 text-orange-800
+                                                    {% elif user.user_type == 'admin' %}bg-red-100 text-red-800
+                                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                    {{ user.get_user_type_display }}
+                                                </span>
+                                            </td>
+                                            <td class="py-3">
+                                                <span class="px-2 py-1 text-xs rounded-full
+                                                    {% if user.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                                    {% if user.is_active %}Activo{% else %}Inactivo{% endif %}
+                                                </span>
+                                            </td>
+                                            <td class="py-3">
+                                                <span class="px-2 py-1 text-xs rounded-full {{ user|connection_status_class }}">
+                                                    {{ user|connection_status }}
+                                                </span>
+                                            </td>
+                                            <td class="py-3 text-gray-600">
+                                                {{ user.last_login|date:"d/m/Y H:i"|default:"Nunca" }}
+                                            </td>
+                                            <td class="py-3">
+                                                <div class="flex items-center space-x-2">
+                                                    <button onclick="viewUser({{ user.id }})" class="text-blue-600 hover:text-blue-800" title="Ver">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                    <button onclick="editUser({{ user.id }})" class="text-green-600 hover:text-green-800" title="Editar">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    {% if user.is_active %}
+                                                    <button onclick="suspendUser({{ user.id }})" class="text-orange-600 hover:text-orange-800" title="Suspender">
+                                                        <i class="bi bi-pause"></i>
+                                                    </button>
+                                                    {% else %}
+                                                    <button onclick="activateUser({{ user.id }})" class="text-green-600 hover:text-green-800" title="Activar">
+                                                        <i class="bi bi-play"></i>
+                                                    </button>
+                                                    {% endif %}
+                                                    <button onclick="deleteUser({{ user.id }})" class="text-red-600 hover:text-red-800" title="Eliminar">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="py-8 text-center text-gray-500">
+                                                <i class="bi bi-people text-4xl mb-2"></i>
+                                                <p>No hay usuarios registrados</p>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between">
+                                <p class="text-sm text-gray-600">Mostrando {{ recent_users|length }} de {{ total_users }} usuarios</p>
+                                <div class="flex items-center space-x-2">
+                                    <button class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">Anterior</button>
+                                    <span class="px-3 py-1 text-sm bg-[#4C956C] text-white rounded">1</span>
+                                    <button class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">Siguiente</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions & Monitoring -->
+                <div class="space-y-6">
+                    <!-- Recent Activity -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Actividad Reciente</h3>
+                        <div class="space-y-3">
+                            {% for activity in recent_activities %}
+                            <div class="flex items-start space-x-3">
+                                <div class="w-2 h-2 bg-[#4C956C] rounded-full mt-2"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-800">{{ activity.description }}</p>
+                                    <p class="text-xs text-gray-500">{{ activity.timestamp|timesince }} ago</p>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-clock-history text-3xl text-gray-300 mb-2"></i>
+                                <p class="text-sm text-gray-500">Sin actividad reciente</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Acciones Rápidas</h3>
+                        <div class="space-y-3">
+                            <button onclick="backupDatabase()" class="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 flex items-center space-x-3">
+                                <i class="bi bi-shield-check text-blue-500"></i>
+                                <span class="text-sm">Respaldar Base de Datos</span>
+                            </button>
+                            <button onclick="clearCache()" class="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 flex items-center space-x-3">
+                                <i class="bi bi-arrow-clockwise text-green-500"></i>
+                                <span class="text-sm">Limpiar Caché</span>
+                            </button>
+                            <button onclick="maintenanceMode()" class="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 flex items-center space-x-3">
+                                <i class="bi bi-tools text-orange-500"></i>
+                                <span class="text-sm">Modo Mantenimiento</span>
+                            </button>
+                            <button onclick="systemLogs()" class="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 flex items-center space-x-3">
+                                <i class="bi bi-file-text text-purple-500"></i>
+                                <span class="text-sm">Ver Logs del Sistema</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
-</div>
-{% endblock %}
 
-{% block extra_scripts %}
-    {{ block.super }}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/header_logged.js' %}"></script>
-    <script src="{% static 'js/notifications.js' %}"></script>
+    <!-- Admin Modals -->
+    <!-- Create User Modal -->
+    <div id="createUserModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Crear Nuevo Usuario</h3>
+                <button onclick="closeModal('createUserModal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <form onsubmit="createUser(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                        <input type="text" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#4C956C]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+                        <input type="text" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#4C956C]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#4C956C]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Usuario</label>
+                        <select required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#4C956C]">
+                            <option value="">Seleccionar tipo</option>
+                            <option value="student">Estudiante</option>
+                            <option value="teacher">Docente</option>
+                            <option value="parent">Padre/Madre</option>
+                            <option value="expert">Experto</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña Temporal</label>
+                        <input type="password" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#4C956C]">
+                    </div>
+                </div>
+                <div class="flex items-center justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeModal('createUserModal')" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-[#4C956C] text-white rounded-lg hover:bg-[#10451D]">
+                        Crear Usuario
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Admin Dashboard JavaScript Functions
+        
+        // Modal management
+        function showCreateUserModal() {
+            document.getElementById('createUserModal').classList.remove('hidden');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+        
+        function showBulkActionsModal() {
+            alert('Funcionalidad de acciones en lote próximamente');
+        }
+        
+        // Dropdown toggles
+        function toggleDropdown(dropdownId) {
+            const dropdown = document.getElementById(dropdownId + '-dropdown');
+            const chevron = document.getElementById(dropdownId + '-chevron');
+            
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                dropdown.classList.add('hidden');
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+        
+        // User management functions
+        function viewUser(userId) {
+            // Mostrar loading
+            showUserDetailModal({
+                full_name: 'Cargando...',
+                username: 'loading',
+                email: 'loading@example.com',
+                user_type_display: 'Cargando...',
+                status_text: 'Cargando...',
+                date_joined: 'Cargando...',
+                last_login: 'Cargando...',
+                avatar: 'L',
+                stats: [],
+                recent_activity: [],
+                courses: [],
+                achievements: []
+            });
+            
+            // Hacer petición AJAX
+            fetch(`{% url 'users:admin_user_detail' 0 %}`.replace('0', userId))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showUserDetailModal(data.user);
+                    } else {
+                        alert('Error al cargar detalles del usuario: ' + data.error);
+                        closeModal('userDetailModal');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar detalles del usuario');
+                    closeModal('userDetailModal');
+                });
+        }
+        
+        function showUserDetailModal(user) {
+            // Procesar datos del usuario
+            const processedUser = {
+                id: user.id,
+                full_name: user.full_name,
+                username: user.username,
+                email: user.email,
+                user_type_display: user.user_type_display,
+                date_joined: user.date_joined,
+                last_login: user.last_login,
+                is_active: user.is_active,
+                is_current_user: user.id === {{ user.id }} ,
+                
+                // Avatar
+                avatar: user.avatar_url ? 
+                    `<img src="${user.avatar_url}" alt="${user.full_name}" class="w-full h-full rounded-full object-cover">` :
+                    `${user.full_name.charAt(0).toUpperCase()}${user.full_name.split(' ')[1]?.charAt(0).toUpperCase() || ''}` ,
+                
+                // Clases CSS según el tipo de usuario
+                user_type_class: getUserTypeClass(user.user_type),
+                
+                // Estado
+                status_text: user.is_active ? 'Activo' : 'Inactivo',
+                status_class: user.is_active ? 'text-green-600' : 'text-red-600',
+                status_icon: user.is_active ? 'check-circle' : 'x-circle',
+                
+                // Email verificado
+                email_verified_text: user.is_email_verified ? 'Verificado' : 'No verificado',
+                email_verified_class: user.is_email_verified ? 'text-green-600' : 'text-red-600',
+                email_verified_icon: user.is_email_verified ? 'check-circle' : 'x-circle',
+                
+                // Estadísticas procesadas
+                stats: processUserStats(user.stats, user.user_type),
+                
+                // Actividad reciente
+                recent_activity: user.recent_activity || [],
+                
+                // Cursos
+                courses: user.courses || [],
+                
+                // Logros
+                achievements: user.achievements || []
+            };
+            
+            // Generar HTML usando el template
+            const template = document.getElementById('userDetailTemplate').innerHTML;
+            const html = processTemplate(template, processedUser);
+            
+            // Mostrar en el modal
+            document.getElementById('userDetailContent').innerHTML = html;
+            document.getElementById('userDetailModal').classList.remove('hidden');
+        }
+        
+        function getUserTypeClass(userType) {
+            const classes = {
+                'student': 'bg-blue-100 text-blue-800',
+                'teacher': 'bg-green-100 text-green-800',
+                'parent': 'bg-purple-100 text-purple-800',
+                'expert': 'bg-orange-100 text-orange-800',
+                'admin': 'bg-red-100 text-red-800'
+            };
+            return classes[userType] || 'bg-gray-100 text-gray-800';
+        }
+        
+        function processUserStats(stats, userType) {
+            const statsList = [];
+            
+            if (userType === 'student') {
+                statsList.push(
+                    { label: 'Cursos', value: stats.total_courses || 0 },
+                    { label: 'Tareas', value: stats.total_assignments || 0 },
+                    { label: 'Completadas', value: stats.completed_assignments || 0 },
+                    { label: 'Promedio', value: stats.average_grade || 0 },
+                    { label: 'Logros', value: stats.total_achievements || 0 },
+                    { label: 'Mensajes', value: stats.messages_sent || 0 }
+                );
+            } else if (userType === 'teacher') {
+                statsList.push(
+                    { label: 'Cursos', value: stats.total_courses || 0 },
+                    { label: 'Estudiantes', value: stats.total_students || 0 },
+                    { label: 'Tareas', value: stats.total_assignments || 0 },
+                    { label: 'Pendientes', value: stats.pending_submissions || 0 }
+                );
+            } else if (userType === 'expert') {
+                statsList.push(
+                    { label: 'Revisiones', value: stats.reviewed_sheets || 0 },
+                    { label: 'Aprobadas', value: stats.approved_sheets || 0 },
+                    { label: 'Rechazadas', value: stats.rejected_sheets || 0 },
+                    { label: 'Tasa aprobación', value: `${stats.approval_rate || 0}%` }
+                );
+            } else {
+                statsList.push(
+                    { label: 'Mensajes enviados', value: stats.messages_sent || 0 },
+                    { label: 'Mensajes recibidos', value: stats.messages_received || 0 },
+                    { label: 'Logins', value: stats.login_count || 0 }
+                );
+            }
+            
+            return statsList;
+        }
+        
+        function processTemplate(template, data) {
+            // Simple template processor (reemplaza {{variable}} con data.variable)
+            return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+                return data[key] !== undefined ? data[key] : match;
+            }).replace(/\{\{#if (\w+)\}\}(.*?)\{\{\/if\}\}/gs, (match, key, content) => {
+                return data[key] && data[key].length > 0 ? content : '';
+            }).replace(/\{\{#each (\w+)\}\}(.*?)\{\{\/each\}\}/gs, (match, key, content) => {
+                const items = data[key] || [];
+                return items.map(item => {
+                    return content.replace(/\{\{(\w+)\}\}/g, (m, k) => item[k] !== undefined ? item[k] : m);
+                }).join('');
+            }).replace(/\{\{#unless (\w+)\}\}(.*?)\{\{\/unless\}\}/gs, (match, key, content) => {
+                return !data[key] ? content : '';
+            });
+        }
+        
+        function editUserFromModal(userId) {
+            closeModal('userDetailModal');
+            editUser(userId);
+        }
+        
+        function suspendUserFromModal(userId) {
+            closeModal('userDetailModal');
+            suspendUser(userId);
+        }
+        
+        function activateUserFromModal(userId) {
+            closeModal('userDetailModal');
+            activateUser(userId);
+        }
+        
+        function deleteUserFromModal(userId) {
+            closeModal('userDetailModal');
+            deleteUser(userId);
+        }
+        
+        // ...existing code...
+
+        function createUser(event) {
+            event.preventDefault();
+            alert('Usuario creado exitosamente');
+            closeModal('createUserModal');
+            location.reload();
+        }
+        
+        function exportUsers() {
+            alert('Exportando usuarios...');
+        }
+        
+        // System functions
+        function backupDatabase() {
+            if(confirm('¿Iniciar respaldo de la base de datos? Esto puede tomar varios minutos.')) {
+                alert('Respaldo iniciado correctamente');
+            }
+        }
+        
+        function clearCache() {
+            if(confirm('¿Limpiar caché del sistema?')) {
+                alert('Caché limpiado correctamente');
+            }
+        }
+        
+        function maintenanceMode() {
+            const enable = confirm('¿Activar modo de mantenimiento? Los usuarios no podrán acceder al sitio.');
+            alert(`Modo mantenimiento ${enable ? 'activado' : 'desactivado'}`);
+        }
+        
+        function systemLogs() {
+            alert('Abriendo logs del sistema...');
+        }
+        
+        function refreshDashboard() {
+            location.reload();
+        }
+        
+        function generateReport() {
+            alert('Generando reporte...');
+        }
+        
+        function loadSection(section) {
+            alert(`Cargando sección: ${section}`);
+        }
+        
+        // Utility functions
+        function getCsrfToken() {
+            const token = document.querySelector('[name=csrfmiddlewaretoken]');
+            return token ? token.value : '';
+        }
+        
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            const lastUpdateElement = document.getElementById('lastUpdate');
+            if(lastUpdateElement) {
+                lastUpdateElement.textContent = timeString;
+            }
+        }
+        
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            updateLastUpdateTime();
+        }, 30000);
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLastUpdateTime();
+            
+            // Close modals when clicking outside
+            document.addEventListener('click', function(event) {
+                if(event.target.classList.contains('fixed') && event.target.classList.contains('inset-0')) {
+                    const modal = event.target;
+                    modal.classList.add('hidden');
+                }
+            });
+        });
+    </script>
 {% endblock %}

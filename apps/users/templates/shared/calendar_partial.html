@@ -1,0 +1,314 @@
+{% load static %}
+{% load calendar_extras %}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Navegación de regreso -->
+            <a href="{% if user.user_type == 1 %}{% url 'users:dashboard_student' user.id %}{% elif user.user_type == 2 %}{% url 'users:dashboard_teacher' user.id %}{% elif user.user_type == 3 %}{% url 'users:dashboard_parent' user.id %}{% elif user.user_type == 4 %}{% url 'users:dashboard_expert' user.id %}{% elif user.user_type == 5 %}{% url 'users:dashboard_admin' user.id %}{% endif %}" class="back-to-dashboard">
+                <i class="bi bi-arrow-left me-2"></i>
+                Volver al Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Header del calendario -->
+            <div class="calendar-header">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="calendar-title">
+                        <i class="bi bi-calendar3 me-2"></i>
+                        Mi Calendario
+                    </h2>
+                </div>
+
+                <!-- Estadísticas rápidas -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <span class="stat-number">{{ stats.total_events }}</span>
+                        <span class="stat-label">Eventos totales</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">{{ stats.today_events }}</span>
+                        <span class="stat-label">Eventos hoy</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">{{ stats.upcoming_events }}</span>
+                        <span class="stat-label">Próximos eventos</span>
+                    </div>
+                    {% if can_create_events %}
+                    <div class="stat-card">
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createEventModal">
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Crear Evento
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Calendario principal -->
+            <div class="calendar-container">
+                <!-- Navegación del calendario -->
+                <div class="calendar-nav">
+                    <a href="#" class="calendar-nav-btn" data-month="{{ calendar_data.prev_month }}" data-year="{{ calendar_data.prev_year }}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                    <h3 class="month-year">{{ calendar_data.month_name }} {{ year }}</h3>
+                    <a href="#" class="calendar-nav-btn" data-month="{{ calendar_data.next_month }}" data-year="{{ calendar_data.next_year }}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+
+                <!-- Grilla del calendario -->
+                <div class="calendar-grid">
+                    <!-- Días de la semana -->
+                    <div class="calendar-header-day">Dom</div>
+                    <div class="calendar-header-day">Lun</div>
+                    <div class="calendar-header-day">Mar</div>
+                    <div class="calendar-header-day">Mié</div>
+                    <div class="calendar-header-day">Jue</div>
+                    <div class="calendar-header-day">Vie</div>
+                    <div class="calendar-header-day">Sáb</div>
+
+                    <!-- Días del mes -->
+                    {% if calendar_data.month_days %}
+                        {% for week in calendar_data.month_days %}
+                            {% for day in week %}
+                                {% if day %}
+                                    {% format_date_key year month day as date_key %}
+                                    {% with events_for_day=events_by_date|get_item:date_key %}
+                                        <div class="calendar-day {% if day == today.day and month == today.month and year == today.year %}today{% endif %}{% if events_for_day %} has-events{% endif %}" 
+                                             data-date="{{ date_key }}"
+                                             onclick="selectDay('{{ date_key }}', this)">
+                                            
+                                            <div class="day-number">{{ day }}</div>
+                                            
+                                            {% if events_for_day and events_for_day|length > 2 %}
+                                                <div class="event-count-indicator">{{ events_for_day|length }}</div>
+                                            {% endif %}
+                                            
+                                            <div class="day-events">
+                                                {% for event in events_for_day|slice:":3" %}
+                                                    <div class="event-item {{ event.get_color_class }}" 
+                                                         title="{{ event.title }} - {{ event.start_date|time:'H:i' }}"
+                                                         onclick="event.stopPropagation(); showEventDetails('{{ event.id }}')">
+                                                        <i class="bi bi-{{ event.get_icon }} me-1"></i>
+                                                        {{ event.title|truncatechars:12 }}
+                                                    </div>
+                                                {% endfor %}
+                                                {% if events_for_day and events_for_day|length > 3 %}
+                                                    <div class="event-item" style="background: #6c757d; font-size: 0.6rem;">
+                                                        +{{ events_for_day|length|subtract:3 }} más
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endwith %}
+                                {% else %}
+                                    <div class="calendar-day other-month"></div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    {% else %}
+                        <!-- Mensaje si no hay datos del calendario -->
+                        <div class="col-12 text-center p-4">
+                            <p class="text-muted">No se pudieron cargar los datos del calendario</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Eventos de hoy -->
+            <div class="sidebar-section">
+                <h4><i class="bi bi-clock me-2"></i>Eventos de Hoy</h4>
+                <div class="events-list">
+                    {% for event in today_events %}
+                        <div class="event-card {{ event.get_color_class }}">
+                            <div class="event-title">
+                                <i class="bi bi-{{ event.get_icon }} me-2"></i>
+                                {{ event.title }}
+                            </div>
+                            <div class="event-time">
+                                <i class="bi bi-clock me-1"></i>
+                                {{ event.start_date|time:"H:i" }}
+                                {% if event.location %}
+                                    <span class="ms-2">
+                                        <i class="bi bi-geo-alt me-1"></i>
+                                        {{ event.location }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            {% if event.description %}
+                                <div class="event-description">
+                                    {{ event.description|truncatechars:80 }}
+                                </div>
+                            {% endif %}
+                            {% if event.course %}
+                                <div class="event-course">
+                                    <i class="bi bi-book me-1"></i>
+                                    {{ event.course.name }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <div class="no-events">
+                            <i class="bi bi-calendar-x me-2"></i>
+                            No hay eventos programados para hoy
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Próximos eventos -->
+            <div class="sidebar-section" id="selectedDayEvents" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0"><i class="bi bi-calendar-day me-2"></i>Eventos del <span id="selectedDate"></span></h4>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="showUpcomingEvents()">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Próximos
+                    </button>
+                </div>
+                <div class="events-list" id="selectedDayEventsList">
+                    <!-- Se llenan dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Próximos eventos -->
+            <div class="sidebar-section" id="upcomingEventsSection">
+                <h4><i class="bi bi-calendar-event me-2"></i>Próximos Eventos</h4>
+                <div class="events-list">
+                    {% for event in upcoming_events %}
+                        <div class="event-card {{ event.get_color_class }}">
+                            <div class="event-title">
+                                <i class="bi bi-{{ event.get_icon }} me-2"></i>
+                                {{ event.title }}
+                            </div>
+                            <div class="event-time">
+                                <i class="bi bi-calendar me-1"></i>
+                                {{ event.start_date|date:"d/m/Y" }}
+                                <span class="ms-2">
+                                    <i class="bi bi-clock me-1"></i>
+                                    {{ event.start_date|time:"H:i" }}
+                                </span>
+                            </div>
+                            {% if event.course %}
+                                <div class="event-course">
+                                    <i class="bi bi-book me-1"></i>
+                                    {{ event.course.name }}
+                                </div>
+                            {% endif %}
+                            {% if event.location %}
+                                <div class="event-location">
+                                    <i class="bi bi-geo-alt me-1"></i>
+                                    {{ event.location }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <div class="no-events">
+                            <i class="bi bi-calendar-check me-2"></i>
+                            No hay eventos próximos
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+    </div>
+</div>
+
+<!-- Modal para crear eventos -->
+{% if can_create_events %}
+<div class="modal fade" id="createEventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nuevo Evento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createEventForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="eventTitle" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="eventTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="eventType" class="form-label">Tipo</label>
+                        <select class="form-select" id="eventType" required>
+                            {% for event_type in event_types %}
+                                <option value="{{ event_type }}">{{ event_type|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="eventDate" class="form-label">Fecha</label>
+                            <input type="date" class="form-control" id="eventDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="eventTime" class="form-label">Hora</label>
+                            <input type="time" class="form-control" id="eventTime" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="eventLocation" class="form-label">Ubicación</label>
+                        <input type="text" class="form-control" id="eventLocation">
+                    </div>
+                    <div class="mb-3">
+                        <label for="eventDescription" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="eventDescription" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Evento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal para detalles del evento -->
+<div class="modal fade" id="eventDetailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventDetailTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="eventDetailBody">
+                <!-- Contenido se carga dinámicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/shared/calendar.js' %}"></script>
+<script>
+    // Datos de eventos para JavaScript
+    const eventsData = {
+        {% for date, events in events_by_date.items %}
+        "{{ date }}": [
+            {% for event in events %}
+            {
+                id: "{{ event.id }}",
+                title: "{{ event.title|escapejs }}",
+                event_type: "{{ event.event_type|escapejs }}",
+                start_date: "{{ event.start_date|date:'d/m/Y' }}",
+                start_time: "{{ event.start_date|time:'H:i' }}",
+                location: "{{ event.location|escapejs }}",
+                description: "{{ event.description|escapejs }}",
+                course: "{{ event.course.name|escapejs }}",
+                color_class: "{{ event.get_color_class }}",
+                icon: "{{ event.get_icon }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+</script>

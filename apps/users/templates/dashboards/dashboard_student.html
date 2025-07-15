@@ -1,6 +1,14 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_head %}
+    <!-- Optimizaciones de rendimiento -->
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#667eea">
+{% endblock %}
+
 {% block header %}
     {% include 'partials/header_dashboard.html' %}
 {% endblock %}
@@ -9,145 +17,317 @@
 
 {% block extra_css %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_student.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboards/dashboard_optimized.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-dropdowns.css' %}">
+    <!-- Preload crítico para mejorar rendimiento -->
+    <link rel="preload" href="{% static 'images/mascota/tuki.png' %}" as="image">
 {% endblock %}
 
 {% block content %}
-
-<div class="container-fluid py-5 dashboard-bg">
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar-dashboard">
-            <div class="text-center py-4">
-                <img src="{% static 'images/mascota/tuki.png' %}" alt="Logo" width="110" class="mb-3">
+<div class="student-dashboard-bg">
+    <div class="container-fluid py-2">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-none d-md-block">
+                <div class="sidebar-dashboard">
+                    <div class="text-center py-4">
+                        <img src="{% static 'images/mascota/tuki.png' %}" alt="Tuki" width="80" class="mb-3">
+                        <h6 class="fw-bold text-primary">¡Hola, Estudiante!</h6>
+                    </div>
+                    <nav class="nav flex-column px-2 pb-4">
+                        <a class="nav-link sidebar-btn active" href="{% url 'users:dashboard_student' user_id=user.id %}">
+                            <i class="bi bi-house-door-fill me-2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:student_courses' %}">
+                            <i class="bi bi-journal-bookmark-fill me-2"></i>
+                            <span>Mis Cursos</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:student_assignments' %}">
+                            <i class="bi bi-clipboard-check me-2"></i>
+                            <span>Tareas</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:student_grades' %}">
+                            <i class="bi bi-bar-chart-fill me-2"></i>
+                            <span>Calificaciones</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:student_achievements' %}">
+                            <i class="bi bi-trophy-fill me-2"></i>
+                            <span>Logros</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:user_calendar' %}">
+                            <i class="bi bi-calendar3 me-2"></i>
+                            <span>Calendario</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:messages_home' %}">
+                            <i class="bi bi-chat-dots-fill me-2"></i>
+                            <span>Mensajes</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'multimedia:dashboard' %}">
+                            <i class="bi bi-collection-play-fill me-2"></i>
+                            <span>Fichas Multimedia</span>
+                        </a>
+                    </nav>
+                </div>
             </div>
-            <nav class="nav flex-column px-3 gap-2 py-4">
-                <a class="nav-link active fw-bold sidebar-btn mt-3" href="#">
-                    <i class="bi bi-house-door-fill me-2 fs-5"></i> Volver al inicio
-                </a>
-                <a class="nav-link active fw-bold sidebar-btn mt-3" href="#">
-                    <i class="bi bi-journal-bookmark-fill me-2 fs-5"></i> Cursos
-                </a>
-                <a class="nav-link active fw-bold sidebar-btn mt-3" href="#">
-                    <i class="bi bi-bar-chart-fill me-2 fs-5"></i> Notas
-                </a>
-                <a class="nav-link active fw-bold sidebar-btn mt-3" href="#">
-                    <i class="bi bi-chat-dots-fill me-2 fs-5"></i> Mensajes
-                </a>
-            </nav>
-        </div>
 
-        <!-- Main Content -->
-        <div class="col-md-9 col-lg-10 px-4">
-            <div class="py-4">
-                <h2 class="fw-bold mb-4 dashboard-title">Panel del Estudiante</h2>
-                
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 px-3">
+                <!-- Welcome Section -->
+                <div class="dashboard-card">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3 class="fw-bold mb-2 text-primary">
+                                ¡Bienvenido de vuelta, {{ user.get_full_name|default:user.username }}! 🎓
+                            </h3>
+                            <p class="text-muted mb-0">Accede a tus cursos, revisa tus tareas y sigue tu progreso académico.</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-student-primary" onclick="showJoinClassForm()">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Unirse a Clase
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Stats Cards -->
-                <div class="row g-3 mb-4">
-                    <div class="col-6 col-md-3">
-                        <button class="btn-dashboard-join" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#joinClassModal">
-                            Unirse a una clase
+                <div class="row mb-4">
+                    <div class="col-md-3 col-6">
+                        <div class="dashboard-card stat-card">
+                            <div class="stat-number">{{ active_courses|default:0 }}</div>
+                            <div class="stat-label">Cursos Activos</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="dashboard-card stat-card">
+                            <div class="stat-number">{{ pending_assignments|default:0 }}</div>
+                            <div class="stat-label">Tareas Pendientes</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="dashboard-card stat-card">
+                            <div class="stat-number">{{ upcoming_events|default:0 }}</div>
+                            <div class="stat-label">Eventos Próximos</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="dashboard-card stat-card">
+                            <div class="stat-number">{{ total_achievements|default:0 }}</div>
+                            <div class="stat-label">Logros Obtenidos</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulario para unirse a clase (oculto por defecto) -->
+                <div class="dashboard-card" id="joinClassCard" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="section-title mb-0">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Unirse a una Clase
+                        </h5>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="hideJoinClassForm()">
+                            <i class="bi bi-x"></i> Cancelar
                         </button>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card-container text-center">
-                            <div class="fw-bold stats-number-primary">0</div>
-                            <div class="text-muted">Cursos actuales</div>
+                    <form action="{% url 'users:join_class_api' %}" method="post" id="joinClassForm">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="courseCode" class="form-label fw-semibold">Código del curso</label>
+                                    <input type="text" class="form-control" id="courseCode" name="course_code" placeholder="Ej: ABC123" required autocomplete="off">
+                                    <div class="form-text">Solicita el código a tu profesor</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <div class="mb-3 w-100">
+                                    <button type="submit" class="btn btn-student-primary w-100">
+                                        <i class="bi bi-arrow-right me-2"></i>Unirse a la Clase
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="row">
+                    <!-- Mis Cursos -->
+                    <div class="col-lg-6">
+                        <div class="dashboard-card">
+                            <h5 class="section-title">
+                                <i class="bi bi-journal-bookmark"></i>
+                                Mis Cursos
+                            </h5>
+                            {% if course_details %}
+                                {% for course in course_details %}
+                                <div class="course-card">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="fw-bold mb-1">{{ course.name }}</h6>
+                                            <small class="text-muted">{{ course.teacher }}</small>
+                                        </div>
+                                        <a href="{% url 'users:course_detail' course_id=course.id %}" class="btn btn-outline-primary btn-sm" onclick="showCourseDetails('{{ course.id }}')">Ver</a>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="progress-bar-custom">
+                                            <div class="progress-fill" style="width: {{ course.progress }}%"></div>
+                                        </div>
+                                        <small class="text-muted">Progreso: {{ course.progress|floatformat:1 }}%</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-journal-x text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2">No tienes cursos inscritos aún</p>
+                                <button class="btn btn-student-primary" onclick="showJoinClassForm()">Unirse a Primer Curso</button>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card-container text-center">
-                            <div class="fw-bold stats-number-warning">0</div>
-                            <div class="text-muted">Pendientes</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card-container text-center">
-                            <div class="fw-bold stats-number-info">0</div>
-                            <div class="text-muted">Próximos eventos</div>
+
+                    <!-- Rendimiento Académico -->
+                    <div class="col-lg-6">
+                        <div class="dashboard-card">
+                            <h5 class="section-title">
+                                <i class="bi bi-graph-up"></i>
+                                Rendimiento Académico
+                            </h5>
+                            <div class="text-center">
+                                <div class="performance-chart mb-3">
+                                    <canvas id="performanceChart" 
+                                            width="150" 
+                                            height="150"
+                                            data-completed="{{ performance_data.completed|default:75|floatformat:1 }}"
+                                            data-pending="{{ performance_data.pending|default:25|floatformat:1 }}">
+                                    </canvas>
+                                </div>
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <div class="course-stat-item">
+                                            <div class="fw-bold text-success">{{ performance_data.grade_letter|default:"B+" }}</div>
+                                            <small>Promedio</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="course-stat-item">
+                                            <div class="fw-bold text-info">{{ performance_data.average_grade|floatformat:1|default:8.5 }}</div>
+                                            <small>Nota Media</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="course-stat-item">
+                                            <div class="fw-bold text-warning">
+                                                {% if performance_data.ranking != 'N/A' %}{{ performance_data.ranking }}°{% else %}3°{% endif %}
+                                            </div>
+                                            <small>Ranking</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Join Class Modal -->
-                <div class="modal fade" id="joinClassModal" tabindex="-1" aria-labelledby="joinClassModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content rounded-4">
-                            <div class="modal-header">
-                                <h5 class="modal-title fw-bold" id="joinClassModalLabel">Unirse a una clase</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form>
-                                    <div class="mb-3">
-                                        <label for="courseName" class="form-label">Nombre del curso</label>
-                                        <input type="text" class="form-control" id="courseName" placeholder="Ej: Biología">
+                <!-- Actividad Reciente y Logros -->
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="dashboard-card">
+                            <h5 class="section-title">
+                                <i class="bi bi-activity"></i>
+                                Actividad Reciente
+                            </h5>
+                            {% if recent_activities %}
+                                {% for activity in recent_activities %}
+                                <div class="activity-item">
+                                    <div class="activity-icon activity-course">
+                                        <i class="bi bi-book"></i>
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="courseCode" class="form-label">Código del curso</label>
-                                        <input type="text" class="form-control" id="courseCode" placeholder="Ej: ABC123">
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold">{{ activity.title }}</div>
+                                        <small class="text-muted">{{ activity.description }}</small>
+                                        <div class="text-primary small">{{ activity.time|timesince }} atrás</div>
                                     </div>
-                                    <button type="submit" class="btn-dashboard-join">Entrar</button>
-                                </form>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                            <!-- Datos de muestra para actividad reciente -->
+                            <div class="activity-item">
+                                <div class="activity-icon activity-course">
+                                    <i class="bi bi-clipboard-check"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">Tarea entregada: "Ecosistemas de Colombia"</div>
+                                    <small class="text-muted">Entregaste tu ensayo sobre la biodiversidad colombiana</small>
+                                    <div class="text-primary small">2 horas atrás</div>
+                                </div>
                             </div>
+                            <div class="activity-item">
+                                <div class="activity-icon activity-course">
+                                    <i class="bi bi-trophy"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">¡Logro desbloqueado!</div>
+                                    <small class="text-muted">Obtuviste el logro "Explorador Novato" por identificar 5 especies</small>
+                                    <div class="text-success small">1 día atrás</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon activity-course">
+                                    <i class="bi bi-book"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">Lección completada: "Introducción a la Biodiversidad"</div>
+                                    <small class="text-muted">Completaste exitosamente el módulo básico de biología</small>
+                                    <div class="text-info small">3 días atrás</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon activity-course">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">Te uniste al curso "Conservación Ambiental"</div>
+                                    <small class="text-muted">Ahora formas parte de la clase del Prof. García</small>
+                                    <div class="text-warning small">5 días atrás</div>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
-                </div>
-
-                <!-- Content Sections -->
-                <div class="row g-4">
-                    <div class="col-lg-6">
-                        <!-- My Courses -->
-                        <div class="card-container">
-                            <h5 class="fw-bold mb-3 dashboard-title">Mis Cursos</h5>
-                            <div class="course-item card-bg">
-                                <div class="course-content">
-                                    <i class="bi bi-book-fill me-2 course-icon"></i> Curso 1
-                                </div>
-                                <div class="course-actions">
-                                    <a href="#" class="btn-dashboard-view">Ver</a>
-                                </div>
-                            </div>
-                            <div class="course-item card-bg">
-                                <div class="course-content">
-                                    <i class="bi bi-book-fill me-2 course-icon"></i> Curso 2
-                                </div>
-                                <div class="course-actions">
-                                    <a href="#" class="btn-dashboard-view">Ver</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Recent Courses -->
-                        <div class="card-container">
-                            <h5 class="fw-bold mb-3 dashboard-title">Cursos Recientes</h5>
-                            <div class="course-item card-bg">
-                                <div class="course-content">
-                                    <i class="bi bi-book-fill me-2 course-icon"></i> Curso 2
-                                </div>
-                                <div class="course-actions">
-                                    <a href="#" class="btn-dashboard-view">Ver</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="col-lg-6">
-                        <!-- Grades Summary -->
-                        <div class="card-container">
-                            <h5 class="fw-bold mb-3 dashboard-title">Resumen de Notas</h5>
-                            <img src="{% static 'images/grades_placeholder.png' %}" alt="Gráfico de notas" class="img-fluid rounded img-bg">
-                        </div>
-
-                        <!-- Upcoming Events -->
-                        <div class="card-container">
-                            <h5 class="fw-bold mb-3 dashboard-title">Próximos Eventos</h5>
-                            <ul class="list-unstyled mb-0">
-                                <li class="mb-2"><i class="bi bi-calendar-event me-2 event-icon"></i> Evento 1</li>
-                                <li><i class="bi bi-calendar-event me-2 event-icon"></i> Evento 2</li>
-                            </ul>
+                        <div class="dashboard-card">
+                            <h5 class="section-title">
+                                <i class="bi bi-trophy"></i>
+                                Logros Recientes
+                            </h5>
+                            {% if recent_achievements %}
+                                {% for achievement in recent_achievements %}
+                                <div class="achievement-badge {{ achievement.css_class }}">
+                                    <i class="bi bi-{{ achievement.icon }}"></i>
+                                    <div class="fw-bold">{{ achievement.name }}</div>
+                                    <small>{{ achievement.points }} pts</small>
+                                    {% if achievement.earned %}
+                                        <div class="small">{{ achievement.earned_at|date:"d M" }}</div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                                <div class="text-center mt-3">
+                                    <a href="{% url 'users:student_achievements' %}" class="btn btn-outline-primary">
+                                        <i class="bi bi-eye me-2"></i>
+                                        Ver Todos los Logros
+                                    </a>
+                                </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-trophy text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2">¡Completa actividades para obtener logros!</p>
+                                <a href="{% url 'users:student_achievements' %}" class="btn btn-student-primary">Ver Logros Disponibles</a>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -155,11 +335,154 @@
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_scripts %}
     {{ block.super }}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/dashboard.js' %}"></script>
     <script src="{% static 'js/header_logged.js' %}"></script>
-    <script src="{% static 'js/notifications.js' %}"></script>
+    <script src="{% static 'js/dashboard_student.js' %}"></script>
+    <script src="{% static 'js/dashboard_optimized_clean.js' %}" defer></script>
+    
+    <!-- Script para el gráfico de rendimiento -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('performanceChart');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                const completed = parseFloat(canvas.dataset.completed || 75);
+                const pending = parseFloat(canvas.dataset.pending || 25);
+                
+                // Configuración del gráfico de dona
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const outerRadius = 60;
+                const innerRadius = 35;
+                
+                // Limpiar canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Función para dibujar arco
+                function drawArc(startAngle, endAngle, color) {
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
+                    ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
+                    ctx.closePath();
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                }
+                
+                // Calcular ángulos
+                const completedAngle = (completed / 100) * 2 * Math.PI;
+                const pendingAngle = (pending / 100) * 2 * Math.PI;
+                
+                // Dibujar segmentos
+                drawArc(-Math.PI / 2, -Math.PI / 2 + completedAngle, '#22c55e'); // Verde para completado
+                drawArc(-Math.PI / 2 + completedAngle, -Math.PI / 2 + completedAngle + pendingAngle, '#e5e7eb'); // Gris para pendiente
+                
+                // Texto central
+                ctx.fillStyle = '#1f2937';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(completed.toFixed(0) + '%', centerX, centerY - 5);
+                
+                ctx.font = '12px Arial';
+                ctx.fillStyle = '#6b7280';
+                ctx.fillText('Completado', centerX, centerY + 10);
+                
+                // Agregar animación de entrada
+                canvas.style.opacity = '0';
+                canvas.style.transform = 'scale(0.8)';
+                canvas.style.transition = 'all 0.6s ease';
+                
+                setTimeout(() => {
+                    canvas.style.opacity = '1';
+                    canvas.style.transform = 'scale(1)';
+                }, 100);
+            }
+            
+            // Animación para las tarjetas de actividad
+            const activityItems = document.querySelectorAll('.activity-item');
+            activityItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                item.style.transition = 'all 0.4s ease';
+                
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateX(0)';
+                }, 200 + index * 100);
+            });
+        });
+    </script>
+    
+    <!-- Estilos adicionales para actividades -->
+    <style>
+        .activity-item {
+            display: flex;
+            align-items-start;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .activity-item:hover {
+            background-color: #f8fafc;
+            border-left-color: #3b82f6;
+            transform: translateX(5px);
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .activity-course {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+        
+        .activity-item .bi-clipboard-check {
+            color: #059669;
+        }
+        
+        .activity-item .bi-trophy {
+            color: #f59e0b;
+        }
+        
+        .activity-item .bi-book {
+            color: #3b82f6;
+        }
+        
+        .activity-item .bi-people {
+            color: #8b5cf6;
+        }
+        
+        .performance-chart {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .course-stat-item {
+            padding: 0.5rem;
+            border-radius: 6px;
+            background: #f8fafc;
+            margin: 0.25rem;
+        }
+        
+        .course-stat-item div:first-child {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+    </style>
 {% endblock %}

@@ -34,6 +34,7 @@
     font-weight: 600;
 }
 
+
 .navbar-toggler {
     display: none;
     background: #fff;
@@ -145,7 +146,7 @@
     z-index: 1001;
 }
 
-/* --- MODO OSCURO --- */
+/* --- MODO OSCURO ---*/
 body.dark-mode .navbar,
 body.dark-mode header,
 body.dark-mode .navbar .container {
@@ -155,8 +156,17 @@ body.dark-mode .navbar .container {
 }
 
 body.dark-mode .navbar-nav .nav-link,
-body.dark-mode .brand-title {
+/*body.dark-mode .brand-title {
     color: #e1e1e1 !important;
+}*/
+
+/* Modifica esta parte en tu header.css */
+body.dark-mode .brand-title .text-success {
+    color: #388e3c !important; /* Verde en modo oscuro */
+}
+
+body.dark-mode .brand-title .text-warning {
+    color: #ffc107 !important; /* Amarillo en modo oscuro */
 }
 
 body.dark-mode .navbar-nav .nav-link:hover,
@@ -186,6 +196,16 @@ body.dark-mode .dropdown-item.role-option {
 body.dark-mode .dropdown-item.role-option:hover {
     background: #23272b !important;
     color: #d7d4c6 !important;
+}
+
+
+
+/* Transiciones suaves para el cambio de modo */
+body.dark-mode .navbar,
+body.dark-mode .nav-link,
+body.dark-mode .dropdown-menu,
+body.dark-mode .dropdown-item {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 /* --- RESPONSIVE Y MENÚ MÓVIL --- */
@@ -259,6 +279,7 @@ body.dark-mode .dropdown-item.role-option:hover {
     }
 }
 
+
 /* Oculta el menú móvil y el botón hamburguesa en escritorio */
 @media (min-width: 992px) {
     .mobile-menu,
@@ -293,4 +314,50 @@ body.dark-mode .dropdown-item.role-option:hover {
     .mobile-menu.dropdown-open {
         overflow: visible !important;
     }
+}
+
+/* Estilos específicos para el dropdown de login */
+.login-dropdown {
+    border: 1px solid #198754;
+    box-shadow: 0 8px 24px rgba(25, 135, 84, 0.15);
+}
+
+.login-dropdown .dropdown-header.dropdown-title {
+    color: #198754;
+    background: rgba(25, 135, 84, 0.1);
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+}
+
+.login-dropdown .dropdown-item.role-option:hover {
+    background: rgba(25, 135, 84, 0.1) !important;
+    color: #198754;
+}
+
+.login-btn {
+    position: relative;
+    z-index: 1002;
+}
+
+/* Estilos específicos para el dropdown de registro */
+.register-dropdown {
+    border: 1px solid #198754;
+    box-shadow: 0 8px 24px rgba(25, 135, 84, 0.15);
+}
+
+.register-dropdown .dropdown-header.dropdown-title {
+    color: #198754;
+    background: rgba(25, 135, 84, 0.1);
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+}
+
+.register-dropdown .dropdown-item.role-option:hover {
+    background: rgba(25, 135, 84, 0.1) !important;
+    color: #198754;
+}
+
+.register-btn {
+    position: relative;
+    z-index: 1002;
 }

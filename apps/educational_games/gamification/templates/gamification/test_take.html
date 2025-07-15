@@ -1,0 +1,214 @@
+{% extends 'gamification/base.html' %}
+{% load static %}
+
+{% block title %}Tomar Test - {{ test.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header del Test -->
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px;">
+                <div class="card-header bg-success text-white border-0" style="border-radius: 16px 16px 0 0;">
+                    <h4 class="mb-0">
+                        <i class="bi bi-play-circle me-2"></i>
+                        {{ test.titulo }}
+                    </h4>
+                    <p class="mb-0 opacity-75">{{ test.descripcion }}</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-clock text-success" style="font-size: 2rem;"></i>
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">Tiempo Restante</small>
+                                    <span class="fw-bold fs-5" id="tiempo-restante">{{ test.tiempo_limite }}:00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-question-circle text-success" style="font-size: 2rem;"></i>
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">Preguntas</small>
+                                    <span class="fw-bold fs-5">{{ preguntas.count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-star text-success" style="font-size: 2rem;"></i>
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">Puntos por Pregunta</small>
+                                    <span class="fw-bold fs-5">{{ test.puntos_por_pregunta }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <i class="bi bi-graph-up text-success" style="font-size: 2rem;"></i>
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">Puntuación Máxima</small>
+                                    <span class="fw-bold fs-5">{{ preguntas.count|multiply:test.puntos_por_pregunta }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-success" style="border-radius: 12px;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle me-3" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <h6 class="mb-1 fw-semibold">Instrucciones</h6>
+                                <p class="mb-0 small">
+                                    Lee cada pregunta cuidadosamente y selecciona la respuesta correcta. 
+                                    El tiempo se cuenta automáticamente. Una vez que envíes el test, no podrás modificarlo.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario del Test -->
+            <form method="post" id="test-form">
+                {% csrf_token %}
+                <div class="card shadow-sm border-0" style="border-radius: 16px;">
+                    <div class="card-header bg-light border-0" style="border-radius: 16px 16px 0 0;">
+                        <h5 class="mb-0 text-success">
+                            <i class="bi bi-question-circle me-2"></i>
+                            Preguntas del Test
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        {% for pregunta in preguntas %}
+                        <div class="border-start border-4 ps-4 mb-4" style="border-color: var(--primary-green) !important;">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h6 class="fw-semibold mb-0 text-success">
+                                    Pregunta {{ pregunta.orden }}: {{ pregunta.pregunta }}
+                                </h6>
+                                <span class="badge bg-success rounded-pill">{{ pregunta.puntos }} pts</span>
+                            </div>
+                            
+                            {% if pregunta.tipo_pregunta == 'opcion_multiple' %}
+                                {% with opciones=pregunta.opcion_set.all %}
+                                {% if opciones %}
+                                <div class="ms-3">
+                                    {% for opcion in opciones %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" 
+                                               name="pregunta_{{ pregunta.IDpregunta }}" 
+                                               value="{{ opcion.IDopcion }}" 
+                                               id="opcion_{{ opcion.IDopcion }}" required>
+                                        <label class="form-check-label" for="opcion_{{ opcion.IDopcion }}">
+                                            {{ opcion.texto }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                {% endwith %}
+                            {% elif pregunta.tipo_pregunta == 'verdadero_falso' %}
+                                <div class="ms-3">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" 
+                                               name="pregunta_{{ pregunta.IDpregunta }}" 
+                                               value="verdadero" 
+                                               id="vf_{{ pregunta.IDpregunta }}_v" required>
+                                        <label class="form-check-label" for="vf_{{ pregunta.IDpregunta }}_v">
+                                            Verdadero
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" 
+                                               name="pregunta_{{ pregunta.IDpregunta }}" 
+                                               value="falso" 
+                                               id="vf_{{ pregunta.IDpregunta }}_f" required>
+                                        <label class="form-check-label" for="vf_{{ pregunta.IDpregunta }}_f">
+                                            Falso
+                                        </label>
+                                    </div>
+                                </div>
+                            {% elif pregunta.tipo_pregunta == 'texto_corto' %}
+                                <div class="ms-3">
+                                    <input type="text" 
+                                           class="form-control" 
+                                           name="pregunta_{{ pregunta.IDpregunta }}"
+                                           placeholder="Escribe tu respuesta aquí..."
+                                           required>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg flex-fill" id="submit-test">
+                                <i class="bi bi-check-circle me-2"></i>Enviar Test
+                            </button>
+                            <a href="{% url 'gamification:test_detail' test.IDtest %}" class="btn btn-outline-secondary btn-lg flex-fill">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Timer del test
+let tiempoRestante = parseInt('{{ test.tiempo_limite }}') * 60; // Convertir a segundos
+const tiempoElement = document.getElementById('tiempo-restante');
+const submitButton = document.getElementById('submit-test');
+
+function actualizarTiempo() {
+    const minutos = Math.floor(tiempoRestante / 60);
+    const segundos = tiempoRestante % 60;
+    tiempoElement.textContent = `${minutos}:${segundos.toString().padStart(2, '0')}`;
+    
+    if (tiempoRestante <= 0) {
+        // Tiempo agotado, enviar automáticamente
+        alert('¡Tiempo agotado! El test se enviará automáticamente.');
+        document.getElementById('test-form').submit();
+        return;
+    }
+    
+    tiempoRestante--;
+    setTimeout(actualizarTiempo, 1000);
+}
+
+// Iniciar timer
+actualizarTiempo();
+
+// Confirmar envío
+submitButton.addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    // Verificar que todas las preguntas estén respondidas
+    const preguntas = document.querySelectorAll('input[type="radio"], input[type="text"]');
+    let respondidas = 0;
+    
+    preguntas.forEach(input => {
+        if (input.type === 'radio' && input.checked) {
+            respondidas++;
+        } else if (input.type === 'text' && input.value.trim() !== '') {
+            respondidas++;
+        }
+    });
+    
+    const totalPreguntas = parseInt('{{ preguntas.count }}');
+    
+    if (respondidas < totalPreguntas) {
+        if (confirm('No has respondido todas las preguntas. ¿Estás seguro de que quieres enviar el test?')) {
+            document.getElementById('test-form').submit();
+        }
+    } else {
+        if (confirm('¿Estás seguro de que quieres enviar el test? No podrás modificarlo después.')) {
+            document.getElementById('test-form').submit();
+        }
+    }
+});
+</script>
+{% endblock %} 

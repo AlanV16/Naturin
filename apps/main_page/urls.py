@@ -9,4 +9,6 @@ urlpatterns = [
     path('explore/', views.explore, name='explore'),
     path('explore/<slug:slug>/', views.explore_detail, name='explore_detail'),
     path('juegos/', views.games, name='games'),
+    path('especies/tab/', views.species_tab, name='species_tab'),
+    path('mapa-especies/tab/', views.mapa_tab, name='mapa_tab'),
 ]

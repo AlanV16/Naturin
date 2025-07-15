@@ -1,0 +1,568 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/dashboard_optimized.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-bg">
+    <div class="container-fluid py-2">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-none d-md-block">
+                <div class="sidebar-dashboard">
+                    <div class="text-center py-4">
+                        <img src="{% static 'images/mascota/tuki.png' %}" alt="Tuki" width="80" height="80" class="mb-3" loading="lazy">
+                        <h6 class="fw-bold text-primary">¡Hola, Profesor!</h6>
+                    </div>
+                    <nav class="nav flex-column px-2 pb-4">
+                        <a class="nav-link sidebar-btn" href="{% url 'users:dashboard_teacher' %}">
+                            <i class="bi bi-house-door-fill me-2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_courses' %}">
+                            <i class="bi bi-journal-bookmark-fill me-2"></i>
+                            <span>Mis Cursos</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_assignments' %}">
+                            <i class="bi bi-clipboard-check me-2"></i>
+                            <span>Tareas</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_grades' %}">
+                            <i class="bi bi-bar-chart-fill me-2"></i>
+                            <span>Calificaciones</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'pedagogical_guides:guide_list' %}">
+                            <i class="bi bi-file-earmark-text me-2"></i>
+                            <span>Guías Pedagógicas</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_students' %}">
+                            <i class="bi bi-people-fill me-2"></i>
+                            <span>Estudiantes</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_calendar' %}">
+                            <i class="bi bi-calendar3 me-2"></i>
+                            <span>Calendario</span>
+                        </a>
+                        <a class="nav-link sidebar-btn active" href="{% url 'users:teacher_messages' %}">
+                            <i class="bi bi-chat-dots-fill me-2"></i>
+                            <span>Mensajes</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 px-3">
+                <div class="row h-100">
+                    <!-- Lista de conversaciones -->
+                    <div class="col-lg-4">
+                        <div class="dashboard-card h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold mb-0">
+                                    <i class="bi bi-chat-dots"></i>
+                                    Mensajes
+                                </h5>
+                                <button class="btn btn-teacher-primary btn-sm" onclick="showNewMessageModal()">
+                                    <i class="bi bi-plus"></i>
+                                    Nuevo
+                                </button>
+                            </div>
+                            
+                            <!-- Barra de búsqueda -->
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" placeholder="Buscar conversaciones...">
+                                </div>
+                            </div>
+
+                            <!-- Lista de conversaciones -->
+                            <div class="conversation-list">
+                                {% for message in direct_messages %}
+                                    <div class="conversation-item {% if forloop.first %}active{% endif %}" onclick="selectMessage({{ message.id }})">
+                                        <div class="conversation-avatar">
+                                            {% if message.sender != user %}
+                                                {% if message.sender.profile_picture %}
+                                                    <img src="{{ message.sender.profile_picture.url }}" alt="{{ message.sender.get_full_name }}" class="rounded-circle" width="40" height="40">
+                                                {% else %}
+                                                    <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: #007bff; color: white; font-weight: bold;">
+                                                        {{ message.sender.first_name|first|upper }}{{ message.sender.last_name|first|upper }}
+                                                    </div>
+                                                {% endif %}
+                                            {% else %}
+                                                {% if message.recipient.profile_picture %}
+                                                    <img src="{{ message.recipient.profile_picture.url }}" alt="{{ message.recipient.get_full_name }}" class="rounded-circle" width="40" height="40">
+                                                {% else %}
+                                                    <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: #28a745; color: white; font-weight: bold;">
+                                                        {{ message.recipient.first_name|first|upper }}{{ message.recipient.last_name|first|upper }}
+                                                    </div>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                        <div class="conversation-details">
+                                            <div class="conversation-name">
+                                                {% if message.sender != user %}
+                                                    {{ message.sender.get_full_name }}
+                                                {% else %}
+                                                    Para: {{ message.recipient.get_full_name }}
+                                                {% endif %}
+                                            </div>
+                                            <div class="conversation-preview">{{ message.subject|truncatechars:40 }}</div>
+                                            <small class="conversation-time text-muted">{{ message.created_at|timesince }} atrás</small>
+                                        </div>
+                                        {% if not message.is_read and message.recipient == user %}
+                                            <div class="conversation-status">
+                                                <span class="unread-count">1</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% empty %}
+                                    <div class="text-center text-muted py-4">
+                                        <i class="bi bi-chat-square-text" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                        <p>No tienes conversaciones</p>
+                                    </div>
+                                {% endfor %}
+                                
+                                <!-- Conversations from new system -->
+                                {% for conversation in conversations %}
+                                    <div class="conversation-item" onclick="selectConversation({{ conversation.id }})">
+                                        <div class="conversation-avatar">
+                                            {% with other_participant=conversation.participants.all|first %}
+                                                {% if other_participant.profile_picture %}
+                                                    <img src="{{ other_participant.profile_picture.url }}" alt="{{ other_participant.get_full_name }}" class="rounded-circle" width="40" height="40">
+                                                {% else %}
+                                                    <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: #6c757d; color: white; font-weight: bold;">
+                                                        {{ other_participant.first_name|first|upper }}{{ other_participant.last_name|first|upper }}
+                                                    </div>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </div>
+                                        <div class="conversation-details">
+                                            {% with other_participant=conversation.participants.all|first %}
+                                                <div class="conversation-name">{{ other_participant.get_full_name }}</div>
+                                            {% endwith %}
+                                            {% with latest_message=conversation.get_latest_message %}
+                                                {% if latest_message %}
+                                                    <div class="conversation-preview">{{ latest_message.content|truncatechars:40 }}</div>
+                                                    <small class="conversation-time text-muted">{{ latest_message.created_at|timesince }} atrás</small>
+                                                {% else %}
+                                                    <div class="conversation-preview">Nueva conversación</div>
+                                                    <small class="conversation-time text-muted">{{ conversation.created_at|timesince }} atrás</small>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                            <!-- Chat área -->
+                            <div class="dashboard-card h-100 d-flex flex-column">
+                                <!-- Header del chat -->
+                                <div class="chat-header">
+                                    {% if direct_messages %}
+                                        {% with first_message=direct_messages.0 %}
+                                            <div class="d-flex align-items-center">
+                                                {% if first_message.sender != user %}
+                                                    {% if first_message.sender.profile_picture %}
+                                                        <img src="{{ first_message.sender.profile_picture.url }}" alt="{{ first_message.sender.get_full_name }}" class="rounded-circle me-3" width="40" height="40">
+                                                    {% else %}
+                                                        <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: #007bff; color: white; font-weight: bold;">
+                                                            {{ first_message.sender.first_name|first|upper }}{{ first_message.sender.last_name|first|upper }}
+                                                        </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <h6 class="fw-bold mb-0">{{ first_message.sender.get_full_name }}</h6>
+                                                        <small class="text-success">
+                                                            <i class="bi bi-circle-fill"></i>
+                                                            Estudiante
+                                                        </small>
+                                                    </div>
+                                                {% else %}
+                                                    {% if first_message.recipient.profile_picture %}
+                                                        <img src="{{ first_message.recipient.profile_picture.url }}" alt="{{ first_message.recipient.get_full_name }}" class="rounded-circle me-3" width="40" height="40">
+                                                    {% else %}
+                                                        <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: #28a745; color: white; font-weight: bold;">
+                                                            {{ first_message.recipient.first_name|first|upper }}{{ first_message.recipient.last_name|first|upper }}
+                                                        </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <h6 class="fw-bold mb-0">Para: {{ first_message.recipient.get_full_name }}</h6>
+                                                        <small class="text-success">
+                                                            <i class="bi bi-circle-fill"></i>
+                                                            Estudiante
+                                                        </small>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endwith %}
+                                    {% else %}
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: #6c757d; color: white; font-weight: bold;">
+                                                ?
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold mb-0">Selecciona una conversación</h6>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-circle"></i>
+                                                    Sin seleccionar
+                                                </small>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <button class="btn btn-outline-primary btn-sm me-2">
+                                            <i class="bi bi-info-circle"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-three-dots"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Mensajes -->
+                                <div class="chat-messages flex-grow-1">
+                                    {% if direct_messages %}
+                                        {% with selected_message=direct_messages.0 %}
+                                            {% for msg in selected_message.get_conversation_messages %}
+                                                <div class="message {% if msg.sender == user %}sent{% else %}received{% endif %}">
+                                                    {% if msg.sender != user %}
+                                                        <div class="message-avatar">
+                                                            {% if msg.sender.profile_picture %}
+                                                                <img src="{{ msg.sender.profile_picture.url }}" alt="{{ msg.sender.get_full_name }}" class="rounded-circle" width="32" height="32">
+                                                            {% else %}
+                                                                <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: #007bff; color: white; font-weight: bold; font-size: 0.8rem;">
+                                                                    {{ msg.sender.first_name|first|upper }}{{ msg.sender.last_name|first|upper }}
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+                                                    <div class="message-content">
+                                                        <div class="message-bubble">
+                                                            {% if msg.subject and msg == selected_message %}
+                                                                <strong>{{ msg.subject }}</strong><br>
+                                                            {% endif %}
+                                                            {{ msg.content }}
+                                                        </div>
+                                                        <small class="message-time">{{ msg.created_at|timesince }} atrás</small>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        {% endwith %}
+                                    {% else %}
+                                        <div class="text-center text-muted py-5">
+                                            <i class="bi bi-chat-square-text" style="font-size: 3rem; color: #B0BEC5;"></i>
+                                            <p class="mt-2">No hay mensajes para mostrar</p>
+                                            <p>Selecciona una conversación de la lista</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                            <!-- Input para escribir mensaje -->
+                            <div class="chat-input">
+                                <div class="input-group">
+                                    <button class="btn btn-outline-secondary" type="button">
+                                        <i class="bi bi-paperclip"></i>
+                                    </button>
+                                    <input type="text" class="form-control" placeholder="Escribe tu mensaje..." id="messageInput">
+                                    <button class="btn btn-teacher-primary" type="button" onclick="sendMessage()">
+                                        <i class="bi bi-send"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nuevo mensaje -->
+<div class="modal fade" id="newMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-chat-plus"></i>
+                    Nuevo Mensaje
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newMessageForm">
+                                    <div class="mb-3">
+                                        <label for="recipient" class="form-label">Para:</label>
+                                        <select class="form-select" id="recipient" required>
+                                            <option value="">Seleccionar destinatario...</option>
+                                            {% for student in students %}
+                                                <option value="{{ student.id }}">{{ student.get_full_name }} - Estudiante</option>
+                                            {% endfor %}
+                                            {% for course in teacher_courses %}
+                                                <option value="course_{{ course.id }}">Grupo {{ course.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Asunto:</label>
+                        <input type="text" class="form-control" id="subject" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="messageText" class="form-label">Mensaje:</label>
+                        <textarea class="form-control" id="messageText" rows="5" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-teacher-primary" onclick="sendNewMessage()">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showNewMessageModal() {
+    new bootstrap.Modal(document.getElementById('newMessageModal')).show();
+}
+
+function selectConversation(id) {
+    // Remover clase active de todas las conversaciones
+    document.querySelectorAll('.conversation-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Agregar clase active a la conversación seleccionada
+    event.currentTarget.classList.add('active');
+    
+    // Aquí se cargarían los mensajes de la conversación seleccionada
+    console.log('Conversación seleccionada:', id);
+}
+
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (message) {
+        // Aquí se enviaría el mensaje al backend
+        alert('Funcionalidad de envío de mensaje en desarrollo');
+        input.value = '';
+    }
+}
+
+function sendNewMessage() {
+    const recipient = document.getElementById('recipient').value;
+    const subject = document.getElementById('subject').value;
+    const messageText = document.getElementById('messageText').value;
+    
+    if (recipient && subject && messageText) {
+        // Determinar si es un curso o un estudiante individual
+        let recipientId;
+        let isCourse = false;
+        
+        if (recipient.startsWith('course_')) {
+            isCourse = true;
+            recipientId = recipient.replace('course_', '');
+        } else {
+            recipientId = recipient;
+        }
+        
+        const formData = {
+            recipient_id: recipientId,
+            subject: subject,
+            content: messageText,
+            is_course: isCourse
+        };
+        
+        fetch('{% url "users:send_message_api" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Mensaje enviado exitosamente');
+                bootstrap.Modal.getInstance(document.getElementById('newMessageModal')).hide();
+                document.getElementById('newMessageForm').reset();
+                // Recargar la página para mostrar el nuevo mensaje
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al enviar el mensaje');
+        });
+    } else {
+        alert('Por favor, completa todos los campos');
+    }
+}
+
+// Auto-scroll al final de los mensajes
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.querySelector('.chat-messages');
+    if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+});
+</script>
+
+<style>
+.conversation-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.conversation-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-bottom: 8px;
+}
+
+.conversation-item:hover {
+    background-color: #f8f9fa;
+}
+
+.conversation-item.active {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.conversation-item.active .conversation-preview,
+.conversation-item.active .conversation-time {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.conversation-avatar {
+    margin-right: 12px;
+}
+
+.conversation-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.conversation-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+}
+
+.conversation-preview {
+    font-size: 0.8rem;
+    color: #6c757d;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.conversation-time {
+    font-size: 0.75rem;
+}
+
+.unread-count {
+    background-color: var(--bs-danger);
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.chat-messages {
+    padding: 16px;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.message {
+    display: flex;
+    margin-bottom: 16px;
+}
+
+.message.sent {
+    justify-content: flex-end;
+}
+
+.message.sent .message-content {
+    align-items: flex-end;
+}
+
+.message-content {
+    display: flex;
+    flex-direction: column;
+    max-width: 70%;
+}
+
+.message-avatar {
+    margin-right: 8px;
+}
+
+.message.sent .message-avatar {
+    order: 2;
+    margin-right: 0;
+    margin-left: 8px;
+}
+
+.message-bubble {
+    background-color: #f8f9fa;
+    border-radius: 18px;
+    padding: 12px 16px;
+    margin-bottom: 4px;
+    word-wrap: break-word;
+}
+
+.message.sent .message-bubble {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-left: 16px;
+}
+
+.message.sent .message-time {
+    text-align: right;
+    margin-left: 0;
+    margin-right: 16px;
+}
+
+.chat-input {
+    padding: 16px;
+    border-top: 1px solid #e9ecef;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4 text-primary"><i class="bi bi-people-fill me-2"></i>Mis Hijos</h2>
+    {% if children %}
+        <div class="row">
+            {% for child in children %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ child.get_full_name|default:child.username }}</h5>
+                        <p class="card-text">
+                            <strong>Usuario:</strong> {{ child.username }}<br>
+                            <strong>Email:</strong> {{ child.email }}<br>
+                            <strong>Cursos inscritos:</strong> {{ child.enrollment.count }}
+                        </p>
+                        <a href="#" class="btn btn-outline-primary btn-sm">Ver detalles</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No tienes hijos registrados en la plataforma.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

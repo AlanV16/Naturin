@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/student/courses.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard.css' %}">
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <a href="{% url 'users:dashboard_teacher' user.id %}" class="back-to-dashboard">
+                <i class="bi bi-arrow-left"></i>
+                Volver 
+            </a>
+            
+            <!-- Header Section -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-2">
+                        <i class="bi bi-journal-bookmark me-2"></i>Mis Cursos
+                    </h2>
+                    <p class="text-muted mb-0">Gestiona y administra todos tus cursos</p>
+                </div>
+                <button class="btn btn-teacher-primary" onclick="showCreateCourseModal()">
+                    <i class="bi bi-plus-lg me-2"></i>Crear Nuevo Curso
+                </button>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="position-relative">
+                        <input type="text" class="form-control search-bar" placeholder="Buscar cursos..." id="courseSearch">
+                        <i class="bi bi-search position-absolute" style="right: 20px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="filter-tabs d-flex">
+                        <button class="filter-tab active" data-filter="all">Todos</button>
+                        <button class="filter-tab" data-filter="active">Activos</button>
+                        <button class="filter-tab" data-filter="completed">Finalizados</button>
+                        <button class="filter-tab" data-filter="draft">Borradores</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="dashboard-card stat-card text-center">
+                        <div class="stat-number">{{ total_courses|default:0 }}</div>
+                        <div class="stat-label">Cursos Totales</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card stat-card text-center">
+                        <div class="stat-number">{{ total_students|default:0 }}</div>
+                        <div class="stat-label">Estudiantes</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card stat-card text-center">
+                        <div class="stat-number">{{ pending_submissions|default:0 }}</div>
+                        <div class="stat-label">Por Calificar</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="dashboard-card stat-card text-center">
+                        <div class="stat-number">{{ avg_completion|default:0 }}%</div>
+                        <div class="stat-label">Progreso Promedio</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Courses Grid -->
+            <div class="row g-4" id="coursesGrid">
+                {% if courses %}
+                    {% for course in courses %}
+                    <div class="col-md-6 col-lg-4 course-item" data-status="{{ course.status }}">
+                        <div class="card course-card" onclick="window.location.href='{% url 'users:course_detail' course.id %}'" style="cursor: pointer;">
+                            <div class="course-header {{ course.subject|lower }}">
+                                <div class="course-icon">
+                                    <i class="bi bi-{{ course.icon|default:'book' }}"></i>
+                                </div>
+                                <div class="course-actions">
+                                    <button class="btn btn-sm btn-outline-light" onclick="editCourse({{ course.id }})" title="Editar curso">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-light" onclick="showCourseSettings({{ course.id }})" title="Configuración">
+                                        <i class="bi bi-gear"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="course-body">
+                                <div>
+                                    <div class="course-title">{{ course.name }}</div>
+                                    <div class="course-teacher">
+                                        <i class="bi bi-person-badge me-1"></i>
+                                        {{ user.get_full_name|default:user.username }}
+                                    </div>
+                                    <div class="course-code">
+                                        <i class="bi bi-tag me-1"></i>
+                                        Código: {{ course.code }}
+                                    </div>
+                                </div>
+                                <div class="course-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-number">{{ course.students_count|default:0 }}</span>
+                                        <span class="stat-label">Estudiantes</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number">{{ course.assignments_count|default:0 }}</span>
+                                        <span class="stat-label">Tareas</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-number">{{ course.avg_grade|default:0|floatformat:1 }}</span>
+                                        <span class="stat-label">Promedio</span>
+                                    </div>
+                                </div>
+                                <div class="course-quick-actions mt-3">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="window.location.href='{% url 'users:course_detail' course.id %}'">
+                                        <i class="bi bi-gear-fill me-1"></i>Gestionar
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success" onclick="viewStudents({{ course.id }})">
+                                        <i class="bi bi-people me-1"></i>Estudiantes
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-warning" onclick="createAssignment({{ course.id }})">
+                                        <i class="bi bi-plus me-1"></i>Tarea
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Empty State -->
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <div class="empty-state-image">
+                                <img src="{% static 'images/miscellaneous/not_found.png' %}" alt="Sin cursos" class="img-fluid">
+                            </div>
+                            <h4>¡Aún no tienes cursos creados!</h4>
+                            <p>Crea tu primer curso para comenzar a enseñar y gestionar estudiantes</p>
+                            <button class="btn btn-teacher-primary" onclick="showCreateCourseModal()">
+                                <i class="bi bi-plus-lg me-2"></i>Crear Primer Curso
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crear Curso -->
+<div class="modal fade" id="createCourseModal" tabindex="-1" aria-labelledby="createCourseModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="createCourseForm" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createCourseModalLabel">Crear Nuevo Curso</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="courseName" class="form-label">Nombre del Curso <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="courseName" name="name" required>
+          <div class="invalid-feedback">
+            El nombre del curso es requerido.
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="courseDescription" class="form-label">Descripción</label>
+          <textarea class="form-control" id="courseDescription" name="description" rows="3" placeholder="Descripción opcional del curso"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="courseSubject" class="form-label">Materia <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="courseSubject" name="subject" required placeholder="Ej: Matemáticas, Ciencias, Historia...">
+          <div class="invalid-feedback">
+            La materia es requerida.
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="courseGrade" class="form-label">Grado <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="courseGrade" name="grade" required placeholder="Ej: 1°, 2°, 3°...">
+          <div class="invalid-feedback">
+            El grado es requerido.
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="courseCode" class="form-label">Código del Curso</label>
+          <input type="text" class="form-control" id="courseCode" name="code" readonly>
+          <div class="form-text">
+            Este código se genera automáticamente y es único para cada curso.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Crear Curso</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    window.CREATE_COURSE_URL = "{% url 'users:create_course' %}";
+    window.CSRF_TOKEN = "{{ csrf_token }}";
+</script>
+<script src="{% static 'js/teacher/courses.js' %}"></script>
+{% endblock %}

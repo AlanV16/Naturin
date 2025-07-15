@@ -1,0 +1,28 @@
+/* Tabs personalizados para la sección Aprender */
+.nav-tabs .nav-link {
+    color: #388e3c;
+    font-weight: 500;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    transition: color 0.2s, border-bottom 0.2s;
+}
+.nav-tabs .nav-link.active {
+    color: #fff;
+    background: #388e3c;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 2px solid #388e3c;
+}
+.nav-tabs .nav-link:not(.active):hover {
+    color: #256029;
+    background: #e8f5e9;
+}
+.tab-content {
+    background: #fff;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 2px 8px rgba(60,200,150,0.08);
+    min-height: 300px;
+}
+#tab-content-loader {
+    min-height: 200px;
+} 

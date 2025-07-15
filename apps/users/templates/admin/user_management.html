@@ -1,0 +1,495 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block user_login %}{% endblock %}
+{% block user_register %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .user-card {
+            transition: all 0.3s ease;
+        }
+        .user-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 69, 29, 0.1);
+        }
+        .filter-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fbf8 100%);
+        }
+        .action-btn {
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+    </style>
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="bg-gradient-to-br from-[#f8fbf8] to-[#E1F0DA] font-sans min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold text-[#10451D] mb-2">Gestión de Usuarios</h1>
+                    <p class="text-gray-600">Administra todos los usuarios de la plataforma NatureIn</p>
+                </div>
+                <a href="{% url 'users:dashboard_admin' user.id %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-2">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Volver al Dashboard</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#4C956C]">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Total Usuarios</p>
+                        <p class="text-3xl font-bold text-[#10451D]">{{ total_users }}</p>
+                    </div>
+                    <i class="bi bi-people-fill text-3xl text-[#4C956C]"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Estudiantes</p>
+                        <p class="text-2xl font-bold text-blue-600">{{ user_types_count.student }}</p>
+                    </div>
+                    <i class="bi bi-mortarboard-fill text-3xl text-blue-500"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Docentes</p>
+                        <p class="text-2xl font-bold text-green-600">{{ user_types_count.teacher }}</p>
+                    </div>
+                    <i class="bi bi-person-workspace text-3xl text-green-500"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Padres</p>
+                        <p class="text-2xl font-bold text-purple-600">{{ user_types_count.parent }}</p>
+                    </div>
+                    <i class="bi bi-person-hearts text-3xl text-purple-500"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Expertos</p>
+                        <p class="text-2xl font-bold text-orange-600">{{ user_types_count.expert }}</p>
+                    </div>
+                    <i class="bi bi-award-fill text-3xl text-orange-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="filter-card rounded-xl shadow-lg p-6 mb-8">
+            <form method="GET" class="flex flex-wrap items-center gap-4">
+                <!-- Search -->
+                <div class="flex-1 min-w-64">
+                    <div class="relative">
+                        <input type="text" name="search" value="{{ search_query }}" 
+                               placeholder="Buscar por nombre, apellido o email..." 
+                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4C956C] focus:border-transparent">
+                        <i class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <!-- User Type Filter -->
+                <div>
+                    <select name="user_type" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4C956C]">
+                        <option value="">Todos los tipos</option>
+                        <option value="student" {% if user_type_filter == 'student' %}selected{% endif %}>Estudiantes</option>
+                        <option value="teacher" {% if user_type_filter == 'teacher' %}selected{% endif %}>Docentes</option>
+                        <option value="parent" {% if user_type_filter == 'parent' %}selected{% endif %}>Padres</option>
+                        <option value="expert" {% if user_type_filter == 'expert' %}selected{% endif %}>Expertos</option>
+                        <option value="admin" {% if user_type_filter == 'admin' %}selected{% endif %}>Administradores</option>
+                    </select>
+                </div>
+
+                <!-- Status Filter -->
+                <div>
+                    <select name="status" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4C956C]">
+                        <option value="">Todos los estados</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Activos</option>
+                        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactivos</option>
+                    </select>
+                </div>
+
+                <!-- Sort -->
+                <div>
+                    <select name="sort" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4C956C]">
+                        <option value="-date_joined" {% if sort_by == '-date_joined' %}selected{% endif %}>Más recientes</option>
+                        <option value="date_joined" {% if sort_by == 'date_joined' %}selected{% endif %}>Más antiguos</option>
+                        <option value="first_name" {% if sort_by == 'first_name' %}selected{% endif %}>Nombre A-Z</option>
+                        <option value="-first_name" {% if sort_by == '-first_name' %}selected{% endif %}>Nombre Z-A</option>
+                        <option value="email" {% if sort_by == 'email' %}selected{% endif %}>Email A-Z</option>
+                        <option value="-last_login" {% if sort_by == '-last_login' %}selected{% endif %}>Último acceso</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex space-x-2">
+                    <button type="submit" class="bg-[#4C956C] text-white px-6 py-3 rounded-lg hover:bg-[#10451D] transition-colors flex items-center space-x-2">
+                        <i class="bi bi-funnel"></i>
+                        <span>Filtrar</span>
+                    </button>
+                    <a href="{% url 'users:admin_user_management' %}" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-2">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        <span>Limpiar</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Users Table -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-800">
+                        Lista de Usuarios ({{ users|length }} de {{ total_users }})
+                    </h3>
+                    <div class="flex space-x-2">
+                        <button onclick="exportUsers()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2">
+                            <i class="bi bi-download"></i>
+                            <span>Exportar</span>
+                        </button>
+                        <button onclick="showBulkActions()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2">
+                            <i class="bi bi-list-check"></i>
+                            <span>Acciones en Lote</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 text-left text-sm text-gray-600">
+                        <tr>
+                            <th class="px-6 py-4">
+                                <input type="checkbox" id="selectAll" class="rounded text-[#4C956C]">
+                            </th>
+                            <th class="px-6 py-4 font-medium">Usuario</th>
+                            <th class="px-6 py-4 font-medium">Tipo</th>
+                            <th class="px-6 py-4 font-medium">Estado</th>
+                            <th class="px-6 py-4 font-medium">Fecha de Registro</th>
+                            <th class="px-6 py-4 font-medium">Último Acceso</th>
+                            <th class="px-6 py-4 font-medium text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for user_item in users %}
+                        <tr class="user-card hover:bg-gray-50" data-user-id="{{ user_item.id }}">
+                            <td class="px-6 py-4">
+                                <input type="checkbox" name="selected_users" value="{{ user_item.id }}" class="rounded text-[#4C956C]">
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-[#4C956C] rounded-full flex items-center justify-center text-white font-bold">
+                                        {{ user_item.first_name|first|upper|default:"U" }}{{ user_item.last_name|first|upper|default:"" }}
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">{{ user_item.first_name }} {{ user_item.last_name }}</p>
+                                        <p class="text-sm text-gray-500">{{ user_item.email }}</p>
+                                        <p class="text-xs text-gray-400">@{{ user_item.username }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                    {% if user_item.user_type == 'student' %}bg-blue-100 text-blue-800
+                                    {% elif user_item.user_type == 'teacher' %}bg-green-100 text-green-800
+                                    {% elif user_item.user_type == 'parent' %}bg-purple-100 text-purple-800
+                                    {% elif user_item.user_type == 'expert' %}bg-orange-100 text-orange-800
+                                    {% elif user_item.user_type == 'admin' %}bg-red-100 text-red-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ user_item.get_user_type_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                    {% if user_item.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {% if user_item.is_active %}
+                                        <i class="bi bi-check-circle mr-1"></i>Activo
+                                    {% else %}
+                                        <i class="bi bi-x-circle mr-1"></i>Inactivo
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                {{ user_item.date_joined|date:"d/m/Y H:i" }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                {% if user_item.last_login %}
+                                    {{ user_item.last_login|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    <span class="text-gray-400">Nunca</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <button onclick="viewUserDetail({{ user_item.id }})" 
+                                            class="action-btn text-blue-600 hover:text-blue-800 p-1" title="Ver detalles">
+                                        <i class="bi bi-eye text-lg"></i>
+                                    </button>
+                                    <button onclick="editUser({{ user_item.id }})" 
+                                            class="action-btn text-green-600 hover:text-green-800 p-1" title="Editar">
+                                        <i class="bi bi-pencil text-lg"></i>
+                                    </button>
+                                    {% if user_item.is_active %}
+                                        <button onclick="toggleUserStatus({{ user_item.id }}, false)" 
+                                                class="action-btn text-orange-600 hover:text-orange-800 p-1" title="Desactivar">
+                                            <i class="bi bi-pause-circle text-lg"></i>
+                                        </button>
+                                    {% else %}
+                                        <button onclick="toggleUserStatus({{ user_item.id }}, true)" 
+                                                class="action-btn text-green-600 hover:text-green-800 p-1" title="Activar">
+                                            <i class="bi bi-play-circle text-lg"></i>
+                                        </button>
+                                    {% endif %}
+                                    {% if user_item.id != user.id %}
+                                        <button onclick="deleteUser({{ user_item.id }})" 
+                                                class="action-btn text-red-600 hover:text-red-800 p-1" title="Eliminar">
+                                            <i class="bi bi-trash text-lg"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center">
+                                    <i class="bi bi-people text-6xl text-gray-300 mb-4"></i>
+                                    <h3 class="text-lg font-medium text-gray-900 mb-2">No hay usuarios</h3>
+                                    <p class="text-gray-500">No se encontraron usuarios que coincidan con los filtros aplicados.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if users.has_other_pages %}
+            <div class="px-6 py-4 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center text-sm text-gray-500">
+                        Mostrando {{ users.start_index }} a {{ users.end_index }} de {{ users.paginator.count }} usuarios
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        {% if users.has_previous %}
+                            <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if user_type_filter %}&user_type={{ user_type_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}&sort={{ sort_by }}" 
+                               class="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">Primera</a>
+                            <a href="?page={{ users.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if user_type_filter %}&user_type={{ user_type_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}&sort={{ sort_by }}" 
+                               class="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">Anterior</a>
+                        {% endif %}
+
+                        <span class="px-3 py-2 text-sm bg-[#4C956C] text-white rounded">
+                            {{ users.number }}
+                        </span>
+
+                        {% if users.has_next %}
+                            <a href="?page={{ users.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if user_type_filter %}&user_type={{ user_type_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}&sort={{ sort_by }}" 
+                               class="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">Siguiente</a>
+                            <a href="?page={{ users.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if user_type_filter %}&user_type={{ user_type_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}&sort={{ sort_by }}" 
+                               class="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50">Última</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- User Detail Modal -->
+    <div id="userDetailModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-6 w-full max-w-2xl mx-4 max-h-screen overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Detalles del Usuario</h3>
+                <button onclick="closeModal('userDetailModal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div id="userDetailContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // User management functions
+        function viewUserDetail(userId) {
+            fetch(`/admin/users/${userId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showUserDetailModal(data.user);
+                    } else {
+                        alert('Error al cargar detalles del usuario');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar detalles del usuario');
+                });
+        }
+
+        function showUserDetailModal(user) {
+            const content = `
+                <div class="space-y-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-[#4C956C] rounded-full flex items-center justify-center text-white text-xl font-bold">
+                            ${user.first_name.charAt(0)}${user.last_name.charAt(0)}
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-semibold">${user.first_name} ${user.last_name}</h4>
+                            <p class="text-gray-600">${user.email}</p>
+                            <p class="text-sm text-gray-500">@${user.username}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <p class="text-sm font-medium text-gray-700">Tipo de Usuario</p>
+                            <p class="text-sm text-gray-900">${user.user_type_display}</p>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-sm font-medium text-gray-700">Estado</p>
+                            <p class="text-sm ${user.is_active ? 'text-green-600' : 'text-red-600'}">${user.is_active ? 'Activo' : 'Inactivo'}</p>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-sm font-medium text-gray-700">Fecha de Registro</p>
+                            <p class="text-sm text-gray-900">${user.date_joined}</p>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-sm font-medium text-gray-700">Último Acceso</p>
+                            <p class="text-sm text-gray-900">${user.last_login}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3 pt-4 border-t">
+                        <button onclick="editUser(${user.id})" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                            Editar Usuario
+                        </button>
+                        <button onclick="closeModal('userDetailModal')" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('userDetailContent').innerHTML = content;
+            document.getElementById('userDetailModal').classList.remove('hidden');
+        }
+
+        function toggleUserStatus(userId, activate) {
+            const action = activate ? 'activar' : 'desactivar';
+            if (confirm(`¿Estás seguro de que quieres ${action} este usuario?`)) {
+                fetch(`/admin/users/${userId}/toggle-status/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cambiar estado del usuario');
+                });
+            }
+        }
+
+        function deleteUser(userId) {
+            if (confirm('¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.')) {
+                fetch(`/admin/users/${userId}/delete/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al eliminar usuario');
+                });
+            }
+        }
+
+        function editUser(userId) {
+            alert(`Función de edición para usuario ${userId} próximamente`);
+        }
+
+        function exportUsers() {
+            alert('Función de exportación próximamente');
+        }
+
+        function showBulkActions() {
+            alert('Función de acciones en lote próximamente');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function getCsrfToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+
+        // Select all functionality
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('input[name="selected_users"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('fixed') && event.target.classList.contains('inset-0')) {
+                const modal = event.target;
+                modal.classList.add('hidden');
+            }
+        });
+    </script>
+</div>
+{% endblock %}

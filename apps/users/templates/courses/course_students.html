@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/courses/course_detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard.css' %}">
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Back Button -->
+            <a href="{% url 'users:course_detail' course.id %}" class="back-to-dashboard">
+                <i class="bi bi-arrow-left"></i>
+                Volver al Curso
+            </a>
+            
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-2">
+                        <i class="bi bi-people me-2"></i>Estudiantes de {{ course.name }}
+                    </h2>
+                    <p class="text-muted mb-0">{{ total_students }} estudiante{{ total_students|pluralize }} inscrito{{ total_students|pluralize }}</p>
+                </div>
+                {% if is_teacher %}
+                <button class="btn btn-primary" onclick="inviteStudents({{ course.id }})">
+                    <i class="bi bi-person-plus me-2"></i>Invitar Estudiantes
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- Students List -->
+            <div class="card">
+                <div class="card-body">
+                    {% if students_data %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Estudiante</th>
+                                        <th>Email</th>
+                                        <th>Fecha de Inscripción</th>
+                                        <th>Tareas Entregadas</th>
+                                        {% if is_teacher %}
+                                        <th>Acciones</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for data in students_data %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="student-avatar me-3">
+                                                    <i class="bi bi-person-circle fs-2 text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{ data.student.get_full_name|default:data.student.username }}</div>
+                                                    <div class="text-muted small">{{ data.student.username }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ data.student.email }}</td>
+                                        <td>{{ data.enrollment_date|date:"d/m/Y" }}</td>
+                                        <td>
+                                            <span class="badge bg-success">{{ data.submitted_assignments }}</span>
+                                            / {{ data.total_assignments }}
+                                        </td>
+                                        {% if is_teacher %}
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-sm btn-outline-primary" onclick="viewStudentProgress({{ data.student.id }}, {{ course.id }})">
+                                                    <i class="bi bi-bar-chart"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-info" onclick="sendMessage({{ data.student.id }})">
+                                                    <i class="bi bi-chat"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="removeStudent({{ data.student.id }}, {{ course.id }})">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-people display-1 text-muted"></i>
+                            <h4 class="mt-3 text-muted">No hay estudiantes inscritos</h4>
+                            <p class="text-muted">Los estudiantes pueden inscribirse usando el código: <strong>{{ course.code }}</strong></p>
+                            {% if is_teacher %}
+                            <button class="btn btn-primary mt-3" onclick="inviteStudents({{ course.id }})">
+                                <i class="bi bi-person-plus me-2"></i>Invitar Estudiantes
+                            </button>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function inviteStudents(courseId) {
+        console.log('Invitar estudiantes al curso:', courseId);
+        // Implementar lógica para invitar estudiantes
+    }
+    
+    function viewStudentProgress(studentId, courseId) {
+        console.log('Ver progreso del estudiante:', studentId, 'en curso:', courseId);
+        // Implementar lógica para ver progreso
+    }
+    
+    function sendMessage(studentId) {
+        console.log('Enviar mensaje al estudiante:', studentId);
+        // Implementar lógica para enviar mensaje
+    }
+    
+    function removeStudent(studentId, courseId) {
+        if (confirm('¿Estás seguro de que quieres remover este estudiante del curso?')) {
+            console.log('Remover estudiante:', studentId, 'del curso:', courseId);
+            // Implementar lógica para remover estudiante
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,579 @@
+{% extends 'gamification/base.html' %}
+{% load static %}
+
+{% block title %}Clasificación de Ecosistemas - Juego Educativo{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <style>
+        .game-area {
+            min-height: 500px;
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .ecosystem-card {
+            width: 200px;
+            height: 150px;
+            margin: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            border: 2px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .ecosystem-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        
+        .ecosystem-card.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+        
+        .ecosystem-card.correct {
+            border-color: #4CAF50;
+            background: #E8F5E9;
+        }
+        
+        .ecosystem-card.incorrect {
+            border-color: #F44336;
+            background: #FFEBEE;
+        }
+        
+        .ecosystem-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .category-zone {
+            min-height: 200px;
+            border: 3px dashed #2E7D32;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px;
+            background: rgba(46, 125, 50, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .category-zone.drag-over {
+            background: rgba(46, 125, 50, 0.3);
+            border-color: #4CAF50;
+        }
+        
+        .category-zone.correct {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
+        }
+        
+        .category-zone.incorrect {
+            background: rgba(244, 67, 54, 0.2);
+            border-color: #F44336;
+        }
+        
+        .game-stats {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .feedback-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .feedback-correct {
+            background: #E8F5E9;
+            color: #2E7D32;
+            border: 2px solid #4CAF50;
+        }
+        
+        .feedback-incorrect {
+            background: #FFEBEE;
+            color: #C62828;
+            border: 2px solid #F44336;
+        }
+        
+        .ecosystem-data {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .ecosystem-data h6 {
+            color: #2E7D32;
+            margin-bottom: 10px;
+        }
+        
+        .ecosystem-data p {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header del juego -->
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px;">
+                <div class="card-header bg-info text-white border-0" style="border-radius: 16px 16px 0 0;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-diagram-3 me-3" style="font-size: 2rem;"></i>
+                        <div>
+                            <h4 class="mb-0">Clasificación de Ecosistemas</h4>
+                            <p class="mb-0 opacity-75">Arrastra cada ecosistema a su categoría correcta</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Estadísticas del juego -->
+                    <div class="game-stats">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <h5 class="text-success mb-1" id="correct-answers">0</h5>
+                                <small class="text-muted">Correctas</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h5 class="text-danger mb-1" id="incorrect-answers">0</h5>
+                                <small class="text-muted">Incorrectas</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h5 class="text-info mb-1" id="remaining">0</h5>
+                                <small class="text-muted">Pendientes</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h5 class="text-success mb-1" id="score">0</h5>
+                                <small class="text-muted">Puntuación</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Controles del juego -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <button class="btn btn-success me-2" onclick="startGame()">
+                                <i class="bi bi-play-fill me-1"></i>Nuevo Juego
+                            </button>
+                            <button class="btn btn-outline-info me-2" onclick="showHint()">
+                                <i class="bi bi-lightbulb me-1"></i>Pista
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="resetGame()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Reiniciar
+                            </button>
+                        </div>
+                        <div>
+                            <span class="badge bg-success me-2">Nivel: Avanzado</span>
+                            <span class="badge bg-info">Puntos: 15 por correcta</span>
+                        </div>
+                    </div>
+
+                    <!-- Área del juego -->
+                    <div class="game-area">
+                        <div id="feedback-message"></div>
+                        
+                        <!-- Ecosistemas para clasificar -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-success mb-3"><i class="bi bi-collection me-2"></i>Ecosistemas para Clasificar</h6>
+                                <div id="ecosystems-container" class="d-flex flex-wrap justify-content-center">
+                                    <!-- Los ecosistemas se generarán dinámicamente -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Zonas de clasificación -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="category-zone" data-category="terrestre">
+                                    <h6 class="text-center text-success mb-3">
+                                        <i class="bi bi-tree me-2"></i>Ecosistemas Terrestres
+                                    </h6>
+                                    <p class="text-center small text-muted">Ecosistemas que se desarrollan en la tierra firme</p>
+                                    <div id="terrestre-container"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="category-zone" data-category="acuatico">
+                                    <h6 class="text-center text-primary mb-3">
+                                        <i class="bi bi-droplet me-2"></i>Ecosistemas Acuáticos
+                                    </h6>
+                                    <p class="text-center small text-muted">Ecosistemas que se desarrollan en el agua</p>
+                                    <div id="acuatico-container"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="category-zone" data-category="mixto">
+                                    <h6 class="text-center text-warning mb-3">
+                                        <i class="bi bi-arrow-left-right me-2"></i>Ecosistemas Mixtos
+                                    </h6>
+                                    <p class="text-center small text-muted">Ecosistemas que combinan tierra y agua</p>
+                                    <div id="mixto-container"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información del ecosistema seleccionado -->
+                    <div id="ecosystem-info" class="ecosystem-data" style="display: none;">
+                        <h6><i class="bi bi-info-circle me-2"></i>Información del Ecosistema</h6>
+                        <div id="ecosystem-details"></div>
+                    </div>
+
+                    <!-- Instrucciones -->
+                    <div class="mt-4">
+                        <div class="alert alert-info border-0" style="border-radius: 12px;">
+                            <h6><i class="bi bi-info-circle me-2"></i>Instrucciones:</h6>
+                            <ul class="mb-0">
+                                <li>Arrastra cada ecosistema a su categoría correcta</li>
+                                <li>Haz clic en un ecosistema para ver información detallada</li>
+                                <li>Clasifica correctamente todos los ecosistemas para ganar</li>
+                                <li>Cada clasificación correcta te dará puntos</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de victoria -->
+<div class="modal fade" id="victoryModal" tabindex="-1" aria-labelledby="victoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-success" id="victoryModalLabel">
+                    <i class="bi bi-trophy me-2"></i> ¡Clasificación Completada!
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <div class="text-center">
+                    <i class="bi bi-star-fill text-warning" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3 mb-2">¡Excelente trabajo!</h4>
+                    <p class="text-muted">Has clasificado correctamente todos los ecosistemas</p>
+                    
+                    <div class="row text-center mt-4">
+                        <div class="col-4">
+                            <h5 class="text-success" id="final-correct">0</h5>
+                            <small class="text-muted">Correctas</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="text-danger" id="final-incorrect">0</h5>
+                            <small class="text-muted">Incorrectas</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="text-success" id="final-score">0</h5>
+                            <small class="text-muted">Puntuación</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <button type="button" class="btn btn-success btn-lg" onclick="startGame()">
+                        <i class="bi bi-arrow-clockwise me-2"></i>Jugar de Nuevo
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='{% url 'gamification:game_list' %}'">
+                        <i class="bi bi-arrow-left me-2"></i>Volver a Juegos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script>
+        // Datos de los ecosistemas
+        const ecosystemsData = [
+            {
+                id: 1,
+                name: 'Selva Amazónica',
+                category: 'terrestre',
+                image: '{% static "images/ecosystems/amazon.jpg" %}',
+                description: 'Bosque tropical húmedo con alta biodiversidad',
+                characteristics: ['Alta precipitación', 'Temperatura constante', 'Gran biodiversidad', 'Denso follaje']
+            },
+            {
+                id: 2,
+                name: 'Arrecife de Coral',
+                category: 'acuatico',
+                image: '{% static "images/ecosystems/coral.jpg" %}',
+                description: 'Ecosistema marino formado por colonias de coral',
+                characteristics: ['Aguas cálidas', 'Alta biodiversidad marina', 'Formaciones calcáreas', 'Zonas tropicales']
+            },
+            {
+                id: 3,
+                name: 'Manglar',
+                category: 'mixto',
+                image: '{% static "images/ecosystems/mangrove.jpg" %}',
+                description: 'Ecosistema costero que combina tierra y agua salada',
+                characteristics: ['Zonas costeras', 'Agua salada', 'Raíces aéreas', 'Adaptación salina']
+            },
+            {
+                id: 4,
+                name: 'Desierto del Sahara',
+                category: 'terrestre',
+                image: '{% static "images/ecosystems/desert.jpg" %}',
+                description: 'Ecosistema árido con escasa vegetación',
+                characteristics: ['Baja precipitación', 'Altas temperaturas', 'Escasa vegetación', 'Adaptaciones xerófitas']
+            },
+            {
+                id: 5,
+                name: 'Océano Pacífico',
+                category: 'acuatico',
+                image: '{% static "images/ecosystems/ocean.jpg" %}',
+                description: 'Ecosistema marino de aguas profundas',
+                characteristics: ['Aguas saladas', 'Gran profundidad', 'Biodiversidad marina', 'Corrientes oceánicas']
+            },
+            {
+                id: 6,
+                name: 'Pantano',
+                category: 'mixto',
+                image: '{% static "images/ecosystems/swamp.jpg" %}',
+                description: 'Ecosistema húmedo con agua estancada',
+                characteristics: ['Agua estancada', 'Suelo saturado', 'Vegetación acuática', 'Alta humedad']
+            }
+        ];
+
+        let gameState = {
+            ecosystems: [],
+            correctAnswers: 0,
+            incorrectAnswers: 0,
+            score: 0,
+            gameCompleted: false
+        };
+
+        // Inicializar el juego
+        function initGame() {
+            gameState = {
+                ecosystems: [...ecosystemsData],
+                correctAnswers: 0,
+                incorrectAnswers: 0,
+                score: 0,
+                gameCompleted: false
+            };
+            
+            createEcosystemCards();
+            setupDragAndDrop();
+            updateStats();
+        }
+
+        // Crear las tarjetas de ecosistemas
+        function createEcosystemCards() {
+            const container = document.getElementById('ecosystems-container');
+            container.innerHTML = '';
+            
+            gameState.ecosystems.forEach(ecosystem => {
+                const card = document.createElement('div');
+                card.className = 'ecosystem-card';
+                card.draggable = true;
+                card.dataset.ecosystemId = ecosystem.id;
+                
+                card.innerHTML = `
+                    <img src="${ecosystem.image}" alt="${ecosystem.name}" onerror="this.src='{% static 'images/logo/logo.png' %}'">
+                    <strong>${ecosystem.name}</strong>
+                `;
+                
+                card.addEventListener('click', () => showEcosystemInfo(ecosystem));
+                container.appendChild(card);
+            });
+        }
+
+        // Configurar drag and drop
+        function setupDragAndDrop() {
+            const cards = document.querySelectorAll('.ecosystem-card');
+            const zones = document.querySelectorAll('.category-zone');
+            
+            cards.forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+            });
+            
+            zones.forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('drop', handleDrop);
+                zone.addEventListener('dragenter', handleDragEnter);
+                zone.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+
+        // Manejar inicio de arrastre
+        function handleDragStart(e) {
+            e.target.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', e.target.dataset.ecosystemId);
+        }
+
+        // Manejar fin de arrastre
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        // Manejar arrastre sobre zona
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        // Manejar entrada en zona
+        function handleDragEnter(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        // Manejar salida de zona
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        // Manejar soltar en zona
+        function handleDrop(e) {
+            e.preventDefault();
+            const ecosystemId = e.dataTransfer.getData('text/plain');
+            const targetCategory = e.currentTarget.dataset.category;
+            
+            const card = document.querySelector(`[data-ecosystem-id="${ecosystemId}"]`);
+            const ecosystem = gameState.ecosystems.find(e => e.id == ecosystemId);
+            
+            if (card && ecosystem) {
+                // Verificar si la clasificación es correcta
+                const isCorrect = ecosystem.category === targetCategory;
+                
+                if (isCorrect) {
+                    card.classList.add('correct');
+                    gameState.correctAnswers++;
+                    gameState.score += 15;
+                    showFeedback('¡Correcto! Has clasificado bien este ecosistema.', 'correct');
+                } else {
+                    card.classList.add('incorrect');
+                    gameState.incorrectAnswers++;
+                    showFeedback('Incorrecto. Intenta clasificar de nuevo.', 'incorrect');
+                }
+                
+                // Mover la tarjeta a la zona
+                const zoneContainer = e.currentTarget.querySelector('div');
+                zoneContainer.appendChild(card);
+                
+                // Remover eventos de arrastre
+                card.draggable = false;
+                
+                updateStats();
+                
+                // Verificar si el juego está completo
+                if (gameState.correctAnswers + gameState.incorrectAnswers === gameState.ecosystems.length) {
+                    setTimeout(() => endGame(), 1000);
+                }
+            }
+            
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        // Mostrar información del ecosistema
+        function showEcosystemInfo(ecosystem) {
+            const infoContainer = document.getElementById('ecosystem-info');
+            const detailsContainer = document.getElementById('ecosystem-details');
+            
+            detailsContainer.innerHTML = `
+                <h6>${ecosystem.name}</h6>
+                <p><strong>Descripción:</strong> ${ecosystem.description}</p>
+                <p><strong>Categoría:</strong> ${getCategoryName(ecosystem.category)}</p>
+                <p><strong>Características:</strong></p>
+                <ul>
+                    ${ecosystem.characteristics.map(char => `<li>${char}</li>`).join('')}
+                </ul>
+            `;
+            
+            infoContainer.style.display = 'block';
+        }
+
+        // Obtener nombre de categoría
+        function getCategoryName(category) {
+            const names = {
+                'terrestre': 'Ecosistema Terrestre',
+                'acuatico': 'Ecosistema Acuático',
+                'mixto': 'Ecosistema Mixto'
+            };
+            return names[category] || category;
+        }
+
+        // Mostrar retroalimentación
+        function showFeedback(message, type) {
+            const feedbackContainer = document.getElementById('feedback-message');
+            feedbackContainer.innerHTML = `
+                <div class="feedback-message feedback-${type}">
+                    <i class="bi bi-${type === 'correct' ? 'check-circle' : 'x-circle'} me-2"></i>
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                feedbackContainer.innerHTML = '';
+            }, 3000);
+        }
+
+        // Mostrar pista
+        function showHint() {
+            const unclassifiedCards = document.querySelectorAll('.ecosystem-card:not(.correct):not(.incorrect)');
+            if (unclassifiedCards.length > 0) {
+                const randomCard = unclassifiedCards[Math.floor(Math.random() * unclassifiedCards.length)];
+                const ecosystemId = randomCard.dataset.ecosystemId;
+                const ecosystem = gameState.ecosystems.find(e => e.id == ecosystemId);
+                
+                showFeedback(`Pista: ${ecosystem.name} es un ${getCategoryName(ecosystem.category)}.`, 'correct');
+            }
+        }
+
+        // Reiniciar juego
+        function resetGame() {
+            const containers = document.querySelectorAll('#ecosystems-container, #terrestre-container, #acuatico-container, #mixto-container');
+            containers.forEach(container => container.innerHTML = '');
+            
+            initGame();
+        }
+
+        // Finalizar juego
+        function endGame() {
+            document.getElementById('final-correct').textContent = gameState.correctAnswers;
+            document.getElementById('final-incorrect').textContent = gameState.incorrectAnswers;
+            document.getElementById('final-score').textContent = gameState.score;
+            
+            const victoryModal = new bootstrap.Modal(document.getElementById('victoryModal'));
+            victoryModal.show();
+        }
+
+        // Actualizar estadísticas
+        function updateStats() {
+            const remaining = gameState.ecosystems.length - gameState.correctAnswers - gameState.incorrectAnswers;
+            
+            document.getElementById('correct-answers').textContent = gameState.correctAnswers;
+            document.getElementById('incorrect-answers').textContent = gameState.incorrectAnswers;
+            document.getElementById('remaining').textContent = remaining;
+            document.getElementById('score').textContent = gameState.score;
+        }
+
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            initGame();
+        });
+    </script>
+{% endblock %} 

@@ -1,0 +1,454 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/student/courses.css' %}">
+<link rel="stylesheet" href="{% static 'css/student/achievements.css' %}">
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Back to Dashboard -->
+            <a href="{% url 'users:dashboard_student' user_id=user.id %}" class="back-to-dashboard">
+                <i class="bi bi-arrow-left me-2"></i>
+                Volver al Dashboard
+            </a>
+            
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-2">
+                        <i class="bi bi-trophy me-2"></i>Mis Logros
+                    </h2>
+                    <p class="text-muted mb-0">Descubre y desbloquea todos los logros disponibles</p>
+                </div>
+            </div>
+
+            {% if achievements_data %}
+                <!-- Stats Header -->
+                <div class="achievements-header mb-5">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <div class="progress-ring">
+                                <div class="progress-circle" style="--percentage: {{ completion_percentage|floatformat:0 }}%">
+                                    <span class="progress-text">{{ completion_percentage|floatformat:0 }}%</span>
+                                </div>
+                            </div>
+                            <small class="text-center d-block mt-2">Progreso de Logros</small>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-value text-success">{{ earned_count }}</div>
+                                    <div class="stat-label">Logros Obtenidos</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value text-primary">{{ total_achievements }}</div>
+                                    <div class="stat-label">Total Disponibles</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value text-warning">{{ total_points }}</div>
+                                    <div class="stat-label">Puntos Totales</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Achievements -->
+                <div class="achievements-gallery">
+                    <h3 class="section-title mb-4">
+                        <i class="bi bi-collection me-2"></i>Galería de Logros
+                    </h3>
+                    <div class="row g-4">
+                        {% for achievement in achievements_data %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="achievement-card-modern {% if achievement.earned %}earned{% else %}locked{% endif %}" 
+                                 data-achievement-id="{{ achievement.id }}">
+                                
+                                <!-- Achievement Badge -->
+                                <div class="achievement-badge">
+                                    {% if achievement.earned %}
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                    {% else %}
+                                        <i class="bi bi-lock-fill text-muted"></i>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Points Badge -->
+                                <div class="points-badge">{{ achievement.points }} pts</div>
+                                
+                                <!-- Achievement Icon -->
+                                <div class="achievement-icon-container">
+                                    <i class="bi bi-{{ achievement.icon }} achievement-icon"></i>
+                                </div>
+                                
+                                <!-- Achievement Content -->
+                                <div class="achievement-content">
+                                    <h5 class="achievement-title">{{ achievement.name }}</h5>
+                                    
+                                    {% if achievement.earned %}
+                                        <p class="achievement-description earned-desc">
+                                            {% if achievement.name == "Primer Paso" %}
+                                                Conseguido tras completar tu primera lección de introducción a la biodiversidad en NatureIn
+                                            {% elif achievement.name == "Explorador Novato" %}
+                                                Conseguido tras identificar correctamente 5 especies diferentes usando el mapa interactivo
+                                            {% elif achievement.name == "Guardián del Bosque" %}
+                                                Conseguido tras participar activamente en 10 actividades de conservación y cuidado ambiental
+                                            {% elif achievement.name == "Experto en Fauna" %}
+                                                Conseguido tras obtener calificación perfecta en 3 cuestionarios consecutivos sobre vida animal
+                                            {% else %}
+                                                Conseguido tras demostrar excelencia académica en actividades de ciencias naturales
+                                            {% endif %}
+                                        </p>
+                                        <div class="achievement-date">
+                                            <i class="bi bi-calendar-event me-1"></i>
+                                            <small>Desbloqueado el {{ achievement.earned_at|date:"d M Y" }}</small>
+                                        </div>
+                                    {% else %}
+                                        <p class="achievement-description locked-desc">
+                                            {% if achievement.name == "Primer Paso" %}
+                                                Completa tu primera lección sobre biodiversidad para desbloquear este logro
+                                            {% elif achievement.name == "Explorador Novato" %}
+                                                Identifica 5 especies diferentes en el mapa interactivo para obtener este logro
+                                            {% elif achievement.name == "Guardián del Bosque" %}
+                                                Participa en 10 actividades de conservación para desbloquear este reconocimiento
+                                            {% elif achievement.name == "Experto en Fauna" %}
+                                                Obtén puntuación perfecta en 3 cuestionarios sobre animales para ganar este logro
+                                            {% else %}
+                                                Continúa estudiando y participando para desbloquear este logro especial
+                                            {% endif %}
+                                        </p>
+                                        <div class="progress-hint">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            <small class="text-muted">¡Sigue estudiando para desbloquearlo!</small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Achievement Effects -->
+                                {% if achievement.earned %}
+                                    <div class="achievement-glow"></div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <div class="empty-state-image">
+                        <img src="{% static 'images/miscellaneous/not_found.png' %}" alt="Sin logros" class="img-fluid">
+                    </div>
+                    <h4>¡Aún no hay logros disponibles!</h4>
+                    <a href="{% url 'users:student_courses' %}" class="btn join-course-btn">
+                        <i class="bi bi-book me-2"></i>Explorar Logros
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<style>
+    .achievement-card-modern {
+        background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        border: 2px solid transparent;
+        min-height: 280px;
+    }
+    
+    .achievement-card-modern.earned {
+        background: linear-gradient(145deg, #f0f9ff, #dbeafe);
+        border-color: #3b82f6;
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+    }
+    
+    .achievement-card-modern.locked {
+        background: linear-gradient(145deg, #f9fafb, #f3f4f6);
+        border-color: #e5e7eb;
+        opacity: 0.8;
+    }
+    
+    .achievement-card-modern:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+    }
+    
+    .achievement-card-modern.earned:hover {
+        box-shadow: 0 12px 35px rgba(59, 130, 246, 0.3);
+    }
+    
+    .achievement-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 1.5rem;
+    }
+    
+    .points-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    }
+    
+    .achievement-icon-container {
+        text-align: center;
+        margin: 2rem 0 1rem 0;
+    }
+    
+    .achievement-icon {
+        font-size: 3.5rem;
+        color: #6b7280;
+        transition: all 0.3s ease;
+    }
+    
+    .earned .achievement-icon {
+        color: #3b82f6;
+        text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+    
+    .achievement-title {
+        color: #1f2937;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        text-align: center;
+    }
+    
+    .achievement-description {
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    
+    .earned-desc {
+        color: #1e40af;
+        font-style: italic;
+    }
+    
+    .locked-desc {
+        color: #6b7280;
+    }
+    
+    .achievement-date {
+        text-align: center;
+        color: #059669;
+        font-weight: 500;
+        background: #d1fae5;
+        padding: 0.5rem;
+        border-radius: 8px;
+        border: 1px solid #a7f3d0;
+    }
+    
+    .progress-hint {
+        text-align: center;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 0.5rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .achievement-glow {
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+        transform: rotate(45deg);
+        animation: glow 3s ease-in-out infinite;
+        pointer-events: none;
+    }
+    
+    @keyframes glow {
+        0%, 100% { opacity: 0; transform: rotate(45deg) translateX(-100%); }
+        50% { opacity: 1; transform: rotate(45deg) translateX(100%); }
+    }
+    
+    .progress-ring {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .progress-circle {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: conic-gradient(#3b82f6 0deg, #3b82f6 var(--percentage, 0%), #e5e7eb var(--percentage, 0%));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    
+    .progress-circle::before {
+        content: '';
+        width: 80%;
+        height: 80%;
+        background: white;
+        border-radius: 50%;
+        position: absolute;
+    }
+    
+    .progress-text {
+        position: relative;
+        z-index: 1;
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: #1f2937;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: 1px solid #e5e7eb;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+    
+    .section-title {
+        color: #1f2937;
+        font-weight: 700;
+        border-bottom: 3px solid #3b82f6;
+        padding-bottom: 0.5rem;
+        display: inline-block;
+    }
+    
+    .achievements-gallery {
+        margin-top: 3rem;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Achievement card hover effects
+        document.querySelectorAll('.achievement-card-modern').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const icon = this.querySelector('.achievement-icon');
+                if (this.classList.contains('earned')) {
+                    icon.style.transform = 'scale(1.1) rotate(5deg)';
+                }
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                const icon = this.querySelector('.achievement-icon');
+                icon.style.transform = 'scale(1) rotate(0deg)';
+            });
+        });
+
+        // Update progress ring
+        const progressPercentage = parseFloat('{{ completion_percentage|floatformat:1 }}');
+        const progressDegrees = (progressPercentage / 100) * 360;
+        const progressCircle = document.querySelector('.progress-circle');
+        if (progressCircle) {
+            progressCircle.style.setProperty('--percentage', progressDegrees + 'deg');
+        }
+        
+        // Add entrance animations
+        const cards = document.querySelectorAll('.achievement-card-modern');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+        
+        // Confetti effect for earned achievements
+        document.querySelectorAll('.achievement-card-modern.earned').forEach(card => {
+            card.addEventListener('click', function() {
+                createConfetti(this);
+            });
+        });
+    });
+    
+    function createConfetti(element) {
+        const rect = element.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        for (let i = 0; i < 15; i++) {
+            const confetti = document.createElement('div');
+            confetti.style.position = 'fixed';
+            confetti.style.left = centerX + 'px';
+            confetti.style.top = centerY + 'px';
+            confetti.style.width = '8px';
+            confetti.style.height = '8px';
+            confetti.style.background = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'][Math.floor(Math.random() * 4)];
+            confetti.style.borderRadius = '50%';
+            confetti.style.pointerEvents = 'none';
+            confetti.style.zIndex = '9999';
+            
+            document.body.appendChild(confetti);
+            
+            const angle = (Math.PI * 2 * i) / 15;
+            const velocity = 100 + Math.random() * 100;
+            const vx = Math.cos(angle) * velocity;
+            const vy = Math.sin(angle) * velocity;
+            
+            let x = 0, y = 0;
+            const animate = () => {
+                x += vx * 0.01;
+                y += vy * 0.01 + 2;
+                confetti.style.transform = `translate(${x}px, ${y}px)`;
+                confetti.style.opacity = Math.max(0, 1 - y / 200);
+                
+                if (y < 200) {
+                    requestAnimationFrame(animate);
+                } else {
+                    confetti.remove();
+                }
+            };
+            
+            requestAnimationFrame(animate);
+        }
+    }
+</script>
+{% endblock %}

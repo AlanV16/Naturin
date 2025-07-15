@@ -84,8 +84,9 @@ class MultimediaCardForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Hacer que locations sea opcional
+        # Hacer que locations y category sean opcionales
         self.fields['locations'].required = False
+        self.fields['category'].required = False
         
         # Agregar clases CSS adicionales
         for field_name, field in self.fields.items():

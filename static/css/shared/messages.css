@@ -1,0 +1,595 @@
+/* En static/css/shared/messages.css */
+
+/* Variables CSS actualizadas para combinar con NatureIn */
+:root {
+    --primary-color: #4C956C;
+    --primary-light: #A3BCB6;
+    --primary-dark: #10451D;
+    --secondary-color: #6c757d;
+    --background-light: #f8fbf8;
+    --background-green: #E1F0DA;
+    --border-color: #dee2e6;
+    --message-bg-own: #E1F0DA;
+    --message-bg-other: #ffffff;
+    --sidebar-bg: linear-gradient(135deg, #4C956C 0%, #10451D 100%);
+    --text-muted: #6c757d;
+}
+
+/* Layout principal mejorado */
+.container-fluid {
+    height: calc(100vh - 120px);
+    max-height: 900px;
+    background: var(--background-light);
+    padding: 2rem;
+}
+
+.row {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(16, 69, 29, 0.1);
+    overflow: hidden;
+    height: 100%;
+}
+
+/* Sidebar de mensajes mejorado */
+.messages-sidebar {
+    background: var(--sidebar-bg);
+    color: white;
+    border-radius: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+}
+
+.sidebar-header {
+    padding: 2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05);
+}
+
+.sidebar-header h4 {
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+.search-box {
+    margin-top: 1.5rem;
+}
+
+.search-box input {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: white;
+    border-radius: 25px;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.search-box input::placeholder {
+    color: rgba(255,255,255,0.8);
+}
+
+.search-box input:focus {
+    background: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.4);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+    color: white;
+}
+
+/* Secciones del sidebar */
+.section-header {
+    padding: 15px 20px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.pending-requests {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.contact-request {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.conversations-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.conversation-item {
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.conversation-item:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.conversation-item.active {
+    background: rgba(255,255,255,0.2);
+}
+
+.conversation-name {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.last-message {
+    margin-top: 2px;
+}
+
+.online-contacts {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.contact-item {
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.contact-item:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* Avatares */
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    position: relative;
+}
+
+.avatar-xs {
+    width: 30px;
+    height: 30px;
+    position: relative;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.group-avatar {
+    width: 100%;
+    height: 100%;
+    background: var(--secondary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+}
+
+.online-indicator {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    background: #28a745;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+/* Breadcrumb personalizado */
+.breadcrumb {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--light-color);
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+    color: var(--muted-color);
+}
+
+/* Sidebar header mejorado */
+.sidebar-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+    color: white;
+    padding: 1.5rem;
+    border-radius: 0 0 15px 15px;
+    margin-bottom: 1rem;
+}
+
+.sidebar-header h4 {
+    font-weight: 600;
+}
+
+/* Conversaciones */
+.conversations-list {
+    padding: 0 1rem;
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+}
+
+.conversation-item {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid transparent;
+}
+
+.conversation-item:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--primary-color);
+    transform: translateX(5px);
+}
+
+.conversation-item.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    transform: translateX(5px);
+}
+
+.conversation-item.active .text-muted {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.conversation-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.last-message {
+    margin-top: 4px;
+}
+
+/* No conversations state */
+.no-conversations {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Welcome screen mejorada */
+.welcome-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    color: var(--muted-color);
+}
+
+.welcome-screen i {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+/* Conversation header */
+.conversation-header {
+    background: white;
+    border-bottom: 2px solid var(--light-color);
+    padding: 1rem 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Message input mejorado */
+.message-input-container {
+    background: white;
+    border-top: 2px solid var(--light-color);
+    padding: 1rem 1.5rem;
+}
+
+.message-input {
+    border: 2px solid var(--light-color);
+    border-radius: 25px;
+    padding: 0.75rem 1.25rem;
+    resize: none;
+    transition: all 0.3s ease;
+    background: var(--light-color);
+}
+
+.message-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(76, 149, 108, 0.25);
+    background: white;
+}
+
+.input-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.input-actions .btn {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+}
+
+.input-actions .btn-primary {
+    background: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(76, 149, 108, 0.3);
+}
+
+.input-actions .btn-primary:hover {
+    background: var(--dark-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 149, 108, 0.4);
+}
+
+/* Messages styles */
+.message {
+    margin-bottom: 1rem;
+    display: flex;
+    animation: fadeInUp 0.3s ease;
+}
+
+.message-own {
+    justify-content: flex-end;
+}
+
+.message-other {
+    justify-content: flex-start;
+}
+
+.message-bubble {
+    max-width: 70%;
+    padding: 0.75rem 1rem;
+    border-radius: 18px;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.message-own .message-bubble {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    border-bottom-right-radius: 6px;
+}
+
+.message-other .message-bubble {
+    background: white;
+    color: var(--text-color);
+    border: 1px solid var(--light-color);
+    border-bottom-left-radius: 6px;
+}
+
+.message-content {
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.message-other .message-time {
+    justify-content: flex-start;
+    color: var(--muted-color);
+}
+
+.read-indicator {
+    margin-left: 0.25rem;
+    font-size: 0.8rem;
+}
+
+/* Typing indicator */
+.typing-indicator {
+    padding: 0.5rem 0;
+}
+
+.typing-dots {
+    display: inline-flex;
+    gap: 2px;
+}
+
+.typing-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted-color);
+    animation: typing 1.4s infinite;
+}
+
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-10px); }
+}
+
+/* Search results */
+.search-results {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--light-color);
+    border-radius: 8px;
+    margin-top: 0.5rem;
+}
+
+.search-result-item {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--light-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.search-result-item:hover {
+    background-color: var(--light-color);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+/* Loading states */
+.loading {
+    padding: 2rem;
+    color: var(--muted-color);
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Scrollbar personalizado */
+.conversations-list::-webkit-scrollbar,
+.messages-container::-webkit-scrollbar,
+.online-contacts::-webkit-scrollbar,
+.pending-requests::-webkit-scrollbar {
+    width: 6px;
+}
+
+.conversations-list::-webkit-scrollbar-track,
+.messages-container::-webkit-scrollbar-track,
+.online-contacts::-webkit-scrollbar-track,
+.pending-requests::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+}
+
+.conversations-list::-webkit-scrollbar-thumb,
+.online-contacts::-webkit-scrollbar-thumb,
+.pending-requests::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+/* Badges */
+.badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+}
+
+/* Utilidades */
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Dropdown personalizado */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 8px;
+}
+
+.dropdown-item {
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background: var(--background-light);
+}
+
+.dropdown-item i {
+    width: 16px;
+}
+
+/* Responsive mejorado */
+@media (max-width: 768px) {
+    .messages-container-main {
+        height: 100vh;
+    }
+    
+    .messages-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1000;
+        background: var(--background-color);
+    }
+    
+    .chat-area {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1001;
+        background: white;
+        display: none;
+    }
+    
+    .conversation-area.active ~ .messages-sidebar {
+        display: none;
+    }
+    
+    .message-bubble {
+        max-width: 85%;
+    }
+    
+    .sidebar-header {
+        padding: 1rem;
+    }
+    
+    .conversations-list {
+        padding: 0 0.5rem;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #1a1a1a;
+        --text-color: #ffffff;
+        --light-color: #333333;
+        --muted-color: #888888;
+    }
+    
+    .welcome-screen {
+        background: linear-gradient(135deg, #2d2d2d, #1a1a1a);
+    }
+    
+    .conversation-header {
+        background: #2d2d2d;
+        border-bottom-color: #404040;
+    }
+    
+    .message-input-container {
+        background: #2d2d2d;
+        border-top-color: #404040;
+    }
+    
+    .message-other .message-bubble {
+        background: #3d3d3d;
+        border-color: #505050;
+        color: #ffffff;
+    }
+}

@@ -1,0 +1,738 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load user_extras %}
+
+{% block user_login %}{% endblock %}
+{% block user_register %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .stat-card {
+            background: linear-gradient(135deg, #4C956C 0%, #2F5D31 100%);
+        }
+        
+        .expert-card {
+            transition: all 0.3s ease;
+        }
+        
+        .expert-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .quick-action-card {
+            transition: all 0.3s ease;
+            text-decoration: none;
+            border: none;
+            background: none;
+            width: 100%;
+        }
+        
+        .quick-action-card:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+        
+        .sidebar-dropdown .hidden {
+            display: none;
+        }
+        
+        .sidebar-dropdown .block {
+            display: block;
+        }
+        
+        /* Custom scrollbar */
+        .overflow-y-auto::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .overflow-y-auto::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #4C956C;
+            border-radius: 3px;
+        }
+        
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #10451D;
+        }
+    </style>
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="bg-gradient-to-br from-[#f8fbf8] to-[#E1F0DA] font-sans min-h-screen">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="bg-gradient-to-b from-[#10451D] to-[#0d3a18] text-white w-72 p-6 space-y-8 shadow-2xl">
+            <div class="flex flex-col items-center">
+                <div class="bg-white/10 p-4 rounded-full mb-4 w-24 h-24 flex items-center justify-center">
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" alt="Avatar de {{ user.get_full_name }}" width="80" height="80" class="rounded-full object-cover">
+                    {% else %}
+                        <img src="{% static 'images/mascota/tunki_r.png' %}" alt="Tunki - Mascota NatureIn" width="80" height="80" class="rounded-full object-cover">
+                    {% endif %}
+                </div>
+                <h3 class="text-xl font-bold text-white">{{ user.get_full_name|default:user.username }}</h3>
+                <span class="text-green-200 text-sm">Experto</span>
+            </div>
+            
+            <nav class="space-y-2">
+                <a href="{% url 'users:dashboard_expert' user.id %}" class="sidebar-link flex items-center space-x-3 bg-white/20 text-white px-4 py-3 rounded-lg">
+                    <i class="bi bi-speedometer2 text-lg"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                
+                <!-- Gestión de Fichas -->
+                <div class="sidebar-dropdown">
+                    <button class="sidebar-link flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-white/10" onclick="toggleDropdown('sheets')">
+                        <div class="flex items-center space-x-3">
+                            <i class="bi bi-journal-check text-lg"></i>
+                            <span class="font-medium">Fichas</span>
+                        </div>
+                        <i class="bi bi-chevron-down text-sm transform transition-transform" id="sheets-chevron"></i>
+                    </button>
+                    <div class="hidden ml-6 mt-2 space-y-1" id="sheets-dropdown">
+                        <a href="{% url 'users:expert_review_sheets' %}" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Por Revisar</a>
+                        <a href="#" onclick="showCreateSheetModal()" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Crear Ficha</a>
+                        <a href="#" onclick="loadSection('my-sheets')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Mis Fichas</a>
+                    </div>
+                </div>
+                <!-- Estadísticas -->
+                <div class="sidebar-dropdown">
+                    <button class="sidebar-link flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-white/10" onclick="toggleDropdown('statistics')">
+                        <div class="flex items-center space-x-3">
+                            <i class="bi bi-bar-chart-line text-lg"></i>
+                            <span class="font-medium">Estadísticas</span>
+                        </div>
+                        <i class="bi bi-chevron-down text-sm transform transition-transform" id="statistics-chevron"></i>
+                    </button>
+                    <div class="hidden ml-6 mt-2 space-y-1" id="statistics-dropdown">
+                        <a href="{% url 'users:expert_statistics' %}" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Mi Rendimiento</a>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-white/20">
+                    <a href="{% url 'users:user_calendar' %}" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10">
+                        <i class="bi bi-calendar3 text-lg"></i>
+                        <span class="font-medium">Calendario</span>
+                    </a>
+                    <a href="{% url 'users:messages_home' %}" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10">
+                        <i class="bi bi-chat-dots-fill text-lg"></i>
+                        <span class="font-medium">Mensajes</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 overflow-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-[#10451D] mb-2">Dashboard de Experto</h1>
+                <p class="text-gray-600">Bienvenido al sistema de gestión de contenido educativo de NatureIn</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card text-white p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100 text-sm font-medium">Fichas Pendientes</p>
+                            <p class="text-3xl font-bold">{{ pending_sheets|default:0 }}</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-full">
+                            <i class="bi bi-journal-check text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-green-100 text-sm">
+                        <i class="bi bi-clock text-green-300 mr-1"></i>
+                        <span>Esperando revisión</span>
+                    </div>
+                </div>
+
+                <div class="expert-card bg-blue-500 text-black p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-800 text-sm font-medium">En Revisión</p>
+                            <p class="text-3xl font-bold text-black">{{ my_reviews|default:0 }}</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-full">
+                            <i class="bi bi-eye text-2xl text-white"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-gray-700 text-sm">
+                        <i class="bi bi-hourglass-split text-gray-600 mr-1"></i>
+                        <span>En proceso</span>
+                    </div>
+                </div>
+
+                <div class="expert-card bg-purple-500 text-black p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-800 text-sm font-medium">Por Moderar</p>
+                            <p class="text-3xl font-bold text-black">{{ pending_moderation|default:0 }}</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-full">
+                            <i class="bi bi-clipboard-check text-2xl text-white"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-gray-700 text-sm">
+                        <i class="bi bi-shield-check text-gray-600 mr-1"></i>
+                        <span>Contenido pendiente</span>
+                    </div>
+                </div>
+
+                <div class="expert-card bg-orange-500 text-black p-6 rounded-xl shadow-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-800 text-sm font-medium">Mis Fichas</p>
+                            <p class="text-3xl font-bold text-black">{{ my_sheets_count|default:0 }}</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-full">
+                            <i class="bi bi-file-earmark-text text-2xl text-white"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-gray-700 text-sm">
+                        <i class="bi bi-pencil text-gray-600 mr-1"></i>
+                        <span>Fichas creadas</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expert Action Bar -->
+            <div class="bg-white rounded-xl shadow-lg p-4 mb-8">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center space-x-4">
+                        <a href="{% url 'users:expert_review_sheets' %}" class="bg-[#4C956C] text-white px-4 py-2 rounded-lg hover:bg-[#10451D] transition-colors flex items-center space-x-2">
+                            <i class="bi bi-plus-circle"></i>
+                            <span>Nueva Revisión</span>
+                        </a>
+                        <button onclick="showCreateSheetModal()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2">
+                            <i class="bi bi-file-earmark-plus"></i>
+                            <span>Crear Ficha</span>
+                        </button>
+                        <button onclick="generateExpertReport()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors flex items-center space-x-2">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>Generar Reporte</span>
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="relative">
+                            <input type="text" placeholder="Buscar fichas, contenido..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4C956C] focus:border-transparent">
+                            <i class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <button onclick="refreshExpertDashboard()" class="p-2 text-gray-600 hover:text-[#4C956C] transition-colors" title="Actualizar">
+                            <i class="bi bi-arrow-clockwise text-lg"></i>
+                        </button>
+                        <div class="flex items-center space-x-2 text-sm text-gray-600">
+                            <i class="bi bi-clock"></i>
+                            <span>Última actualización: <span id="lastUpdate">{{ last_update|default:"Ahora" }}</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Access & Recent Activity -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-[#10451D] flex items-center">
+                            <i class="bi bi-lightning-fill text-yellow-500 mr-2"></i>
+                            Acciones Rápidas
+                        </h3>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <a href="{% url 'users:expert_review_sheets' %}" class="quick-action-card group">
+                            <div class="flex flex-col items-center text-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                                <div class="bg-green-100 p-3 rounded-full mb-3 group-hover:bg-green-200 transition-colors">
+                                    <i class="bi bi-journal-check text-green-600 text-2xl"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 text-sm">Revisar Fichas</h4>
+                                <p class="text-xs text-gray-600 mt-1">{{ pending_sheets|default:0 }} pendientes</p>
+                            </div>
+                        </a>
+                        
+                        <button onclick="showCreateSheetModal()" class="quick-action-card group">
+                            <div class="flex flex-col items-center text-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                                <div class="bg-blue-100 p-3 rounded-full mb-3 group-hover:bg-blue-200 transition-colors">
+                                    <i class="bi bi-file-earmark-plus text-blue-600 text-2xl"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 text-sm">Crear Ficha</h4>
+                                <p class="text-xs text-gray-600 mt-1">Nueva educativa</p>
+                            </div>
+                        </button>
+                        
+                        <a href="#" onclick="loadSection('moderation')" class="quick-action-card group">
+                            <div class="flex flex-col items-center text-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                                <div class="bg-purple-100 p-3 rounded-full mb-3 group-hover:bg-purple-200 transition-colors">
+                                    <i class="bi bi-shield-check text-purple-600 text-2xl"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 text-sm">Moderar</h4>
+                                <p class="text-xs text-gray-600 mt-1">{{ pending_moderation|default:0 }} pendientes</p>
+                            </div>
+                        </a>
+                        
+                        <a href="{% url 'users:expert_statistics' %}" class="quick-action-card group">
+                            <div class="flex flex-col items-center text-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
+                                <div class="bg-orange-100 p-3 rounded-full mb-3 group-hover:bg-orange-200 transition-colors">
+                                    <i class="bi bi-bar-chart-line text-orange-600 text-2xl"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 text-sm">Estadísticas</h4>
+                                <p class="text-xs text-gray-600 mt-1">Ver métricas</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-[#10451D] flex items-center">
+                            <i class="bi bi-clock-history text-blue-500 mr-2"></i>
+                            Actividad Reciente
+                        </h3>
+                        <a href="#" class="text-[#4C956C] hover:text-[#10451D] text-sm font-medium">Ver todo</a>
+                    </div>
+                    <div class="space-y-4 max-h-80 overflow-y-auto">
+                        {% if recent_activities %}
+                            {% for activity in recent_activities %}
+                                <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-[#4C956C] rounded-full flex items-center justify-center">
+                                            <i class="bi bi-check-circle text-white text-sm"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-900">{{ activity.description }}</p>
+                                        <p class="text-xs text-gray-500">{{ activity.timestamp|timesince }} ago</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-8">
+                                <i class="bi bi-inbox text-gray-400 text-3xl mb-2"></i>
+                                <p class="text-gray-500">No hay actividad reciente</p>
+                                <p class="text-sm text-gray-400">Comienza revisando algunas fichas</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content Sections -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <!-- Pending Reviews -->
+                <div class="xl:col-span-2 bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-[#10451D] flex items-center">
+                            <i class="bi bi-journal-check text-green-500 mr-2"></i>
+                            Fichas Pendientes de Revisión
+                        </h3>
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{{ pending_sheets|default:0 }} pendientes</span>
+                            <a href="{% url 'users:expert_review_sheets' %}" class="text-[#4C956C] hover:text-[#10451D] text-sm font-medium">Ver todas</a>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        {% if pending_sheets_list %}
+                            
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-check-circle text-green-500 text-xl mb-2"></i>
+                                <p class="text-gray-500 text-sm">¡Excelente! No hay fichas pendientes</p>
+                                <p class="text-xs text-gray-400">Todas las fichas están al día</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Expert Performance -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-[#10451D] flex items-center">
+                            <i class="bi bi-trophy text-yellow-500 mr-2"></i>
+                            Mi Rendimiento
+                        </h3>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <!-- Reviews This Month -->
+                        <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-green-800">Revisiones este Mes</span>
+                                <i class="bi bi-calendar-month text-green-600"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-green-900">{{ monthly_reviews|default:0 }}</div>
+                            <div class="text-xs text-green-700 mt-1">
+                                +{{ monthly_reviews_growth|default:0 }}% vs mes anterior
+                            </div>
+                        </div>
+
+                        <!-- Quality Score -->
+                        <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-blue-800">Puntuación de Calidad</span>
+                                <i class="bi bi-star-fill text-blue-600"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-blue-900">{{ quality_score|default:"4.8" }}/5</div>
+                            <div class="w-full bg-blue-200 rounded-full h-2 mt-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: {{ quality_percentage|default:96 }}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Response Time -->
+                        <div class="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-purple-800">Tiempo Promedio</span>
+                                <i class="bi bi-stopwatch text-purple-600"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-purple-900">{{ avg_response_time|default:"2.4" }}h</div>
+                            <div class="text-xs text-purple-700 mt-1">
+                                Tiempo de respuesta promedio
+                            </div>
+                        </div>
+
+                        <!-- Expert Level -->
+                        <div class="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm font-medium text-orange-800">Nivel de Experto</span>
+                                <i class="bi bi-award text-orange-600"></i>
+                            </div>
+                            <div class="text-lg font-bold text-orange-900">{{ expert_level|default:"Avanzado" }}</div>
+                            <div class="text-xs text-orange-700 mt-1">
+                                Basado en {{ total_completed_reviews|default:0 }} revisiones
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expert Sheets Management -->
+            <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-[#10451D] flex items-center">
+                        <i class="bi bi-file-earmark-text text-blue-500 mr-2"></i>
+                        Mis Fichas Educativas
+                    </h3>
+                    <button class="bg-[#4C956C] text-white px-4 py-2 rounded-lg hover:bg-[#10451D] transition-colors flex items-center space-x-2" onclick="expertDashboard.loadExpertSheets()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        <span>Actualizar</span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full table-auto" id="expertSheetsTable">
+                        <thead class="bg-gray-50">
+                            <tr class="text-left">
+                                <th class="px-4 py-3 font-semibold text-gray-700">Ficha</th>
+                                <th class="px-4 py-3 font-semibold text-gray-700">Tipo</th>
+                                <th class="px-4 py-3 font-semibold text-gray-700">Estado</th>
+                                <th class="px-4 py-3 font-semibold text-gray-700">Creada</th>
+                                <th class="px-4 py-3 font-semibold text-gray-700">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% if my_sheets %}
+                                {% for sheet in my_sheets %}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="flex-shrink-0">
+                                                    {% if sheet.sheet_type == 'flora' %}
+                                                        <i class="bi bi-flower1 text-green-500 text-xl"></i>
+                                                    {% elif sheet.sheet_type == 'fauna' %}
+                                                        <i class="bi bi-bug text-blue-500 text-xl"></i>
+                                                    {% else %}
+                                                        <i class="bi bi-geo-alt text-yellow-500 text-xl"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <h4 class="font-medium text-gray-900">{{ sheet.title }}</h4>
+                                                    <p class="text-sm text-gray-500">{{ sheet.description|truncatechars:50 }}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                                {% if sheet.sheet_type == 'flora' %}bg-green-100 text-green-800
+                                                {% elif sheet.sheet_type == 'fauna' %}bg-blue-100 text-blue-800
+                                                {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                                {% if sheet.sheet_type == 'flora' %}Flora
+                                                {% elif sheet.sheet_type == 'fauna' %}Fauna
+                                                {% else %}Ecosistema{% endif %}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                                {% if sheet.status == 'published' %}bg-green-100 text-green-800
+                                                {% elif sheet.status == 'pending_review' %}bg-yellow-100 text-yellow-800
+                                                {% elif sheet.status == 'draft' %}bg-gray-100 text-gray-800
+                                                {% elif sheet.status == 'rejected' %}bg-red-100 text-red-800
+                                                {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                                {% if sheet.status == 'published' %}Publicada
+                                                {% elif sheet.status == 'pending_review' %}Pendiente
+                                                {% elif sheet.status == 'draft' %}Borrador
+                                                {% elif sheet.status == 'rejected' %}Rechazada
+                                                {% else %}{{ sheet.status|title }}{% endif %}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-600">
+                                            {{ sheet.created_at|date:"d/m/Y" }}
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center space-x-2">
+                                                <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                                    <i class="bi bi-eye mr-1"></i>Ver
+                                                </button>
+                                                {% if sheet.status == 'draft' %}
+                                                    <button class="text-green-600 hover:text-green-800 text-sm font-medium">
+                                                        <i class="bi bi-pencil mr-1"></i>Editar
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                                        <div class="flex flex-col items-center">
+                                            <i class="bi bi-file-earmark-plus text-gray-300 text-4xl mb-2"></i>
+                                            <p class="text-lg font-medium">No has creado fichas educativas aún</p>
+                                            <p class="text-sm text-gray-400">Comienza creando tu primera ficha educativa</p>
+                                            <button onclick="showCreateSheetModal()" class="mt-4 bg-[#4C956C] text-white px-4 py-2 rounded-lg hover:bg-[#10451D] transition-colors">
+                                                <i class="bi bi-plus mr-2"></i>Crear Primera Ficha
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Expert Work Status -->
+            <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Assigned Sheets -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-[#10451D] flex items-center mb-6">
+                        <i class="bi bi-journal-check text-green-500 mr-2"></i>
+                        Fichas Asignadas
+                    </h3>
+                    
+                    <div class="space-y-4 max-h-80 overflow-y-auto">
+                        {% if assigned_sheets %}
+                            {% for sheet in assigned_sheets %}
+                                <div class="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                            <i class="bi bi-journal-check text-green-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="font-semibold text-gray-900 mb-1">{{ sheet.title }}</h4>
+                                        <p class="text-sm text-gray-600 mb-2">Autor: {{ sheet.author.get_full_name|default:sheet.author.username }}</p>
+                                        <div class="flex items-center space-x-2 mb-2">
+                                            <span class="px-2 py-1 text-xs rounded-full
+                                                {% if sheet.status == 'published' %}bg-green-100 text-green-800
+                                                {% elif sheet.status == 'approved' %}bg-blue-100 text-blue-800
+                                                {% elif sheet.status == 'in_review' %}bg-yellow-100 text-yellow-800
+                                                {% elif sheet.status == 'pending_review' %}bg-gray-100 text-gray-800
+                                                {% elif sheet.status == 'rejected' %}bg-red-100 text-red-800
+                                                {% else %}bg-gray-100 text-gray-800
+                                                {% endif %}">
+                                                {{ sheet.get_status_display }}
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-gray-500">{{ sheet.created_at|timesince }} atrás</p>
+                                    </div>
+                                    <a href="{% url 'users:expert_review_sheets' %}" class="bg-[#4C956C] text-white px-3 py-1 rounded text-sm hover:bg-[#10451D] transition-colors">Ver</a>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-8">
+                                <i class="bi bi-journal-x text-gray-400 text-3xl mb-2"></i>
+                                <p class="text-gray-500">No tienes fichas asignadas actualmente</p>
+                                <p class="text-sm text-gray-400">Las fichas aparecerán aquí cuando sean asignadas</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Pending Moderation -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-[#10451D] flex items-center mb-6">
+                        <i class="bi bi-clipboard-check text-purple-500 mr-2"></i>
+                        Contenido por Moderar
+                    </h3>
+                    
+                    <div class="space-y-4 max-h-80 overflow-y-auto">
+                        {% if pending_content %}
+                            {% for content in pending_content %}
+                                <div class="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                            <i class="bi bi-clipboard-check text-purple-600"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="font-semibold text-gray-900 mb-1">{{ content.title }}</h4>
+                                        <p class="text-sm text-gray-600 mb-2">Autor: {{ content.author.get_full_name }}</p>
+                                        <p class="text-xs text-gray-500">Relacionado: {{ content.related_sheet.title }}</p>
+                                    </div>
+                                    <a href="#" class="bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-600 transition-colors">Ver</a>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-8">
+                                <i class="bi bi-check-circle text-green-500 text-3xl mb-2"></i>
+                                <p class="text-gray-500">¡No hay contenido pendiente de moderación!</p>
+                                <p class="text-sm text-gray-400">Todo el contenido está al día</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modal para seleccionar tipo de ficha -->
+<div class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden" id="selectSheetTypeModal">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 class="text-xl font-bold text-[#10451D] flex items-center">
+                    <i class="bi bi-file-earmark-plus text-blue-500 mr-2"></i>
+                    Tipo de Ficha Educativa
+                </h3>
+                <button onclick="closeSheetTypeModal()" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <i class="bi bi-x text-xl text-gray-500"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-6">Selecciona el tipo de ficha que deseas crear:</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 cursor-pointer hover:from-green-100 hover:to-green-200 transition-all transform hover:scale-105" onclick="selectSheetType('flora')">
+                        <div class="text-center">
+                            <i class="bi bi-flower1 text-green-600 text-5xl mb-4"></i>
+                            <h4 class="text-xl font-bold text-green-800 mb-2">Flora</h4>
+                            <p class="text-sm text-green-700">Plantas, árboles, flores y vegetación</p>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 cursor-pointer hover:from-blue-100 hover:to-blue-200 transition-all transform hover:scale-105" onclick="selectSheetType('fauna')">
+                        <div class="text-center">
+                            <i class="bi bi-bug text-blue-600 text-5xl mb-4"></i>
+                            <h4 class="text-xl font-bold text-blue-800 mb-2">Fauna</h4>
+                            <p class="text-sm text-blue-700">Animales, aves, insectos y vida silvestre</p>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-6 cursor-pointer hover:from-yellow-100 hover:to-yellow-200 transition-all transform hover:scale-105" onclick="selectSheetType('ecosystem')">
+                        <div class="text-center">
+                            <i class="bi bi-geo-alt text-yellow-600 text-5xl mb-4"></i>
+                            <h4 class="text-xl font-bold text-yellow-800 mb-2">Lugar/Ecosistema</h4>
+                            <p class="text-sm text-yellow-700">Ecosistemas, reservas y lugares naturales</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script src="{% static 'js/dashboard.js' %}"></script>
+    <script src="{% static 'js/header_logged.js' %}"></script>
+    <script src="{% static 'js/dashboard_optimized_clean.js' %}" defer></script>
+    
+    <script>
+        // Expert Dashboard Functions
+        function toggleDropdown(dropdownId) {
+            const dropdown = document.getElementById(dropdownId + '-dropdown');
+            const chevron = document.getElementById(dropdownId + '-chevron');
+            
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+                dropdown.classList.add('block');
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                dropdown.classList.add('hidden');
+                dropdown.classList.remove('block');
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+        
+        function showCreateSheetModal() {
+            document.getElementById('selectSheetTypeModal').classList.remove('hidden');
+        }
+        
+        function closeSheetTypeModal() {
+            document.getElementById('selectSheetTypeModal').classList.add('hidden');
+        }
+        
+        function selectSheetType(type) {
+            closeSheetTypeModal();
+            window.location.href = `{% url 'users:create_educational_sheet' %}?type=${type}`;
+        }
+        
+        function loadSection(section) {
+            console.log('Loading section:', section);
+            // Add section loading logic here
+        }
+        
+        function generateExpertReport() {
+            window.location.href = "{% url 'users:generate_expert_report' %}";
+        }
+        
+        function refreshExpertDashboard() {
+            const lastUpdateSpan = document.getElementById('lastUpdate');
+            if (lastUpdateSpan) {
+                lastUpdateSpan.textContent = 'Ahora';
+            }
+            location.reload();
+        }
+        
+        // Expert Dashboard Object
+        const expertDashboard = {
+            loadExpertSheets: function() {
+                console.log('Loading expert sheets...');
+                // Add sheets loading logic here
+            }
+        };
+        
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('selectSheetTypeModal');
+            if (event.target === modal) {
+                closeSheetTypeModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeSheetTypeModal();
+            }
+        });
+    </script>
+{% endblock %}

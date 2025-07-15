@@ -8,7 +8,7 @@
 <header class="main-header sticky-top">
     <nav class="navbar">
         <div class="navbar-container">
-            <a class="brand-title" href="{% url 'home' %}">
+            <a class="brand-title" href="{% url 'main_page:home' %}">
                 <span class="brand-title-text">
                     <span class="text-success">Nature</span><span class="text-warning">In</span>
                 </span>
@@ -19,17 +19,17 @@
             <div class="navbar-nav-area" id="navbarNav">
                 <ul class="navbar-nav">
                     <li>
-                        <a class="nav-link" href="{% url 'species_list' %}">
+                        <a class="nav-link" href="{% url 'main_page:species_list' %}">
                             <i class="bi bi-mortarboard-fill me-1"></i> Aprender
                         </a>
                     </li>
                     <li>
-                        <a class="nav-link" href="{% url 'games' %}">
+                        <a class="nav-link" href="{% url 'main_page:games' %}">
                             <i class="bi bi-joystick me-1"></i> Jugar
                         </a>
                     </li>
                     <li>
-                        <a class="nav-link" href="{% url 'explore' %}">
+                        <a class="nav-link" href="{% url 'main_page:explore' %}">
                             <i class="bi bi-binoculars-fill me-1"></i> Explorar
                         </a>
                     </li>
@@ -42,24 +42,10 @@
                         </label>
                     </div>
                     <div class="dropdown position-relative">
-                        <button class="btn btn-outline-success btn-sm login-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle me-1"></i> Iniciar Sesión
+                        <button class="btn btn-outline-success btn-sm login-btn" 
+                            onclick="window.location.href='{% url 'users:login' %}'">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
                         </button>
-                        <ul class="dropdown-menu login-dropdown">
-                            <li><div class="dropdown-header dropdown-title">Iniciar como:</div></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_student' %}">
-                                <i class="bi bi-journal-bookmark"></i> Estudiante
-                            </a></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_teacher' %}">
-                                <i class="bi bi-vector-pen"></i> Docente
-                            </a></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_parent' %}">
-                                <i class="bi bi-house-door"></i> Padre/Madre
-                            </a></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_admin' %}">
-                                <i class="bi bi-sliders"></i> Administrador
-                            </a></li>
-                        </ul>
                     </div>
                     <div class="dropdown">
                         <button class="btn btn-success btn-sm register-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -76,6 +62,9 @@
                             <li><a class="dropdown-item role-option" href="{% url 'users:register_parent' %}">
                                 <i class="bi bi-house-door"></i> Padre/Madre
                             </a></li>
+                            <li><a class="dropdown-item role-option" href="{% url 'users:register_expert' %}">
+                                <i class="bi bi-award"></i> Experto
+                            </a></li>
                         </ul>
                     </div>
                 </div>
@@ -87,17 +76,17 @@
                 </button>
                 <ul class="navbar-nav">
                     <li>
-                        <a class="nav-link" href="{% url 'species_list' %}">
+                        <a class="nav-link" href="{% url 'main_page:species_list' %}">
                             <i class="bi bi-mortarboard-fill me-1"></i> Aprender
                         </a>
                     </li>
                     <li>
-                        <a class="nav-link" href="{% url 'games' %}">
+                        <a class="nav-link" href="{% url 'main_page:games' %}">
                             <i class="bi bi-joystick me-1"></i> Jugar
                         </a>
                     </li>
                     <li>
-                        <a class="nav-link" href="{% url 'explore' %}">
+                        <a class="nav-link" href="{% url 'main_page:explore' %}">
                             <i class="bi bi-binoculars-fill me-1"></i> Explorar
                         </a>
                     </li>
@@ -110,24 +99,10 @@
                         </label>
                     </div>
                     <div class="dropdown position-relative">
-                        <button class="btn btn-outline-success btn-sm login-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle me-1"></i> Iniciar Sesión
+                        <button class="btn btn-outline-success btn-sm login-btn" 
+                            onclick="window.location.href='{% url 'users:login' %}'">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
                         </button>
-                        <ul class="dropdown-menu login-dropdown dropdown-menu-static">
-                            <li><div class="dropdown-header dropdown-title">Iniciar como:</div></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_student' %}">
-                                <i class="bi bi-journal-bookmark"></i> Estudiante
-                            </a></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_teacher' %}">
-                                <i class="bi bi-vector-pen"></i> Docente
-                            </a></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_parent' %}">
-                                <i class="bi bi-house-door"></i> Padre/Madre
-                            </a></li>
-                            <li><a class="dropdown-item role-option" href="{% url 'users:login_admin' %}">
-                                <i class="bi bi-sliders"></i> Administrador
-                            </a></li>
-                        </ul>
                     </div>
                     <div class="dropdown">
                         <button class="btn btn-success btn-sm register-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -143,6 +118,9 @@
                             </a></li>
                             <li><a class="dropdown-item role-option" href="{% url 'users:register_parent' %}">
                                 <i class="bi bi-house-door"></i> Padre/Madre
+                            </a></li>
+                            <li><a class="dropdown-item role-option" href="{% url 'users:register_expert' %}">
+                                <i class="bi bi-award"></i> Experto
                             </a></li>
                         </ul>
                     </div>

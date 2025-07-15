@@ -1,0 +1,238 @@
+    .assignments-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .assignment-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        border-left: 4px solid #e9ecef;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .assignment-card.pending {
+        border-left-color: #ffc107;
+        background: linear-gradient(135deg, #fff8e1 0%, #fffbf0 100%);
+    }
+    
+    .assignment-card.submitted {
+        border-left-color: #28a745;
+        background: linear-gradient(135deg, #f1f8e9 0%, #f8fff9 100%);
+    }
+    
+    .assignment-card.overdue {
+        border-left-color: #dc3545;
+        background: linear-gradient(135deg, #f8d7da 0%, #fff5f5 100%);
+    }
+    
+    .assignment-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    
+    .assignment-icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+    
+    .assignment-card.pending .assignment-icon {
+        color: #ffc107;
+    }
+    
+    .assignment-card.submitted .assignment-icon {
+        color: #28a745;
+    }
+    
+    .assignment-card.overdue .assignment-icon {
+        color: #dc3545;
+    }
+    
+    .assignment-status {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .status-pending {
+        background: #ffc107;
+        color: white;
+    }
+    
+    .status-submitted {
+        background: #28a745;
+        color: white;
+    }
+    
+    .status-overdue {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .assignment-due {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        padding: 5px 10px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-block;
+        margin-top: 10px;
+    }
+    
+    .assignment-due.urgent {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        animation: pulse 2s infinite;
+    }
+    
+    .course-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        background: #e9ecef;
+        color: #495057;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+    
+    .stats-overview {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .stat-pending {
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        color: #856404;
+    }
+    
+    .stat-submitted {
+        background: linear-gradient(135deg, #d4edda, #a8e6cf);
+        color: #155724;
+    }
+    
+    .stat-overdue {
+        background: linear-gradient(135deg, #f8d7da, #fab1a0);
+        color: #721c24;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .section-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .assignment-actions {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .btn-assignment {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+    
+    .btn-view {
+        background: linear-gradient(135deg, #17a2b8, #007bff);
+        color: white;
+    }
+    
+    .btn-view:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+    }
+    
+    .filter-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-tab {
+        padding: 10px 20px;
+        border: 2px solid #dee2e6;
+        border-radius: 25px;
+        background: white;
+        color: #6c757d;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .filter-tab.active,
+    .filter-tab:hover {
+        border-color: #667eea;
+        background: #667eea;
+        color: white;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+    
+    .grade-display {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+        display: inline-block;
+        margin-top: 10px;
+    }

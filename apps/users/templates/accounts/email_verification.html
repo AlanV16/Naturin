@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .verify-background {
+            position: fixed;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            width: 100vw;
+            z-index: 0;
+            overflow: auto;
+        }
+        
+        .verify-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .verify-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .verify-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .code-input {
+            font-size: 1.8rem !important;
+            text-align: center;
+            letter-spacing: 0.5rem;
+            font-weight: bold;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .code-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-verify {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-verify:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+        
+        .btn-resend {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 10px;
+            padding: 10px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-resend:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .email-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .countdown {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="verify-background">
+    <div class="verify-container">
+        <div class="verify-card">
+            <div class="verify-icon">
+                <i class="bi bi-envelope-check"></i>
+            </div>
+            
+            <h2 class="fw-bold mb-3">Verificar Email</h2>
+            <p class="text-muted mb-4">
+                Hemos enviado un código de verificación de 6 dígitos a tu correo electrónico.
+            </p>
+            
+            <div class="email-info">
+                <i class="bi bi-envelope text-primary me-2"></i>
+                <strong>{{ user.email }}</strong>
+            </div>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="post" id="verifyForm">
+                {% csrf_token %}
+                <div class="mb-4">
+                    {{ form.verification_code.label_tag }}
+                    {{ form.verification_code|add_class:"form-control code-input" }}
+                    {% if form.verification_code.errors %}
+                        <div class="text-danger mt-2">
+                            {% for error in form.verification_code.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="btn btn-verify btn-lg w-100 mb-3">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Verificar Código
+                </button>
+            </form>
+            
+            <div class="d-flex flex-column align-items-center">
+                <p class="text-muted mb-2">¿No recibiste el código?</p>
+                <button type="button" class="btn btn-resend" id="resendBtn" onclick="resendCode()">
+                    <i class="bi bi-arrow-clockwise me-2"></i>
+                    Reenviar Código
+                </button>
+                <div class="countdown" id="countdown"></div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="text-center">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    El código expira en 15 minutos
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let countdownTimer;
+let resendCooldown = 60; // 60 segundos
+
+function startCountdown() {
+    const resendBtn = document.getElementById('resendBtn');
+    const countdown = document.getElementById('countdown');
+    
+    resendBtn.disabled = true;
+    resendBtn.classList.add('loading');
+    
+    countdownTimer = setInterval(() => {
+        resendCooldown--;
+        countdown.textContent = `Puedes reenviar en ${resendCooldown} segundos`;
+        
+        if (resendCooldown <= 0) {
+            clearInterval(countdownTimer);
+            resendBtn.disabled = false;
+            resendBtn.classList.remove('loading');
+            countdown.textContent = '';
+            resendCooldown = 60;
+        }
+    }, 1000);
+}
+
+function resendCode() {
+    const resendBtn = document.getElementById('resendBtn');
+    const originalText = resendBtn.innerHTML;
+    
+    resendBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Enviando...';
+    resendBtn.disabled = true;
+    
+    fetch(`/users/reenviar-codigo/{{ user.id }}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Mostrar mensaje de éxito
+            showMessage('Código reenviado exitosamente', 'success');
+            startCountdown();
+        } else {
+            showMessage(data.message || 'Error al reenviar el código', 'danger');
+            resendBtn.innerHTML = originalText;
+            resendBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        showMessage('Error de conexión', 'danger');
+        resendBtn.innerHTML = originalText;
+        resendBtn.disabled = false;
+    });
+}
+
+function showMessage(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const form = document.getElementById('verifyForm');
+    form.parentNode.insertBefore(alertDiv, form);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+// Auto-focus en el input del código
+document.addEventListener('DOMContentLoaded', function() {
+    const codeInput = document.querySelector('.code-input');
+    if (codeInput) {
+        codeInput.focus();
+        
+        // Formatear automáticamente el código
+        codeInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // Solo números
+            if (value.length > 6) value = value.slice(0, 6);
+            e.target.value = value;
+        });
+    }
+});
+</script>
+{% endblock %}
+
+{% block footer %}{% endblock %}

@@ -7,13 +7,13 @@ from .models import Notification
 @login_required
 def notifications_list(request):
     """Vista para mostrar todas las notificaciones del usuario"""
-    notifications = request.user.notifications.all()
+    notifications = request.user.gamification_notifications.all()
     return render(request, 'gamification/notifications_list.html', {'notifications': notifications})
 
 @login_required
 def notifications_ajax(request):
     """Vista AJAX para obtener las notificaciones recientes en formato JSON"""
-    notifications = request.user.notifications.all()
+    notifications = request.user.gamification_notifications.all()
     notifications_data = []
     
     for notification in notifications:
@@ -31,7 +31,7 @@ def notifications_ajax(request):
 @login_required
 def notifications_count(request):
     """Vista AJAX para obtener el conteo de notificaciones no leídas"""
-    unread_count = request.user.notifications.filter(is_read=False).count()
+    unread_count = request.user.gamification_notifications.filter(is_read=False).count()
     return JsonResponse({'unread_count': unread_count})
 
 @login_required
@@ -45,7 +45,7 @@ def mark_notification_read(request, notification_id):
 @login_required
 def mark_all_notifications_read(request):
     """Vista AJAX para marcar todas las notificaciones como leídas"""
-    request.user.notifications.filter(is_read=False).update(is_read=True)
+    request.user.gamification_notifications.filter(is_read=False).update(is_read=True)
     return JsonResponse({'success': True})
 
 def create_notification(recipient, notification_type, title, message):

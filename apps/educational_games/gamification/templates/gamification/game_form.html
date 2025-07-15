@@ -1,0 +1,88 @@
+{% extends 'gamification/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar Juego{% else %}Crear Nuevo Juego{% endif %} - Gamificación
+{% endblock %}
+
+{% block gamification_content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3>
+                    <i class="bi bi-controller"></i>
+                    {% if form.instance.pk %}
+                        Editar Juego: {{ form.instance.NombreJuego }}
+                    {% else %}
+                        Crear Nuevo Juego
+                    {% endif %}
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.NombreJuego|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.IDtipoJuego|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.Dificultad|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.PuntosMaximos|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            {{ form.Descripcion|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.Instrucciones|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.Configuracion|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.Estado|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.FechaCreacion|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            {{ form.Creador|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i>
+                            {% if form.instance.pk %}Actualizar{% else %}Crear{% endif %} Juego
+                        </button>
+                        <a href="{% url 'gamification:game_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

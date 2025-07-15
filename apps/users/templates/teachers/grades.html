@@ -1,0 +1,493 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/student/courses.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+<style>
+    .grades-header {
+        background: var(--teacher-primary-gradient);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .grade-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: var(--teacher-card-shadow);
+        transition: all 0.3s ease;
+        border-left: 4px solid var(--teacher-primary-gradient);
+    }
+    
+    .grade-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--teacher-card-shadow-hover);
+    }
+    
+    .student-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--teacher-primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    
+    .grade-display {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--teacher-primary-gradient);
+    }
+    
+    .grade-excellent { color: #28a745; }
+    .grade-good { color: #17a2b8; }
+    .grade-regular { color: #ffc107; }
+    .grade-poor { color: #dc3545; }
+    
+    .course-selector {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: var(--teacher-card-shadow);
+    }
+    
+    .assignment-selector {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: var(--teacher-card-shadow);
+    }
+    
+    .grade-distribution {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: var(--teacher-card-shadow);
+    }
+    
+    .distribution-bar {
+        height: 20px;
+        border-radius: 10px;
+        background: #e9ecef;
+        overflow: hidden;
+        margin: 10px 0;
+        position: relative;
+    }
+    
+    .distribution-fill {
+        height: 100%;
+        transition: width 0.8s ease;
+    }
+    
+    .fill-excellent { background: #28a745; }
+    .fill-good { background: #17a2b8; }
+    .fill-regular { background: #ffc107; }
+    .fill-poor { background: #dc3545; }
+    
+    .grade-legend {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 15px;
+        font-size: 0.9rem;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+    }
+    
+    .grade-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .btn-grade-action {
+        flex: 1;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .export-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .performance-indicator {
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .performance-excellent {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .performance-good {
+        background: rgba(23, 162, 184, 0.1);
+        color: #17a2b8;
+    }
+    
+    .performance-regular {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+    
+    .performance-poor {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <a href="{% url 'users:dashboard_teacher' %}" class="back-to-dashboard">
+                <i class="bi bi-arrow-left me-2"></i>
+                Volver 
+            </a>
+            
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-2">
+                        <i class="bi bi-bar-chart-fill me-2"></i>Gestión de Calificaciones
+                    </h2>
+                    <p class="text-muted mb-0">Revisa y gestiona las calificaciones de tus estudiantes</p>
+                </div>
+                <div class="export-buttons">
+                    <button class="btn btn-outline-success" onclick="exportGrades('excel')">
+                        <i class="bi bi-file-earmark-excel me-2"></i>Exportar Excel
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="exportGrades('pdf')">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Course and Assignment Selector -->
+            <div class="course-selector">
+                <div class="row align-items-end">
+                    <div class="col-md-4">
+                        <label for="courseSelect" class="form-label fw-semibold">Seleccionar Curso</label>
+                        <select class="form-select" id="courseSelect" onchange="loadCourseGrades()">
+                            <option value="">Todos los cursos</option>
+                            {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.name }} ({{ course.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="assignmentSelect" class="form-label fw-semibold">Seleccionar Tarea</label>
+                        <select class="form-select" id="assignmentSelect" onchange="loadAssignmentGrades()">
+                            <option value="">Todas las tareas</option>
+                            <!-- Se llenarán dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-teacher-primary w-100" onclick="generateReport()">
+                            <i class="bi bi-graph-up me-2"></i>Generar Reporte
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number text-success">{{ total_students|default:0 }}</div>
+                    <div class="stat-label">Estudiantes Totales</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number text-primary">{{ total_assignments|default:0 }}</div>
+                    <div class="stat-label">Tareas Calificadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number text-warning">{{ avg_grade|default:0|floatformat:1 }}</div>
+                    <div class="stat-label">Promedio General</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number text-info">{{ completion_rate|default:0 }}%</div>
+                    <div class="stat-label">Tasa de Entrega</div>
+                </div>
+            </div>
+
+            <!-- Grade Distribution -->
+            <div class="grade-distribution">
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-pie-chart me-2"></i>Distribución de Calificaciones
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="distribution-bar">
+                            <div class="distribution-fill fill-excellent" style="width: {{ excellent_percentage|default:0 }}%"></div>
+                            <div class="distribution-fill fill-good" style="width: {{ good_percentage|default:0 }}%"></div>
+                            <div class="distribution-fill fill-regular" style="width: {{ regular_percentage|default:0 }}%"></div>
+                            <div class="distribution-fill fill-poor" style="width: {{ poor_percentage|default:0 }}%"></div>
+                        </div>
+                        
+                        <div class="grade-legend">
+                            <div class="legend-item">
+                                <div class="legend-color fill-excellent"></div>
+                                <span>Excelente (90-100)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color fill-good"></div>
+                                <span>Bueno (80-89)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color fill-regular"></div>
+                                <span>Regular (70-79)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color fill-poor"></div>
+                                <span>Necesita Mejora (<70)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <h6 class="fw-bold">Rendimiento General</h6>
+                            <div class="grade-display grade-{{ overall_performance|default:'regular' }}">
+                                {{ avg_grade|default:0|floatformat:1 }}
+                            </div>
+                            <div class="performance-indicator performance-{{ overall_performance|default:'regular' }}">
+                                {{ overall_performance_text|default:"Regular" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if grades %}
+                <!-- Grades List -->
+                <div class="row">
+                    {% for grade in grades %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="grade-card">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="student-avatar me-3">
+                                    {{ grade.student.first_name.0|default:"E" }}{{ grade.student.last_name.0|default:"" }}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">{{ grade.student.get_full_name }}</h6>
+                                    <small class="text-muted">{{ grade.assignment.title }}</small>
+                                </div>
+                                <div class="grade-display grade-{% if grade.grade >= 90 %}excellent{% elif grade.grade >= 80 %}good{% elif grade.grade >= 70 %}regular{% else %}poor{% endif %}">
+                                    {{ grade.grade|floatformat:0 }}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-book me-1"></i>{{ grade.assignment.course.name }}
+                                </small>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    Calificado: {{ grade.graded_at|date:"d M Y" }}
+                                </small>
+                            </div>
+                            
+                            {% if grade.feedback %}
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <strong>Comentarios:</strong> {{ grade.feedback|truncatechars:100 }}
+                                </small>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="grade-actions">
+                                <button class="btn btn-grade-action btn-outline-primary" onclick="editGrade('{{ grade.id }}')">
+                                    <i class="bi bi-pencil me-1"></i>Editar
+                                </button>
+                                <button class="btn btn-grade-action btn-outline-info" onclick="viewSubmission('{{ grade.submission.id }}')">
+                                    <i class="bi bi-eye me-1"></i>Ver Entrega
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination if needed -->
+                <div class="d-flex justify-content-center mt-4">
+                    <nav aria-label="Navegación de calificaciones">
+                        <!-- Pagination links would go here -->
+                    </nav>
+                </div>
+
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <div class="empty-state-image">
+                        <img src="{% static 'images/miscellaneous/not_found.png' %}" alt="Sin calificaciones" class="img-fluid">
+                    </div>
+                    <h4>¡No hay calificaciones registradas!</h4>
+                    <p>Las calificaciones aparecerán aquí cuando califiques las tareas de tus estudiantes.</p>
+                    <a href="{% url 'users:teacher_assignments' %}" class="btn btn-teacher-primary">
+                        <i class="bi bi-clipboard-check me-2"></i>Ir a Tareas
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar calificación -->
+<div class="modal fade" id="editGradeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil me-2"></i>Editar Calificación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editGradeForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div id="gradeInfo" class="mb-3">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                    <input type="hidden" id="gradeId" name="grade_id">
+                    <div class="mb-3">
+                        <label for="newGrade" class="form-label">Nueva Calificación</label>
+                        <input type="number" class="form-control" id="newGrade" name="grade" min="0" max="100" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newFeedback" class="form-label">Comentarios</label>
+                        <textarea class="form-control" id="newFeedback" name="feedback" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-teacher-primary" onclick="saveGradeEdit()">
+                        <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Funciones para gestión de calificaciones
+    function loadCourseGrades() {
+        const courseId = document.getElementById('courseSelect').value;
+        // Aquí iría la lógica para cargar las tareas del curso seleccionado
+        alert(`Cargar calificaciones del curso #${courseId} - Funcionalidad en desarrollo`);
+    }
+
+    function loadAssignmentGrades() {
+        const assignmentId = document.getElementById('assignmentSelect').value;
+        // Aquí iría la lógica para cargar las calificaciones de la tarea seleccionada
+        alert(`Cargar calificaciones de la tarea #${assignmentId} - Funcionalidad en desarrollo`);
+    }
+
+    function generateReport() {
+        const courseId = document.getElementById('courseSelect').value;
+        const assignmentId = document.getElementById('assignmentSelect').value;
+        alert('Generar reporte de calificaciones - Funcionalidad en desarrollo');
+    }
+
+    function exportGrades(format) {
+        alert(`Exportar calificaciones en formato ${format} - Funcionalidad en desarrollo`);
+    }
+
+    function editGrade(gradeId) {
+        // Aquí iría la lógica para cargar los datos de la calificación
+        document.getElementById('gradeId').value = gradeId;
+        document.getElementById('gradeInfo').innerHTML = `
+            <div class="alert alert-info">
+                <h6><strong>Editando calificación #${gradeId}</strong></h6>
+                <p class="mb-0">Los datos se cargarán dinámicamente desde el backend.</p>
+            </div>
+        `;
+        
+        const modal = new bootstrap.Modal(document.getElementById('editGradeModal'));
+        modal.show();
+    }
+
+    function saveGradeEdit() {
+        const form = document.getElementById('editGradeForm');
+        const formData = new FormData(form);
+        
+        alert('Guardar cambios en calificación - Funcionalidad en desarrollo');
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editGradeModal'));
+        modal.hide();
+    }
+
+    function viewSubmission(submissionId) {
+        alert(`Ver entrega #${submissionId} - Funcionalidad en desarrollo`);
+    }
+
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Animate grade distribution bars on load
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            document.querySelectorAll('.distribution-fill').forEach(bar => {
+                bar.style.width = bar.style.width; // Trigger animation
+            });
+        }, 500);
+    });
+</script>
+{% endblock %}

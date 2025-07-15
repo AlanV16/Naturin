@@ -1,0 +1,648 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/courses/course_detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard.css' %}">
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Back Button -->
+            <a href="{% if user.user_type == 2 %}{% url 'users:teacher_courses' %}{% else %}{% url 'users:dashboard_student' user.id %}{% endif %}" class="back-to-dashboard">
+                <i class="bi bi-arrow-left"></i>
+                Volver a Cursos
+            </a>
+            <!-- Course Header -->
+            <div class="course-header-section mb-4">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="course-info">
+                            <h1 class="course-title">{{ course.name }}</h1>
+                            <p class="course-description">{{ course.description|default:"Sin descripción" }}</p>
+                            <div class="course-meta">
+                                <span class="badge bg-primary me-2">{{ course.subject.name|default:"Sin materia" }}</span>
+                                <span class="badge bg-secondary me-2">{{ course.grade|default:"Sin grado" }}</span>
+                                <span class="badge bg-info">Código: {{ course.code }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="course-stats-card">
+                            <div class="stat-item" onclick="window.location.href='{% url 'users:course_students' course.id %}'" style="cursor: pointer;">
+                                <div class="stat-number">{{ total_students }}</div>
+                                <div class="stat-label">Estudiantes</div>
+                            </div>
+                            <div class="stat-item" onclick="window.location.href='{% url 'users:course_assignments' course.id %}'" style="cursor: pointer;">
+                                <div class="stat-number">{{ total_assignments }}</div>
+                                <div class="stat-label">Tareas</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Content -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Assignments Section -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-clipboard-check me-2"></i>Tareas
+                            </h5>
+                            {% if is_teacher %}
+                            <button class="btn btn-primary btn-sm" onclick="createAssignment({{ course.id }})">
+                                <i class="bi bi-plus me-1"></i>Nueva Tarea
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            {% if assignments.count > 0 %}
+                                <div class="alert alert-success">
+                                    <strong>✅ Se encontraron {{ assignments.count }} tareas</strong>
+                                </div>
+                                <div class="assignments-list">
+                                    {% for assignment in assignments %}
+                                    <div class="assignment-item p-3 border rounded mb-3 bg-light">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="assignment-info flex-grow-1">
+                                                <h6 class="assignment-title fw-bold mb-2 text-primary">
+                                                    <i class="bi bi-clipboard-check me-2"></i>{{ assignment.title }}
+                                                </h6>
+                                                <p class="assignment-description text-muted mb-2">{{ assignment.description|truncatewords:20 }}</p>
+                                                <div class="assignment-meta">
+                                                    <span class="text-muted small">
+                                                        <i class="bi bi-calendar me-1"></i>
+                                                        Fecha límite: {{ assignment.due_date|date:"d/m/Y H:i" }}
+                                                    </span>
+                                                    <span class="text-muted small ms-3">
+                                                        <i class="bi bi-star me-1"></i>
+                                                        {{ assignment.max_points }} puntos
+                                                    </span>
+                                                    <span class="text-muted small ms-3">
+                                                        <i class="bi bi-info-circle me-1"></i>
+                                                        Status: {{ assignment.status }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="assignment-actions">
+                                                {% if is_teacher %}
+                                                <button class="btn btn-sm btn-outline-primary me-1" onclick="viewAssignmentSubmissions({{ assignment.id }})">
+                                                    <i class="bi bi-eye me-1"></i>Ver Entregas
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="deleteAssignment({{ assignment.id }})">
+                                                    <i class="bi bi-trash me-1"></i>Eliminar
+                                                </button>
+                                                {% else %}
+                                                <button class="btn btn-sm btn-primary" onclick="viewAssignment({{ assignment.id }})">
+                                                    <i class="bi bi-pencil me-1"></i>Ver Tarea
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-danger">
+                                    <strong>❌ No se encontraron tareas</strong><br>
+                                    Assignments count: {{ assignments.count }}<br>
+                                    Assignments length: {{ assignments|length }}
+                                </div>
+                                <div class="text-center py-4">
+                                    <i class="bi bi-clipboard-x display-4 text-muted"></i>
+                                    <p class="text-muted mt-2">No hay tareas asignadas</p>
+                                    {% if is_teacher %}
+                                    <button class="btn btn-primary" onclick="createAssignment({{ course.id }})">
+                                        <i class="bi bi-plus me-2"></i>Crear Primera Tarea
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Materials Section -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-folder me-2"></i>Materiales
+                            </h5>
+                            {% if user.user_type == 2 %}
+                            <button class="btn btn-success btn-sm" onclick="showUploadMaterialModal({{ course.id }})">
+                                <i class="bi bi-upload me-1"></i>Subir Material
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            {% if materials %}
+                                <div class="materials-list">
+                                    {% for material in materials %}
+                                    <div class="material-item d-flex justify-content-between align-items-center p-3 border rounded mb-2">
+                                        <div class="material-info">
+                                            <h6 class="material-title mb-1">
+                                                <i class="{{ material.get_file_icon }} me-2"></i>{{ material.title }}
+                                            </h6>
+                                            <p class="material-description text-muted mb-1">{{ material.description|truncatewords:15 }}</p>
+                                            <div class="material-meta">
+                                                <span class="text-muted small">
+                                                    <i class="bi bi-calendar me-1"></i>
+                                                    {{ material.uploaded_at|date:"d/m/Y H:i" }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="material-actions">
+                                            {% if material.file %}
+                                            <a href="{{ material.file.url }}" class="btn btn-sm btn-outline-primary me-1" download>
+                                                <i class="bi bi-download me-1"></i>Descargar
+                                            </a>
+                                            {% endif %}
+                                            {% if material.url %}
+                                            <a href="{{ material.url }}" class="btn btn-sm btn-outline-info me-1" target="_blank">
+                                                <i class="bi bi-link me-1"></i>Abrir
+                                            </a>
+                                            {% endif %}
+                                            {% if user.user_type == 2 %}
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMaterial({{ material.id }})">
+                                                <i class="bi bi-trash me-1"></i>Eliminar
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-folder-x display-4 text-muted"></i>
+                                    <p class="text-muted mt-2">No hay materiales disponibles</p>
+                                    {% if user.user_type == 2 %}
+                                    <button class="btn btn-success" onclick="showUploadMaterialModal({{ course.id }})">
+                                        <i class="bi bi-upload me-2"></i>Subir Primer Material
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <!-- Students Section -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-people me-2"></i>Estudiantes
+                            </h5>
+                            <span class="badge bg-primary">{{ total_students }}</span>
+                        </div>
+                        <div class="card-body">
+                            {% if students %}
+                                <div class="students-list">
+                                    {% for student in students %}
+                                    <div class="student-item">
+                                        <div class="student-avatar">
+                                            <i class="bi bi-person-circle"></i>
+                                        </div>
+                                        <div class="student-info">
+                                            <div class="student-name">{{ student.get_full_name|default:student.username }}</div>
+                                            <div class="student-email">{{ student.email }}</div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-people display-4 text-muted"></i>
+                                    <p class="text-muted mt-2">No hay estudiantes inscritos</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Course Actions -->
+                    {% if is_teacher %}
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-gear me-2"></i>Acciones
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary" onclick="manageCourse({{ course.id }})">
+                                    <i class="bi bi-gear-fill me-1"></i>Gestionar Curso
+                                </button>
+                                <button class="btn btn-success" onclick="viewGrades({{ course.id }})">
+                                    <i class="bi bi-bar-chart me-1"></i>Ver Calificaciones
+                                </button>
+                                <button class="btn btn-info" onclick="courseSettings({{ course.id }})">
+                                    <i class="bi bi-sliders me-1"></i>Configuración
+                                </button>
+                                <button class="btn btn-warning" onclick="editCourse({{ course.id }})">
+                                    <i class="bi bi-pencil me-1"></i>Editar Curso
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para crear tarea -->
+<div class="modal fade" id="createAssignmentModal" tabindex="-1" aria-labelledby="createAssignmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="createAssignmentForm" class="modal-content" enctype="multipart/form-data">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createAssignmentModalLabel">Crear Nueva Tarea</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label for="assignmentTitle" class="form-label">Título <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="assignmentTitle" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="assignmentDescription" class="form-label">Descripción <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="assignmentDescription" name="description" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="assignmentInstructions" class="form-label">Instrucciones</label>
+                            <textarea class="form-control" id="assignmentInstructions" name="instructions" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="assignmentAttachment" class="form-label">Archivo Adjunto</label>
+                            <input type="file" class="form-control" id="assignmentAttachment" name="attachment">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="assignmentDueDate" class="form-label">Fecha Límite <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="assignmentDueDate" name="due_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="assignmentMaxPoints" class="form-label">Puntos Máximos</label>
+                            <input type="number" class="form-control" id="assignmentMaxPoints" name="max_points" value="100" min="0" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="allowLateSubmission" name="allow_late_submission">
+                                <label class="form-check-label" for="allowLateSubmission">
+                                    Permitir entrega tardía
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Crear Tarea</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para subir material -->
+<div class="modal fade" id="uploadMaterialModal" tabindex="-1" aria-labelledby="uploadMaterialModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="uploadMaterialForm" class="modal-content" enctype="multipart/form-data">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadMaterialModalLabel">Subir Material</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="materialTitle" class="form-label">Título <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="materialTitle" name="title" required>
+                </div>
+                <div class="mb-3">
+                    <label for="materialDescription" class="form-label">Descripción</label>
+                    <textarea class="form-control" id="materialDescription" name="description" rows="3"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="materialFile" class="form-label">Archivo</label>
+                    <input type="file" class="form-control" id="materialFile" name="file">
+                </div>
+                <div class="mb-3">
+                    <label for="materialUrl" class="form-label">URL (opcional)</label>
+                    <input type="url" class="form-control" id="materialUrl" name="url" placeholder="https://...">
+                </div>
+                <div class="form-text">
+                    Puedes subir un archivo O proporcionar una URL, no ambos.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-success">Subir Material</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% csrf_token %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function createAssignment(courseId) {
+        console.log('Abriendo modal para crear tarea en curso:', courseId);
+        
+        const modal = document.getElementById('createAssignmentModal');
+        const form = document.getElementById('createAssignmentForm');
+        
+        if (!modal || !form) {
+            console.error('Modal o formulario de tarea no encontrados');
+            return;
+        }
+        
+        form.reset();
+        form.setAttribute('data-course-id', courseId);
+        
+        // Establecer fecha mínima como ahora
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('assignmentDueDate').min = now.toISOString().slice(0, 16);
+        
+        // Mostrar modal
+        if (typeof $ !== 'undefined' && $.fn.modal) {
+            $('#createAssignmentModal').modal('show');
+        } else if (typeof bootstrap !== 'undefined') {
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+        } else {
+            modal.classList.add('show');
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.id = 'modal-backdrop-assignment';
+            document.body.appendChild(backdrop);
+        }
+    }
+
+    function hideCreateAssignmentModal() {
+        const modal = document.getElementById('createAssignmentModal');
+        
+        if (typeof $ !== 'undefined' && $.fn.modal) {
+            $('#createAssignmentModal').modal('hide');
+        } else if (typeof bootstrap !== 'undefined') {
+            const bootstrapModal = bootstrap.Modal.getInstance(modal);
+            if (bootstrapModal) bootstrapModal.hide();
+        } else {
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+            
+            const backdrop = document.getElementById('modal-backdrop-assignment');
+            if (backdrop) backdrop.remove();
+        }
+    }
+
+    function viewAssignmentSubmissions(assignmentId) {
+        console.log('Ver entregas de tarea:', assignmentId);
+        window.location.href = `/accounts/assignment/${assignmentId}/submissions/`;
+    }
+    
+    function viewAssignment(assignmentId) {
+        console.log('Ver tarea:', assignmentId);
+        window.location.href = `/accounts/assignment/${assignmentId}/`;
+    }
+    
+    function showUploadMaterialModal(courseId) {
+        console.log('Abriendo modal para curso:', courseId);
+        
+        const modal = document.getElementById('uploadMaterialModal');
+        const form = document.getElementById('uploadMaterialForm');
+        
+        if (!modal) {
+            console.error('Modal no encontrado');
+            return;
+        }
+        
+        form.setAttribute('data-course-id', courseId);
+        
+        // Detectar qué librería está disponible
+        if (typeof $ !== 'undefined' && $.fn.modal) {
+            console.log('Usando jQuery Bootstrap');
+            $('#uploadMaterialModal').modal('show');
+        } else if (typeof bootstrap !== 'undefined') {
+            console.log('Usando Bootstrap 5 vanilla JS');
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+        } else {
+            console.log('Usando fallback manual');
+            // Mostrar modal manualmente
+            modal.classList.add('show');
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            
+            // Crear backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.id = 'modal-backdrop-material';
+            document.body.appendChild(backdrop);
+        }
+    }
+    
+    function hideUploadMaterialModal() {
+        const modal = document.getElementById('uploadMaterialModal');
+        
+        if (typeof $ !== 'undefined' && $.fn.modal) {
+            $('#uploadMaterialModal').modal('hide');
+        } else if (typeof bootstrap !== 'undefined') {
+            const bootstrapModal = bootstrap.Modal.getInstance(modal);
+            if (bootstrapModal) bootstrapModal.hide();
+        } else {
+            // Ocultar modal manualmente
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+            
+            // Remover backdrop
+            const backdrop = document.getElementById('modal-backdrop-material');
+            if (backdrop) backdrop.remove();
+        }
+    }
+    
+    function deleteMaterial(materialId) {
+        if (confirm('¿Estás seguro de que quieres eliminar este material?')) {
+            fetch(`/accounts/material/${materialId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al eliminar el material');
+            });
+        }
+    }
+    
+    // Event listener para el formulario de crear tarea
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM cargado');
+        
+        // Event listener para crear tarea
+        const createAssignmentForm = document.getElementById('createAssignmentForm');
+        if (createAssignmentForm) {
+            createAssignmentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const courseId = this.getAttribute('data-course-id');
+                if (!courseId) {
+                    alert('Error: No se encontró el ID del curso');
+                    return;
+                }
+                
+                const formData = new FormData(this);
+                
+                // Validaciones básicas
+                const title = formData.get('title');
+                const description = formData.get('description');
+                const dueDate = formData.get('due_date');
+                
+                if (!title || !description || !dueDate) {
+                    alert('Título, descripción y fecha límite son requeridos');
+                    return;
+                }
+                
+                fetch(`/accounts/course/${courseId}/create-assignment/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        hideCreateAssignmentModal();
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error desconocido');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al crear la tarea: ' + error.message);
+                });
+            });
+        } else {
+            console.error('Formulario createAssignmentForm no encontrado');
+        }
+        
+        // Event listener para subir material
+        const uploadForm = document.getElementById('uploadMaterialForm');
+        if (uploadForm) {
+            console.log('Formulario encontrado, agregando event listener');
+            
+            uploadForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('Formulario enviado');
+                
+                const courseId = this.getAttribute('data-course-id');
+                if (!courseId) {
+                    alert('Error: No se encontró el ID del curso');
+                    return;
+                }
+                
+                const formData = new FormData(this);
+                console.log('Enviando datos para curso:', courseId);
+                
+                // Validar que al menos haya título
+                const title = formData.get('title');
+                if (!title || title.trim() === '') {
+                    alert('El título es obligatorio');
+                    return;
+                }
+                
+                // Validar que haya archivo o URL
+                const file = formData.get('file');
+                const url = formData.get('url');
+                if ((!file || file.size === 0) && (!url || url.trim() === '')) {
+                    alert('Debes subir un archivo o proporcionar una URL');
+                    return;
+                }
+                
+                fetch(`/accounts/course/${courseId}/upload-material/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}'
+                    }
+                })
+                .then(response => {
+                    console.log('Respuesta recibida:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Datos:', data);
+                    if (data.success) {
+                        hideUploadMaterialModal();
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error desconocido');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al subir el material: ' + error.message);
+                });
+            });
+        } else {
+            console.error('Formulario uploadMaterialForm no encontrado');
+        }
+        
+        // Event listeners para botones de cerrar
+        const closeButtons = document.querySelectorAll('[data-bs-dismiss="modal"]');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modalId = this.closest('.modal').id;
+                if (modalId === 'uploadMaterialModal') {
+                    hideUploadMaterialModal();
+                } else if (modalId === 'createAssignmentModal') {
+                    hideCreateAssignmentModal();
+                }
+            });
+        });
+        
+        // Cerrar modal haciendo clic en el backdrop
+        const modal = document.getElementById('uploadMaterialModal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    hideUploadMaterialModal();
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

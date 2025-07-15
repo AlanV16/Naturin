@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shared/calendar.css' %}">
+{% endblock %}
+
+{% block extra_head %}
+<title>Mi Calendario - NatureIn</title>
+{% endblock %}
+
+{% block header %}
+{% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+<div id="calendar-block">
+    {% include "shared/calendar_partial.html" %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function loadCalendar(month, year) {
+    fetch("{% url 'users:calendar_partial' %}?month=" + month + "&year=" + year)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('calendar-block').innerHTML = data.html;
+        });
+}
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.calendar-nav-btn')) {
+        e.preventDefault();
+        const btn = e.target.closest('.calendar-nav-btn');
+        const month = btn.dataset.month;
+        const year = btn.dataset.year;
+        loadCalendar(month, year);
+    }
+});
+</script>
+{% endblock %}

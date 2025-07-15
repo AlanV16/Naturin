@@ -1,0 +1,178 @@
+<!-- En templates/shared/conversation_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/shared/messages.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid h-100 py-4">
+    <div class="row h-100">
+        <!-- Sidebar reducido -->
+        <div class="col-md-3 px-0 d-none d-md-block">
+            <div class="conversations-sidebar-mini">
+                <a href="{% url 'users:messages_home' %}" class="btn btn-outline-primary btn-sm mb-3">
+                    <i class="bi bi-arrow-left me-1"></i> Volver
+                </a>
+                <!-- Mini lista de conversaciones -->
+            </div>
+        </div>
+
+        <!-- Conversación principal -->
+        <div class="col-md-9 px-0">
+            <div class="conversation-container h-100">
+                <!-- Header de la conversación -->
+                <div class="conversation-header">
+                    <div class="d-flex align-items-center">
+                        <a href="{% url 'users:messages_home' %}" class="btn btn-link d-md-none me-2">
+                            <i class="bi bi-arrow-left"></i>
+                        </a>
+                        
+                        <div class="avatar-sm me-3">
+                            {% if conversation.is_group %}
+                                <div class="group-avatar">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                            {% else %}
+                                {% if other_participant.avatar %}
+                                    <img src="{{ other_participant.avatar.url }}" alt="{{ other_participant.get_full_name }}">
+                                {% else %}
+                                    <div class="avatar-placeholder">
+                                        {{ other_participant.first_name|first|upper }}{{ other_participant.last_name|first|upper }}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">
+                                {% if conversation.is_group %}
+                                    {{ conversation.group_name|default:"Grupo sin nombre" }}
+                                {% else %}
+                                    {{ other_participant.get_full_name }}
+                                {% endif %}
+                            </h5>
+                            <small class="text-muted">
+                                {% if conversation.is_group %}
+                                    {{ conversation.participants.count }} participantes
+                                {% else %}
+                                    {% if other_participant.user_type %}
+                                        {{ USER_TYPE_CONFIG|get_item:other_participant.user_type.name|default:"Usuario" }}
+                                    {% endif %}
+                                {% endif %}
+                            </small>
+                        </div>
+                        
+                        <div class="conversation-actions">
+                            <button class="btn btn-link" title="Información">
+                                <i class="bi bi-info-circle"></i>
+                            </button>
+                            <div class="dropdown">
+                                <button class="btn btn-link" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-archive me-2"></i>Archivar</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-bell-slash me-2"></i>Silenciar</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Área de mensajes -->
+                <div class="messages-container" id="messagesContainer">
+                    {% for message in messages %}
+                    <div class="message {% if message.sender == user %}message-own{% else %}message-other{% endif %}" data-message-id="{{ message.id }}">
+                        {% if message.sender != user %}
+                        <div class="message-avatar">
+                            {% if message.sender.avatar %}
+                                <img src="{{ message.sender.avatar.url }}" alt="{{ message.sender.get_full_name }}">
+                            {% else %}
+                                <div class="avatar-placeholder-xs">
+                                    {{ message.sender.first_name|first|upper }}{{ message.sender.last_name|first|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="message-content">
+                            {% if message.sender != user and conversation.is_group %}
+                                <div class="message-sender">{{ message.sender.get_full_name }}</div>
+                            {% endif %}
+                            
+                            <div class="message-bubble">
+                                {{ message.content|linebreaks }}
+                                
+                                <div class="message-time">
+                                    {{ message.created_at|time:"H:i" }}
+                                    {% if message.sender == user %}
+                                        <i class="bi bi-check2{% if message.is_read %}-all{% endif %} ms-1"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="no-messages">
+                        <div class="text-center py-4">
+                            <i class="bi bi-chat-dots display-4 text-muted"></i>
+                            <p class="text-muted mt-2">No hay mensajes en esta conversación</p>
+                            <p class="text-muted">¡Envía el primer mensaje!</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Input para escribir mensaje -->
+                <div class="message-input-container">
+                    <form id="messageForm" class="d-flex align-items-end">
+                        {% csrf_token %}
+                        <div class="flex-grow-1 me-2">
+                            <textarea class="form-control message-input" id="messageInput" rows="1" placeholder="Escribe un mensaje..." maxlength="1000"></textarea>
+                        </div>
+                        
+                        <div class="input-actions">
+                            <button type="button" class="btn btn-link" title="Adjuntar archivo">
+                                <i class="bi bi-paperclip"></i>
+                            </button>
+                            <button type="button" class="btn btn-link" title="Emoji">
+                                <i class="bi bi-emoji-smile"></i>
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="sendButton">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                        <small class="text-muted">
+                            <span id="typingUser"></span> está escribiendo...
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales para la conversación
+const CONVERSATION_ID = {{ conversation.id }};
+const CURRENT_USER = '{{ user.username }}';
+const CSRF_TOKEN = '{{ csrf_token }}';
+
+// Auto-scroll al final
+document.addEventListener('DOMContentLoaded', function() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+});
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/shared/conversation.js' %}"></script>
+{% endblock %}

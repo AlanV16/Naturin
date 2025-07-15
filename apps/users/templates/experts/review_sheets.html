@@ -1,0 +1,424 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboards/dashboard_optimized.css' %}">
+<style>
+    /* Custom scrollbar */
+    .overflow-y-auto::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .overflow-y-auto::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #4C956C;
+        border-radius: 3px;
+    }
+    
+    .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        background: #10451D;
+    }
+
+    /* Sidebar dropdown styles */
+    .sidebar-dropdown .hidden {
+        display: none;
+    }
+    
+    .sidebar-dropdown .block {
+        display: block;
+    }
+    
+    .sidebar-link {
+        transition: all 0.3s ease;
+    }
+    
+    .sidebar-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: translateX(5px);
+    }
+
+    /* Hover animations */
+    .sheet-card {
+        transition: all 0.3s ease;
+    }
+    
+    .sheet-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    /* Tag animations */
+    .tag-badge {
+        transition: all 0.2s ease;
+    }
+    
+    .tag-badge:hover {
+        transform: scale(1.05);
+    }
+    
+    /* Button hover effects */
+    .action-button {
+        transition: all 0.2s ease;
+    }
+    
+    .action-button:hover {
+        transform: translateY(-1px);
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="bg-gradient-to-br from-[#f8fbf8] to-[#E1F0DA] font-sans min-h-screen">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="bg-gradient-to-b from-[#10451D] to-[#0d3a18] text-white w-72 p-6 space-y-8 shadow-2xl">
+            <div class="flex flex-col items-center">
+                <div class="bg-white/10 p-4 rounded-full mb-4 w-24 h-24 flex items-center justify-center">
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" alt="Avatar de {{ user.get_full_name }}" width="80" height="80" class="rounded-full object-cover">
+                    {% else %}
+                        <img src="{% static 'images/mascota/tunki_r.png' %}" alt="Tunki - Mascota NatureIn" width="80" height="80" class="rounded-full object-cover">
+                    {% endif %}
+                </div>
+                <h3 class="text-xl font-bold text-white">{{ user.get_full_name|default:user.username }}</h3>
+                <span class="text-green-200 text-sm">Experto</span>
+            </div>
+            
+            <nav class="space-y-2">
+                <a href="{% url 'users:dashboard_expert' user.id %}" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10">
+                    <i class="bi bi-speedometer2 text-lg"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                
+                <!-- Gestión de Fichas -->
+                <div class="sidebar-dropdown">
+                    <button class="sidebar-link flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-white/10" onclick="toggleDropdown('sheets')">
+                        <div class="flex items-center space-x-3">
+                            <i class="bi bi-journal-check text-lg"></i>
+                            <span class="font-medium">Fichas</span>
+                        </div>
+                        <i class="bi bi-chevron-down text-sm transform transition-transform" id="sheets-chevron"></i>
+                    </button>
+                    <div class="block ml-6 mt-2 space-y-1" id="sheets-dropdown">
+                        <a href="{% url 'users:expert_review_sheets' %}" class="block px-4 py-2 text-sm bg-white/20 rounded">Por Revisar</a>
+                        <a href="#" onclick="showCreateSheetModal()" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Crear Ficha</a>
+                        <a href="#" onclick="loadSection('my-sheets')" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Mis Fichas</a>
+                    </div>
+                </div>
+                
+                <!-- Estadísticas -->
+                <div class="sidebar-dropdown">
+                    <button class="sidebar-link flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-white/10" onclick="toggleDropdown('statistics')">
+                        <div class="flex items-center space-x-3">
+                            <i class="bi bi-bar-chart-line text-lg"></i>
+                            <span class="font-medium">Estadísticas</span>
+                        </div>
+                        <i class="bi bi-chevron-down text-sm transform transition-transform" id="statistics-chevron"></i>
+                    </button>
+                    <div class="hidden ml-6 mt-2 space-y-1" id="statistics-dropdown">
+                        <a href="{% url 'users:expert_statistics' %}" class="block px-4 py-2 text-sm hover:bg-white/10 rounded">Mi Rendimiento</a>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-white/20">
+                    <a href="{% url 'users:user_calendar' %}" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10">
+                        <i class="bi bi-calendar3 text-lg"></i>
+                        <span class="font-medium">Calendario</span>
+                    </a>
+                    <a href="{% url 'users:messages_home' %}" class="sidebar-link flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10">
+                        <i class="bi bi-chat-dots-fill text-lg"></i>
+                        <span class="font-medium">Mensajes</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 overflow-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-4xl font-bold text-[#10451D] mb-2 flex items-center">
+                            <i class="bi bi-journal-check text-green-500 mr-3"></i>
+                            Fichas por Revisar
+                        </h1>
+                        <p class="text-gray-600">Revisa y modera las fichas educativas asignadas</p>
+                    </div>
+                    <button onclick="location.href='{% url 'users:dashboard_expert' user.id %}'" class="bg-[#4C956C] text-white px-6 py-3 rounded-lg hover:bg-[#10451D] transition-colors flex items-center space-x-2 shadow-lg">
+                        <i class="bi bi-arrow-left"></i>
+                        <span>Volver al Dashboard</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <h3 class="text-xl font-bold text-[#10451D] mb-4 flex items-center">
+                    <i class="bi bi-funnel text-blue-500 mr-2"></i>
+                    Filtros de Búsqueda
+                </h3>
+                <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4C956C] focus:border-transparent" name="status">
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Todos</option>
+                            {% for key, value in status_choices %}
+                            <option value="{{ key }}" {% if status_filter == key %}selected{% endif %}>{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Buscar fichas</label>
+                        <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4C956C] focus:border-transparent" 
+                               name="search" value="{{ search_query }}" 
+                               placeholder="Buscar por título, descripción, contenido o etiquetas...">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full bg-[#4C956C] text-white px-4 py-2 rounded-lg hover:bg-[#10451D] transition-colors flex items-center justify-center space-x-2">
+                            <i class="bi bi-search"></i>
+                            <span>Buscar</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de Fichas -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-[#10451D] flex items-center">
+                        <i class="bi bi-list-ul text-green-500 mr-2"></i>
+                        Todas las Fichas Educativas
+                        <span class="ml-2 bg-green-100 text-green-800 text-sm px-2 py-1 rounded-full">{{ assigned_sheets|length }}</span>
+                    </h3>
+                </div>
+                
+                {% if assigned_sheets %}
+                    <div class="space-y-6">
+                        {% for sheet in assigned_sheets %}
+                        <div class="bg-gradient-to-r from-white to-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                                <div class="flex-1">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <h4 class="text-xl font-bold text-gray-900 mb-2">{{ sheet.title }}</h4>
+                                    </div>
+                                    <p class="text-gray-600 mb-4 leading-relaxed">{{ sheet.description|truncatewords:25 }}</p>
+                                    
+                                    <!-- Status and Category Badges -->
+                                    <div class="flex flex-wrap gap-2 mb-4">
+                                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                                            {{ sheet.category.name }}
+                                        </span>
+                                        <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
+                                            {{ sheet.get_difficulty_display }}
+                                        </span>
+                                        <span class="px-3 py-1 rounded-full text-sm font-medium
+                                            {% if sheet.status == 'published' %}bg-green-100 text-green-800
+                                            {% elif sheet.status == 'approved' %}bg-blue-100 text-blue-800
+                                            {% elif sheet.status == 'in_review' %}bg-yellow-100 text-yellow-800
+                                            {% elif sheet.status == 'pending_review' %}bg-gray-100 text-gray-800
+                                            {% elif sheet.status == 'rejected' %}bg-red-100 text-red-800
+                                            {% else %}bg-gray-100 text-gray-800
+                                            {% endif %}">
+                                            {{ sheet.get_status_display }}
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Author and Date Info -->
+                                    <div class="text-sm text-gray-500 mb-3">
+                                        <div class="flex flex-wrap items-center gap-4">
+                                            <span class="flex items-center">
+                                                <i class="bi bi-person text-gray-400 mr-1"></i>
+                                                Autor: {{ sheet.author.get_full_name|default:sheet.author.username }}
+                                            </span>
+                                            <span class="flex items-center">
+                                                <i class="bi bi-calendar text-gray-400 mr-1"></i>
+                                                Creado: {{ sheet.created_at|date:"d/m/Y" }}
+                                            </span>
+                                            {% if sheet.reviewer %}
+                                            <span class="flex items-center">
+                                                <i class="bi bi-person-check text-gray-400 mr-1"></i>
+                                                Revisor: {{ sheet.reviewer.get_full_name|default:sheet.reviewer.username }}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tags Section -->
+                                    {% if sheet.tags %}
+                                    <div class="flex flex-wrap gap-2">
+                                        {% if sheet.tags|lookup:"habitat" %}
+                                            <span class="bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-medium border border-green-200">
+                                                🌍 {{ sheet.tags|lookup:"habitat" }}
+                                            </span>
+                                        {% endif %}
+                                        {% if sheet.tags|lookup:"clasificacion_biologica" %}
+                                            <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-medium border border-blue-200">
+                                                🔬 {{ sheet.tags|lookup:"clasificacion_biologica" }}
+                                            </span>
+                                        {% endif %}
+                                        {% if sheet.tags|lookup:"estado_conservacion" %}
+                                            <span class="bg-yellow-50 text-yellow-700 px-2 py-1 rounded text-xs font-medium border border-yellow-200">
+                                                ⚠️ {{ sheet.tags|lookup:"estado_conservacion" }}
+                                            </span>
+                                        {% endif %}
+                                        {% if sheet.tags|lookup:"ubicacion" %}
+                                            <span class="bg-purple-50 text-purple-700 px-2 py-1 rounded text-xs font-medium border border-purple-200">
+                                                📍 {{ sheet.tags|lookup:"ubicacion" }}
+                                            </span>
+                                        {% endif %}
+                                        {% if sheet.tags|lookup:"caracteristicas" %}
+                                            <span class="bg-gray-50 text-gray-700 px-2 py-1 rounded text-xs font-medium border border-gray-200">
+                                                ✨ {{ sheet.tags|lookup:"caracteristicas" }}
+                                            </span>
+                                        {% endif %}
+                                        {% if sheet.tags|lookup:"tipo_ecosistema" %}
+                                            <span class="bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-medium border border-green-200">
+                                                🌲 {{ sheet.tags|lookup:"tipo_ecosistema" }}
+                                            </span>
+                                        {% endif %}
+                                        {% if sheet.tags|lookup:"actividades" %}
+                                            <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-medium border border-blue-200">
+                                                🎯 {{ sheet.tags|lookup:"actividades" }}
+                                            </span>
+                                        {% endif %}
+                                        {% if sheet.tags|lookup:"importancia" %}
+                                            <span class="bg-yellow-50 text-yellow-700 px-2 py-1 rounded text-xs font-medium border border-yellow-200">
+                                                ⭐ {{ sheet.tags|lookup:"importancia" }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="lg:w-48 flex flex-col gap-2">
+                                    <button onclick="viewSheet({{ sheet.id }})" class="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2">
+                                        <i class="bi bi-eye"></i>
+                                        <span>Ver Detalles</span>
+                                    </button>
+                                    {% if sheet.can_be_reviewed %}
+                                    <button onclick="reviewSheet({{ sheet.id }})" class="w-full bg-[#4C956C] text-white px-4 py-2 rounded-lg hover:bg-[#10451D] transition-colors flex items-center justify-center space-x-2">
+                                        <i class="bi bi-check-circle"></i>
+                                        <span>Revisar</span>
+                                    </button>
+                                    {% endif %}
+                                    {% if sheet.status == 'approved' %}
+                                    <button onclick="publishSheet({{ sheet.id }})" class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2">
+                                        <i class="bi bi-cloud-upload"></i>
+                                        <span>Publicar</span>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-16">
+                        <div class="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
+                            <i class="bi bi-journal-x text-gray-400 text-4xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-700 mb-2">No se encontraron fichas</h4>
+                        <p class="text-gray-500 max-w-md mx-auto">
+                            {% if search_query %}
+                                No hay fichas que coincidan con tu búsqueda "<span class="font-medium">{{ search_query }}</span>".
+                            {% else %}
+                                Actualmente no hay fichas educativas en el sistema para revisar.
+                            {% endif %}
+                        </p>
+                        {% if search_query %}
+                        <button onclick="window.location.href='{% url 'users:expert_review_sheets' %}'" class="mt-4 bg-[#4C956C] text-white px-6 py-2 rounded-lg hover:bg-[#10451D] transition-colors">
+                            Ver todas las fichas
+                        </button>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+    // Sheet management functions
+    function viewSheet(sheetId) {
+        console.log(`Viewing sheet ID: ${sheetId}`);
+        // TODO: Implement detailed sheet view
+        // This could open a modal or navigate to a detail page
+        alert(`Ver ficha ID: ${sheetId}`);
+    }
+    
+    function reviewSheet(sheetId) {
+        console.log(`Reviewing sheet ID: ${sheetId}`);
+        // TODO: Implement sheet review functionality
+        // This could open a review modal or navigate to review page
+        alert(`Revisar ficha ID: ${sheetId}`);
+    }
+    
+    function publishSheet(sheetId) {
+        console.log(`Publishing sheet ID: ${sheetId}`);
+        // TODO: Implement sheet publishing
+        // This should include confirmation and API call
+        if (confirm('¿Estás seguro de que deseas publicar esta ficha?')) {
+            alert(`Publicar ficha ID: ${sheetId}`);
+            // Add actual publishing logic here
+        }
+    }
+
+    // Search functionality enhancement
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.querySelector('input[name="search"]');
+        const statusSelect = document.querySelector('select[name="status"]');
+        
+        // Auto-submit form on status change
+        if (statusSelect) {
+            statusSelect.addEventListener('change', function() {
+                this.form.submit();
+            });
+        }
+        
+        // Add search keyboard shortcut
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            }
+        });
+        
+        // Add loading states to buttons
+        const actionButtons = document.querySelectorAll('.action-button');
+        actionButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="bi bi-hourglass-split animate-spin"></i> Cargando...';
+                this.disabled = true;
+                
+                // Re-enable after 2 seconds (remove this in production)
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                }, 2000);
+            });
+        });
+    });
+</script>
+{% endblock %}

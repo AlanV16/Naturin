@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/student/courses.css' %}">
+<link rel="stylesheet" href="{% static 'css/student/assignments.css' %}">
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <a href="{% url 'users:dashboard_student' user_id=user.id %}" class="back-to-dashboard">
+                <i class="bi bi-arrow-left me-2"></i>
+                Volver 
+            </a>
+            
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-2">
+                        <i class="bi bi-clipboard-check me-2"></i>Mis Tareas
+                    </h2>
+                    <p class="text-muted mb-0">Gestiona tus tareas pendientes y revisa las entregadas</p>
+                </div>
+            </div>
+
+            {% if pending_assignments or submitted_assignments %}
+                <!-- Stats Overview -->
+                <div class="stats-overview">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="stat-item stat-pending">
+                                <span class="stat-number">{{ pending_assignments|length }}</span>
+                                <span class="stat-label">Tareas Pendientes</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-item stat-submitted">
+                                <span class="stat-number">{{ submitted_assignments|length }}</span>
+                                <span class="stat-label">Tareas Entregadas</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-item stat-overdue">
+                                <span class="stat-number">
+                                    {% for assignment in pending_assignments %}
+                                        {% if assignment.due_date < today %}1{% endif %}
+                                    {% empty %}0{% endfor %}
+                                </span>
+                                <span class="stat-label">Tareas Vencidas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-filter="all">Todas</button>
+                    <button class="filter-tab" data-filter="pending">Pendientes</button>
+                    <button class="filter-tab" data-filter="submitted">Entregadas</button>
+                </div>
+
+                <!-- Pending Assignments -->
+                {% if pending_assignments %}
+                <div class="assignment-section" data-section="pending">
+                    <h3 class="section-title">
+                        <i class="bi bi-clock-fill" style="color: #ffc107;"></i>
+                        Tareas Pendientes
+                    </h3>
+                    <div class="row">
+                        {% for assignment in pending_assignments %}
+                        <div class="col-md-6 col-lg-4 mb-3 assignment-item" data-status="pending">
+                            <div class="assignment-card pending">
+                                <div class="assignment-status status-pending">Pendiente</div>
+                                
+                                <div class="text-center">
+                                    <i class="bi bi-clipboard-data assignment-icon"></i>
+                                    <div class="course-badge">{{ assignment.course.name }}</div>
+                                    <h5 class="fw-bold mb-2">{{ assignment.title }}</h5>
+                                    <p class="text-muted small mb-2">{{ assignment.description|truncatechars:100 }}</p>
+                                    
+                                    <div class="assignment-due {% if assignment.due_date < today %}urgent{% endif %}">
+                                        <i class="bi bi-calendar-event me-1"></i>
+                                        Vence: {{ assignment.due_date|date:"d M Y H:i" }}
+                                    </div>
+                                    
+                                    {% if assignment.points %}
+                                    <div class="text-muted small mt-2">
+                                        <i class="bi bi-star me-1"></i>
+                                        {{ assignment.points }} puntos
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="assignment-actions">
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <button class="btn btn-assignment btn-submit">
+                                            <i class="bi bi-upload me-1"></i>Entregar
+                                        </button>
+                                        <button class="btn btn-assignment btn-view">
+                                            <i class="bi bi-eye me-1"></i>Ver Detalles
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Submitted Assignments -->
+                {% if submitted_assignments %}
+                <div class="assignment-section" data-section="submitted">
+                    <h3 class="section-title">
+                        <i class="bi bi-check-circle-fill" style="color: #28a745;"></i>
+                        Tareas Entregadas
+                    </h3>
+                    <div class="row">
+                        {% for submission in submitted_assignments %}
+                        <div class="col-md-6 col-lg-4 mb-3 assignment-item" data-status="submitted">
+                            <div class="assignment-card submitted">
+                                <div class="assignment-status status-submitted">Entregada</div>
+                                
+                                <div class="text-center">
+                                    <i class="bi bi-check-circle-fill assignment-icon"></i>
+                                    <div class="course-badge">{{ submission.assignment.course.name }}</div>
+                                    <h5 class="fw-bold mb-2">{{ submission.assignment.title }}</h5>
+                                    <p class="text-muted small mb-2">{{ submission.assignment.description|truncatechars:100 }}</p>
+                                    
+                                    <div class="assignment-due">
+                                        <i class="bi bi-calendar-check me-1"></i>
+                                        Entregada: {{ submission.submitted_at|date:"d M Y H:i" }}
+                                    </div>
+                                    
+                                    {% if submission.grade %}
+                                    <div class="grade-display">
+                                        <i class="bi bi-star-fill me-1"></i>
+                                        {{ submission.grade }}/10
+                                    </div>
+                                    {% else %}
+                                    <div class="text-muted small mt-2">
+                                        <i class="bi bi-hourglass me-1"></i>
+                                        Esperando calificación
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="assignment-actions">
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <button class="btn btn-assignment btn-view">
+                                            <i class="bi bi-eye me-1"></i>Ver Entrega
+                                        </button>
+                                        {% if submission.feedback %}
+                                        <button class="btn btn-assignment btn-view" data-bs-toggle="tooltip" title="{{ submission.feedback }}">
+                                            <i class="bi bi-chat-text me-1"></i>Feedback
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <div class="empty-state-image">
+                        <img src="{% static 'images/miscellaneous/no_assignments.png' %}" alt="Sin tareas" class="img-fluid">
+                    </div>
+                    <h4>¡No tienes tareas asignadas!</h4>
+                    <p>Cuando tus profesores publiquen tareas, aparecerán aquí para que puedas gestionarlas fácilmente.</p>
+                    <a href="{% url 'users:student_courses' %}" class="btn join-course-btn">
+                        <i class="bi bi-book me-2"></i>Ver Mis Cursos
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Filter functionality
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Remove active class from all tabs
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            const filter = this.getAttribute('data-filter');
+            const assignments = document.querySelectorAll('.assignment-item');
+            
+            assignments.forEach(assignment => {
+                const status = assignment.getAttribute('data-status');
+                
+                if (filter === 'all') {
+                    assignment.style.display = 'block';
+                } else if (filter === status) {
+                    assignment.style.display = 'block';
+                } else {
+                    assignment.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // Assignment card animations
+    document.querySelectorAll('.assignment-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.querySelector('.assignment-icon').style.transform = 'scale(1.1)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.querySelector('.assignment-icon').style.transform = 'scale(1)';
+        });
+    });
+
+    // Add today's date for comparison
+    const today = new Date();
+    document.querySelectorAll('.assignment-due.urgent').forEach(element => {
+        const icon = element.querySelector('i');
+        if (icon) {
+            icon.className = 'bi bi-exclamation-triangle me-1';
+        }
+    });
+</script>
+{% endblock %}

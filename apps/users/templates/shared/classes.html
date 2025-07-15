@@ -1,0 +1,422 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/class_virtual.css' %}">
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Class Header -->
+            <div class="class-header-section mb-4">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="class-info">
+                            <h1 class="class-title">{{ virtual_class.name }}</h1>
+                            <p class="class-description">{{ virtual_class.description|default:"Sin descripción" }}</p>
+                            <div class="class-meta">
+                                <span class="badge bg-primary me-2">{{ virtual_class.subject }}</span>
+                                <span class="badge bg-secondary me-2">{{ virtual_class.grade }}</span>
+                                <span class="badge bg-info me-2">Código: {{ virtual_class.code }}</span>
+                                <span class="badge bg-success">{{ virtual_class.student_count }}/{{ virtual_class.capacity }} estudiantes</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="class-actions text-end">
+                            <button class="btn btn-primary me-2" onclick="shareClassCode()">
+                                <i class="bi bi-share me-1"></i>Compartir Código
+                            </button>
+                            <button class="btn btn-success" onclick="showUploadFileModal()">
+                                <i class="bi bi-cloud-upload me-1"></i>Subir Archivo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Class Content -->
+            <div class="row">
+                <!-- Files Section -->
+                <div class="col-lg-8">
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-files me-2"></i>Archivos de la Clase
+                            </h5>
+                            <button class="btn btn-primary btn-sm" onclick="showUploadFileModal()">
+                                <i class="bi bi-plus me-1"></i>Subir Archivo
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            {% if files %}
+                                <div class="files-list">
+                                    {% for file in files %}
+                                    <div class="file-item d-flex justify-content-between align-items-center p-3 border rounded mb-2">
+                                        <div class="file-info">
+                                            <h6 class="file-title mb-1">
+                                                <i class="bi bi-file-earmark me-2"></i>{{ file.title }}
+                                            </h6>
+                                            <p class="file-description text-muted mb-1">{{ file.description|truncatewords:15 }}</p>
+                                            <div class="file-meta">
+                                                <span class="text-muted small">
+                                                    <i class="bi bi-person me-1"></i>{{ file.uploaded_by.username }}
+                                                </span>
+                                                <span class="text-muted small ms-3">
+                                                    <i class="bi bi-calendar me-1"></i>{{ file.uploaded_at|date:"d/m/Y H:i" }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="file-actions">
+                                            <a href="{{ file.file.url }}" class="btn btn-sm btn-outline-primary me-1" download>
+                                                <i class="bi bi-download me-1"></i>Descargar
+                                            </a>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteFile({{ file.id }})">
+                                                <i class="bi bi-trash me-1"></i>Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-files display-4 text-muted"></i>
+                                    <p class="text-muted mt-2">No hay archivos en esta clase</p>
+                                    <button class="btn btn-primary" onclick="showUploadFileModal()">
+                                        <i class="bi bi-cloud-upload me-2"></i>Subir Primer Archivo
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Games Section -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-controller me-2"></i>Juegos Asignados
+                            </h5>
+                            <button class="btn btn-success btn-sm" onclick="showCreateGameModal()">
+                                <i class="bi bi-plus me-1"></i>Crear Juego
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            {% if games %}
+                                <div class="games-list">
+                                    {% for game in games %}
+                                    <div class="game-item d-flex justify-content-between align-items-center p-3 border rounded mb-2">
+                                        <div class="game-info">
+                                            <h6 class="game-title mb-1">
+                                                <i class="bi bi-controller me-2"></i>{{ game.title }}
+                                            </h6>
+                                            <p class="game-description text-muted mb-1">{{ game.description|truncatewords:15 }}</p>
+                                            <div class="game-meta">
+                                                <span class="badge bg-info me-2">{{ game.get_game_type_display }}</span>
+                                                <span class="text-muted small">
+                                                    <i class="bi bi-clock me-1"></i>{{ game.time_limit }} seg
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="game-actions">
+                                            <button class="btn btn-sm btn-outline-primary me-1" onclick="viewGameResults({{ game.id }})">
+                                                <i class="bi bi-graph-up me-1"></i>Resultados
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteGame({{ game.id }})">
+                                                <i class="bi bi-trash me-1"></i>Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-controller display-4 text-muted"></i>
+                                    <p class="text-muted mt-2">No hay juegos asignados</p>
+                                    <button class="btn btn-success" onclick="showCreateGameModal()">
+                                        <i class="bi bi-plus me-2"></i>Crear Primer Juego
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Students Section -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-people me-2"></i>Estudiantes en Clase
+                            </h5>
+                            <span class="badge bg-primary">{{ virtual_class.student_count }}/{{ virtual_class.capacity }}</span>
+                        </div>
+                        <div class="card-body">
+                            {% if students %}
+                                <div class="students-list">
+                                    {% for student in students %}
+                                    <div class="student-item d-flex justify-content-between align-items-center p-2 border rounded mb-2">
+                                        <div class="student-info">
+                                            <div class="student-avatar">
+                                                <i class="bi bi-person-circle"></i>
+                                            </div>
+                                            <div class="student-details">
+                                                <div class="student-name">{{ student.get_full_name|default:student.username }}</div>
+                                                <div class="student-email text-muted small">{{ student.email }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="student-actions">
+                                            <button class="btn btn-sm btn-outline-danger" onclick="removeStudent({{ student.id }})">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="bi bi-people display-4 text-muted"></i>
+                                    <p class="text-muted mt-2">No hay estudiantes en esta clase</p>
+                                    <p class="text-muted small">Comparte el código {{ virtual_class.code }} para que se unan</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para subir archivo -->
+<div class="modal fade" id="uploadFileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form id="uploadFileForm" class="modal-content" enctype="multipart/form-data">
+            <div class="modal-header">
+                <h5 class="modal-title">Subir Archivo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="fileTitle" class="form-label">Título <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="fileTitle" name="title" required>
+                </div>
+                <div class="mb-3">
+                    <label for="fileDescription" class="form-label">Descripción</label>
+                    <textarea class="form-control" id="fileDescription" name="description" rows="3"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="fileUpload" class="form-label">Archivo <span class="text-danger">*</span></label>
+                    <input type="file" class="form-control" id="fileUpload" name="file" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-success">Subir Archivo</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para crear juego -->
+<div class="modal fade" id="createGameModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form id="createGameForm" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nuevo Juego</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="gameTitle" class="form-label">Título <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="gameTitle" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="gameDescription" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="gameDescription" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="gameType" class="form-label">Tipo de Juego <span class="text-danger">*</span></label>
+                            <select class="form-select" id="gameType" name="game_type" required>
+                                <option value="">Seleccionar tipo...</option>
+                                <option value="quiz">Quiz</option>
+                                <option value="memory">Juego de Memoria</option>
+                                <option value="puzzle">Rompecabezas</option>
+                                <option value="word_search">Sopa de Letras</option>
+                                <option value="crossword">Crucigrama</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="gameTimeLimit" class="form-label">Tiempo Límite (segundos)</label>
+                            <input type="number" class="form-control" id="gameTimeLimit" name="time_limit" value="300" min="30" max="3600">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Configuración del Juego</label>
+                            <div id="gameConfig">
+                                <p class="text-muted">Selecciona un tipo de juego para ver las opciones de configuración</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-success">Crear Juego</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% csrf_token %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const classId = {{ virtual_class.id }};
+    
+    // Subir archivo
+    function showUploadFileModal() {
+        const modal = new bootstrap.Modal(document.getElementById('uploadFileModal'));
+        modal.show();
+    }
+    
+    // Crear juego
+    function showCreateGameModal() {
+        const modal = new bootstrap.Modal(document.getElementById('createGameModal'));
+        modal.show();
+    }
+    
+    // Compartir código
+    function shareClassCode() {
+        const code = '{{ virtual_class.code }}';
+        navigator.clipboard.writeText(code).then(() => {
+            alert(`Código copiado: ${code}`);
+        });
+    }
+    
+    // Eliminar archivo
+    function deleteFile(fileId) {
+        if (confirm('¿Estás seguro de eliminar este archivo?')) {
+            fetch(`/accounts/class/file/${fileId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error);
+                }
+            });
+        }
+    }
+    
+    // Ver resultados de juego
+    function viewGameResults(gameId) {
+        window.location.href = `/accounts/class/game/${gameId}/results/`;
+    }
+    
+    // Eliminar juego
+    function deleteGame(gameId) {
+        if (confirm('¿Estás seguro de eliminar este juego?')) {
+            fetch(`/accounts/class/game/${gameId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error);
+                }
+            });
+        }
+    }
+    
+    // Remover estudiante
+    function removeStudent(studentId) {
+        if (confirm('¿Estás seguro de remover este estudiante?')) {
+            fetch(`/accounts/class/${classId}/remove-student/${studentId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error);
+                }
+            });
+        }
+    }
+    
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Subir archivo
+        document.getElementById('uploadFileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch(`/accounts/class/${classId}/upload-file/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.error);
+                }
+            });
+        });
+        
+        // Crear juego
+        document.getElementById('createGameForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch(`/accounts/class/${classId}/create-game/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert(data.error);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

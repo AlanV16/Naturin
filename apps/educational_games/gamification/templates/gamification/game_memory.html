@@ -1,0 +1,400 @@
+{% extends 'gamification/base.html' %}
+{% load static %}
+
+{% block title %}Memoria de Especies - Juego Educativo{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <style>
+        .memory-card {
+            width: 120px;
+            height: 120px;
+            margin: 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            background: linear-gradient(135deg, #2E7D32, #4CAF50);
+            border: 2px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .memory-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .memory-card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .memory-card .front,
+        .memory-card .back {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            position: absolute;
+            backface-visibility: hidden;
+        }
+        
+        .memory-card .front {
+            background: linear-gradient(135deg, #2E7D32, #4CAF50);
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .memory-card .back {
+            background: white;
+            transform: rotateY(180deg);
+            border: 2px solid #2E7D32;
+        }
+        
+        .memory-card .back img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        
+        .game-stats {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            border-radius: 5px;
+            background: #E0E0E0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2E7D32, #4CAF50);
+            transition: width 0.3s ease;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header del juego -->
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px;">
+                <div class="card-header bg-success text-white border-0" style="border-radius: 16px 16px 0 0;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-brain me-3" style="font-size: 2rem;"></i>
+                        <div>
+                            <h4 class="mb-0">Memoria de Especies</h4>
+                            <p class="mb-0 opacity-75">Encuentra las parejas de especies animales y vegetales</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Estadísticas del juego -->
+                    <div class="game-stats">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <h5 class="text-success mb-1" id="moves">0</h5>
+                                <small class="text-muted">Movimientos</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h5 class="text-success mb-1" id="pairs">0</h5>
+                                <small class="text-muted">Parejas Encontradas</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h5 class="text-success mb-1" id="time">00:00</h5>
+                                <small class="text-muted">Tiempo</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h5 class="text-success mb-1" id="score">0</h5>
+                                <small class="text-muted">Puntuación</small>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted">Progreso: <span id="progress-text">0%</span></small>
+                        </div>
+                    </div>
+
+                    <!-- Controles del juego -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <button class="btn btn-outline-success me-2" onclick="startGame()">
+                                <i class="bi bi-play-fill me-1"></i>Nuevo Juego
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="pauseGame()">
+                                <i class="bi bi-pause-fill me-1"></i>Pausar
+                            </button>
+                        </div>
+                        <div>
+                            <span class="badge bg-success me-2">Nivel: Fácil</span>
+                            <span class="badge bg-info">Puntos: 10 por pareja</span>
+                        </div>
+                    </div>
+
+                    <!-- Tablero del juego -->
+                    <div class="text-center">
+                        <div id="game-board" class="d-flex flex-wrap justify-content-center">
+                            <!-- Las tarjetas se generarán dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Instrucciones -->
+                    <div class="mt-4">
+                        <div class="alert alert-info border-0" style="border-radius: 12px;">
+                            <h6><i class="bi bi-info-circle me-2"></i>Instrucciones:</h6>
+                            <ul class="mb-0">
+                                <li>Haz clic en las tarjetas para voltearlas</li>
+                                <li>Encuentra las parejas de especies</li>
+                                <li>Completa todas las parejas para ganar</li>
+                                <li>Menos movimientos = más puntos</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de victoria -->
+<div class="modal fade" id="victoryModal" tabindex="-1" aria-labelledby="victoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-success" id="victoryModalLabel">
+                    <i class="bi bi-trophy me-2"></i> ¡Felicitaciones!
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <div class="text-center">
+                    <i class="bi bi-star-fill text-warning" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3 mb-2">¡Has completado el juego!</h4>
+                    <p class="text-muted">Has encontrado todas las parejas de especies</p>
+                    
+                    <div class="row text-center mt-4">
+                        <div class="col-4">
+                            <h5 class="text-success" id="final-moves">0</h5>
+                            <small class="text-muted">Movimientos</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="text-success" id="final-time">00:00</h5>
+                            <small class="text-muted">Tiempo</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="text-success" id="final-score">0</h5>
+                            <small class="text-muted">Puntuación</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <button type="button" class="btn btn-success btn-lg" onclick="startGame()">
+                        <i class="bi bi-arrow-clockwise me-2"></i>Jugar de Nuevo
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='{% url 'gamification:game_list' %}'">
+                        <i class="bi bi-arrow-left me-2"></i>Volver a Juegos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script>
+        // Datos de las especies (imágenes y nombres)
+        const speciesData = [
+            { id: 1, name: 'Jaguar', image: '{% static "images/animals/jaguar.jpg" %}', type: 'animal' },
+            { id: 2, name: 'Orquídea', image: '{% static "images/plants/orchid.jpg" %}', type: 'plant' },
+            { id: 3, name: 'Mono', image: '{% static "images/animals/monkey.jpg" %}', type: 'animal' },
+            { id: 4, name: 'Bromelia', image: '{% static "images/plants/bromelia.jpg" %}', type: 'plant' },
+            { id: 5, name: 'Tucán', image: '{% static "images/animals/toucan.jpg" %}', type: 'animal' },
+            { id: 6, name: 'Heliconia', image: '{% static "images/plants/heliconia.jpg" %}', type: 'plant' },
+            { id: 7, name: 'Mariposa', image: '{% static "images/animals/butterfly.jpg" %}', type: 'animal' },
+            { id: 8, name: 'Bambú', image: '{% static "images/plants/bamboo.jpg" %}', type: 'plant' }
+        ];
+
+        let gameState = {
+            cards: [],
+            flippedCards: [],
+            matchedPairs: 0,
+            moves: 0,
+            score: 0,
+            gameStarted: false,
+            startTime: null,
+            timer: null
+        };
+
+        // Inicializar el juego
+        function initGame() {
+            createCards();
+            updateStats();
+            startTimer();
+        }
+
+        // Crear las tarjetas del juego
+        function createCards() {
+            const gameBoard = document.getElementById('game-board');
+            gameBoard.innerHTML = '';
+            
+            // Duplicar las especies para crear parejas
+            const gameCards = [...speciesData, ...speciesData];
+            
+            // Mezclar las tarjetas
+            gameCards.sort(() => Math.random() - 0.5);
+            
+            gameCards.forEach((species, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.dataset.id = species.id;
+                card.dataset.index = index;
+                
+                card.innerHTML = `
+                    <div class="front">
+                        <i class="bi bi-question-lg"></i>
+                    </div>
+                    <div class="back">
+                        <img src="${species.image}" alt="${species.name}" onerror="this.src='{% static 'images/logo/logo.png' %}'">
+                        <div class="position-absolute bottom-0 start-0 w-100 p-1" style="background: rgba(0,0,0,0.7); color: white; font-size: 0.7rem;">
+                            ${species.name}
+                        </div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => flipCard(card));
+                gameBoard.appendChild(card);
+            });
+            
+            gameState.cards = gameCards;
+        }
+
+        // Voltear una tarjeta
+        function flipCard(card) {
+            if (!gameState.gameStarted) {
+                startGame();
+            }
+            
+            if (gameState.flippedCards.length >= 2 || card.classList.contains('flipped') || card.classList.contains('matched')) {
+                return;
+            }
+            
+            card.classList.add('flipped');
+            gameState.flippedCards.push(card);
+            
+            if (gameState.flippedCards.length === 2) {
+                gameState.moves++;
+                checkMatch();
+            }
+            
+            updateStats();
+        }
+
+        // Verificar si hay coincidencia
+        function checkMatch() {
+            const [card1, card2] = gameState.flippedCards;
+            const species1 = gameState.cards[card1.dataset.index];
+            const species2 = gameState.cards[card2.dataset.index];
+            
+            if (species1.id === species2.id) {
+                // Coincidencia encontrada
+                setTimeout(() => {
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    gameState.matchedPairs++;
+                    gameState.score += 10;
+                    
+                    if (gameState.matchedPairs === speciesData.length) {
+                        endGame();
+                    }
+                    
+                    gameState.flippedCards = [];
+                    updateStats();
+                }, 500);
+            } else {
+                // No hay coincidencia
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    gameState.flippedCards = [];
+                }, 1000);
+            }
+        }
+
+        // Iniciar el juego
+        function startGame() {
+            gameState = {
+                cards: [],
+                flippedCards: [],
+                matchedPairs: 0,
+                moves: 0,
+                score: 0,
+                gameStarted: true,
+                startTime: Date.now(),
+                timer: null
+            };
+            
+            initGame();
+        }
+
+        // Pausar el juego
+        function pauseGame() {
+            if (gameState.timer) {
+                clearInterval(gameState.timer);
+                gameState.timer = null;
+            }
+        }
+
+        // Finalizar el juego
+        function endGame() {
+            clearInterval(gameState.timer);
+            
+            // Actualizar modal de victoria
+            document.getElementById('final-moves').textContent = gameState.moves;
+            document.getElementById('final-time').textContent = document.getElementById('time').textContent;
+            document.getElementById('final-score').textContent = gameState.score;
+            
+            // Mostrar modal
+            const victoryModal = new bootstrap.Modal(document.getElementById('victoryModal'));
+            victoryModal.show();
+        }
+
+        // Actualizar estadísticas
+        function updateStats() {
+            document.getElementById('moves').textContent = gameState.moves;
+            document.getElementById('pairs').textContent = gameState.matchedPairs;
+            document.getElementById('score').textContent = gameState.score;
+            
+            const progress = (gameState.matchedPairs / speciesData.length) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+            document.getElementById('progress-text').textContent = Math.round(progress) + '%';
+        }
+
+        // Iniciar temporizador
+        function startTimer() {
+            gameState.startTime = Date.now();
+            gameState.timer = setInterval(() => {
+                const elapsed = Date.now() - gameState.startTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                document.getElementById('time').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            initGame();
+        });
+    </script>
+{% endblock %} 

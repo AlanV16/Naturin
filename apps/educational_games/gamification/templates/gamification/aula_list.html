@@ -1,0 +1,180 @@
+{% extends 'gamification/base.html' %}
+
+{% block title %}Mis Aulas - Gamificación{% endblock %}
+
+{% block gamification_content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="bi bi-people"></i> Mis Aulas</h2>
+            {% if user.user_type == 2 %}
+            <a href="{% url 'gamification:aula_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Crear Nueva Aula
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">Buscar Aula</label>
+                        <input type="text" name="search" id="search" class="form-control" 
+                               placeholder="Buscar por nombre..." value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="estado" class="form-label">Estado</label>
+                        <select name="estado" id="estado" class="form-select">
+                            <option value="">Todos los estados</option>
+                            <option value="activa" {% if request.GET.estado == 'activa' %}selected{% endif %}>Activa</option>
+                            <option value="inactiva" {% if request.GET.estado == 'inactiva' %}selected{% endif %}>Inactiva</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="orden" class="form-label">Ordenar por</label>
+                        <select name="orden" id="orden" class="form-select">
+                            <option value="nombre" {% if request.GET.orden == 'nombre' %}selected{% endif %}>Nombre</option>
+                            <option value="fecha" {% if request.GET.orden == 'fecha' %}selected{% endif %}>Fecha de Creación</option>
+                            <option value="estudiantes" {% if request.GET.orden == 'estudiantes' %}selected{% endif %}>Número de Estudiantes</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Filtrar
+                        </button>
+                        <a href="{% url 'gamification:aula_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise"></i> Limpiar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de aulas -->
+    <div class="col-12">
+        {% if aulas %}
+        <div class="row">
+            {% for aula in aulas %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 gamification-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title">{{ aula.NombreAula }}</h5>
+                            <span class="badge bg-{% if aula.Estado == 'activa' %}success{% else %}secondary{% endif %}">
+                                {{ aula.Estado|title }}
+                            </span>
+                        </div>
+                        
+                        <p class="card-text">{{ aula.Descripcion|truncatewords:10 }}</p>
+                        
+                        <div class="mb-3">
+                            <small class="text-light">
+                                <i class="bi bi-key"></i> Código: <strong>{{ aula.CodigoAula }}</strong>
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <small class="text-light">
+                                <i class="bi bi-people"></i> {{ aula.student_count|default:0 }} estudiantes
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <small class="text-light">
+                                <i class="bi bi-calendar"></i> Creada: {{ aula.FechaCreacion|date:"d/m/Y" }}
+                            </small>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-info">{{ aula.actividad_count|default:0 }} actividades</span>
+                            </div>
+                            <div>
+                                <a href="{% url 'gamification:aula_detail' aula.IDaula %}" 
+                                   class="btn btn-outline-light btn-sm">
+                                    <i class="bi bi-eye"></i> Ver
+                                </a>
+                                {% if user.user_type == 2 and aula.IDdocente == user %}
+                                <a href="{% url 'gamification:aula_update' aula.IDaula %}" 
+                                   class="btn btn-light btn-sm">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Paginación -->
+        {% if is_paginated %}
+        <nav aria-label="Navegación de páginas">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
+                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.orden %}&orden={{ request.GET.orden }}{% endif %}">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-people display-1 text-muted"></i>
+            <h3 class="text-muted mt-3">
+                {% if user.user_type == 2 %}
+                    No tienes aulas creadas
+                {% else %}
+                    No estás inscrito en ninguna aula
+                {% endif %}
+            </h3>
+            <p class="text-muted">
+                {% if user.user_type == 2 %}
+                    Crea tu primera aula para comenzar a gestionar actividades educativas.
+                {% else %}
+                    Pide a tu docente que te agregue a un aula.
+                {% endif %}
+            </p>
+            {% if user.user_type == 2 %}
+            <a href="{% url 'gamification:aula_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Crear Primera Aula
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

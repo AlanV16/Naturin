@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="container-fluid py-5" style="background: linear-gradient(135deg, #388e3c 0%, #2d5016 100%);">
+    <div class="container">
+        <div class="row align-items-center text-white">
+            <div class="col-md-6">
+                <h1 class="display-3 fw-bold mb-3">Jardín Botánico de Tingo María</h1>
+                <p class="lead fs-4 mb-4">Un oasis de biodiversidad amazónica con más de 1500 plantas tropicales, ubicado al pie de la Bella Durmiente en el Parque Nacional Tingo María.</p>
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
+                        <i class="fas fa-map-marker-alt me-2"></i>Ubicación: Tingo María, Huánuco
+                    </span>
+                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
+                        <i class="fas fa-expand-arrows-alt me-2"></i>Extensión: 4.7 hectáreas
+                    </span>
+                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
+                        <i class="fas fa-university me-2"></i>Administrado por: UNAS
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div id="carouselJardinBotanico" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#carouselJardinBotanico" data-bs-slide-to="0" class="active"></button>
+                        <button type="button" data-bs-target="#carouselJardinBotanico" data-bs-slide-to="1"></button>
+                        <button type="button" data-bs-target="#carouselJardinBotanico" data-bs-slide-to="2"></button>
+                    </div>
+                    <div class="carousel-inner rounded-4 shadow-lg">
+                        <div class="carousel-item active">
+                            <img src="{% static 'images/explore/jardin_botanico01.jpg' %}" class="d-block w-100 img-zoom" style="height:400px;object-fit:cover;" alt="Jardín Botánico">
+                            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-2">
+                                <h5>Jardín Botánico</h5>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'images/explore/jardin_botanico02.jpg' %}" class="d-block w-100 img-zoom" style="height:400px;object-fit:cover;" alt="Biodiversidad">
+                            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-2">
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'images/explore/jardin_botanico03.jpg' %}" class="d-block w-100 img-zoom" style="height:400px;object-fit:cover;" alt="Selva Amazónica">
+                            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-2">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselJardinBotanico" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                        <span class="visually-hidden">Anterior</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselJardinBotanico" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                        <span class="visually-hidden">Siguiente</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container py-5">
+    <!-- Descripción principal -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3" style="color:#388e3c;">Un refugio de biodiversidad amazónica</h2>
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <p class="lead text-muted fs-5">El Jardín Botánico de Tingo María, administrado por la Universidad Nacional Agraria de la Selva (UNAS), es un espacio de 4.7 hectáreas que conserva más de 1500 plantas tropicales, algunas con hasta 40 años de edad. Ubicado al pie de la Bella Durmiente, ofrece senderos interpretativos y es ideal para la educación ambiental, la investigación científica y el ecoturismo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flora y Fauna Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-header bg-light text-dark text-center py-3 border-bottom">
+                    <h3 class="fw-bold mb-0" style="color:#2d5016;">
+                        <i class="fas fa-leaf me-2"></i>Flora destacada
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-tree text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-1">Cedro de altura</h6>
+                                    <p class="text-muted mb-0 small">Árbol maderable de gran valor.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-seedling text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-1">Quina azufre</h6>
+                                    <p class="text-muted mb-0 small">Planta medicinal amazónica.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-leaf text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-1">Tulpay</h6>
+                                    <p class="text-muted mb-0 small">Especie nativa de la selva.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-seedling text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-1">Palmera huasaí</h6>
+                                    <p class="text-muted mb-0 small">Palmera frutal amazónica.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-spa text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-1">Orquídeas</h6>
+                                    <p class="text-muted mb-0 small">Diversidad de especies tropicales.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-header bg-light text-dark text-center py-3 border-bottom">
+                    <h3 class="fw-bold mb-0" style="color:#2d5016;">
+                        <i class="fas fa-paw me-2"></i>Fauna destacada
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-feather text-warning"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Aves</h6>
+                                    <p class="text-muted mb-0 small">Diversas especies tropicales.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-danger bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-bug text-danger"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Artrópodos</h6>
+                                    <p class="text-muted mb-0 small">Insectos y arañas.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-leaf text-info"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Hongos</h6>
+                                    <p class="text-muted mb-0 small">Variedad de especies fúngicas.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-seedling text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Líquenes</h6>
+                                    <p class="text-muted mb-0 small">Organismos simbióticos.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-fish text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Peces</h6>
+                                    <p class="text-muted mb-0 small">Especies en cuerpos de agua cercanos.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ubicación, Actividades y Horarios -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header bg-light text-dark py-3 border-bottom">
+                    <h4 class="fw-bold mb-0" style="color:#2d5016;">
+                        <i class="fas fa-map-marked-alt me-2"></i>Ubicación en el mapa
+                    </h4>
+                </div>
+                <div class="card-body p-0" style="height:350px;">
+                    <div class="ratio ratio-16x9 h-100">
+                        <iframe src="https://www.google.com/maps?q=-9.304444,-76.003889&z=15&output=embed" width="100%" height="100%" style="border:0;color:#2d5016;min-height:100%;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 d-flex flex-column gap-3">
+            <div class="card border-0 shadow-lg" style="min-height:120px;">
+                <div class="card-header bg-light text-dark py-2 border-bottom">
+                    <h4 class="fw-bold mb-0 fs-5" style="color:#2d5016;">
+                        <i class="fas fa-hiking me-2"></i>Actividades
+                    </h4>
+                </div>
+                <div class="card-body py-3 px-4">
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2 d-flex align-items-center"><i class="fas fa-walking text-success me-2"></i>Senderos interpretativos</li>
+                        <li class="mb-2 d-flex align-items-center"><i class="fas fa-binoculars text-primary me-2"></i>Observación de biodiversidad</li>
+                        <li class="mb-2 d-flex align-items-center"><i class="fas fa-camera text-warning me-2"></i>Fotografía de naturaleza</li>
+                        <li class="d-flex align-items-center"><i class="fas fa-book text-info me-2"></i>Educación ambiental</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card border-0 shadow-lg flex-fill">
+                <div class="card-header bg-light text-dark py-2 border-bottom">
+                    <h4 class="fw-bold mb-0 fs-5" style="color:#2d5016;">
+                        <i class="fas fa-clock me-2"></i>Horarios y acceso
+                    </h4>
+                </div>
+                <div class="card-body py-3 px-4">
+                    <!-- Horario -->
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-clock text-success"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1" style="color:#2d5016;">Horario de atención</h6>
+                            <p class="text-muted mb-0 small">Lunes a domingo<br>8:00 a.m. - 5:00 p.m.</p>
+                        </div>
+                    </div>
+                    <!-- Ubicación -->
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-map-marker-alt text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1" style="color:#2d5016;">Acceso</h6>
+                            <p class="text-muted mb-0 small">Carretera a Monzón<br>5 km del centro de Tingo María</p>
+                        </div>
+                    </div>
+                    <!-- Recomendaciones -->
+                    <div class="d-flex align-items-start">
+                        <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-info-circle text-warning"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-2" style="color:#2d5016;">Recomendaciones</h6>
+                            <div class="small text-muted">
+                                <div class="mb-1">• Llevar repelente</div>
+                                <div class="mb-1">• Agua</div>
+                                <div class="mb-1">• Cámara fotográfica</div>
+                                <div>• Respetar normas de conservación</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);">
+                <div class="card-body text-center py-5">
+                    <h3 class="fw-bold mb-3" style="color:#388e3c;">
+                        <i class="fas fa-heart me-2"></i>Un refugio de biodiversidad amazónica
+                    </h3>
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8">
+                            <p class="lead text-muted mb-4">Visita el Jardín Botánico de Tingo María para explorar un bosque tropical maduro, aprender sobre la conservación de especies amazónicas y disfrutar de la tranquilidad de la selva alta. Ideal para familias, investigadores y amantes de la naturaleza.</p>
+                            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                                <span class="badge bg-success px-3 py-2 rounded-pill fs-6">
+                                    <i class="fas fa-shield-alt me-1"></i>Área Protegida
+                                </span>
+                                <span class="badge bg-primary px-3 py-2 rounded-pill fs-6">
+                                    <i class="fas fa-globe-americas me-1"></i>Patrimonio Natural
+                                </span>
+                                <span class="badge bg-warning px-3 py-2 rounded-pill fs-6">
+                                    <i class="fas fa-star me-1"></i>Destino Turístico
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

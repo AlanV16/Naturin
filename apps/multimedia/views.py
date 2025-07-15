@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -14,53 +14,6 @@ from django.contrib.messages.views import SuccessMessageMixin
 from .models import MultimediaCard, MultimediaTag
 from .forms import MultimediaCardForm
 from apps.common.models import Category, Location
-
-
-class MultimediaCardListView(ListView):
-    """Vista para listar todas las fichas multimedia con filtros"""
-    model = MultimediaCard
-    template_name = 'multimedia/multimedia_list.html'
-    context_object_name = 'multimedia_cards'
-    paginate_by = 12
-    
-    def get_queryset(self):
-        queryset = MultimediaCard.objects.filter(is_public=True)
-        
-        # Filtros
-        search = self.request.GET.get('search')
-        media_type = self.request.GET.get('media_type')
-        category = self.request.GET.get('category')
-        educational_level = self.request.GET.get('educational_level')
-        location = self.request.GET.get('location')
-        
-        if search:
-            queryset = queryset.filter(
-                Q(title__icontains=search) |
-                Q(description__icontains=search) |
-                Q(subject_area__icontains=search)
-            )
-        
-        if media_type:
-            queryset = queryset.filter(media_type=media_type)
-        
-        if category:
-            queryset = queryset.filter(category__name__iexact=category)
-        
-        if educational_level:
-            queryset = queryset.filter(educational_level=educational_level)
-        
-        if location:
-            queryset = queryset.filter(locations__name__iexact=location)
-        
-        return queryset.select_related('category', 'author').prefetch_related('locations')
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.all()
-        context['locations'] = Location.objects.all()
-        context['media_types'] = MultimediaCard.MEDIA_TYPE_CHOICES
-        context['educational_levels'] = MultimediaCard.EDUCATIONAL_LEVEL_CHOICES
-        return context
 
 
 class MultimediaCardDetailView(DetailView):
@@ -90,7 +43,7 @@ class MultimediaCardCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateVi
     model = MultimediaCard
     form_class = MultimediaCardForm
     template_name = 'multimedia/multimedia_form.html'
-    success_url = reverse_lazy('multimedia:list')
+    success_url = reverse_lazy('multimedia:multimedia_tab')
     success_message = "Ficha multimedia creada exitosamente."
     
     def form_valid(self, form):
@@ -103,7 +56,7 @@ class MultimediaCardUpdateView(LoginRequiredMixin, UserPassesTestMixin, SuccessM
     model = MultimediaCard
     form_class = MultimediaCardForm
     template_name = 'multimedia/multimedia_form.html'
-    success_url = reverse_lazy('multimedia:list')
+    success_url = reverse_lazy('multimedia:multimedia_tab')
     success_message = "Ficha multimedia actualizada exitosamente."
     
     def test_func(self):
@@ -115,7 +68,7 @@ class MultimediaCardDeleteView(LoginRequiredMixin, UserPassesTestMixin, SuccessM
     """Vista para eliminar una ficha multimedia"""
     model = MultimediaCard
     template_name = 'multimedia/multimedia_confirm_delete.html'
-    success_url = reverse_lazy('multimedia:list')
+    success_url = reverse_lazy('multimedia:multimedia_tab')
     success_message = "Ficha multimedia eliminada exitosamente."
     
     def test_func(self):
@@ -219,3 +172,58 @@ def multimedia_search(request):
     }
     
     return render(request, 'multimedia/multimedia_search.html', context)
+
+
+def multimedia_tab(request):
+    queryset = MultimediaCard.objects.filter(is_public=True)
+    search = request.GET.get('search')
+    media_type = request.GET.get('media_type')
+    category = request.GET.get('category')
+    educational_level = request.GET.get('educational_level')
+    location = request.GET.get('location')
+    if search:
+        queryset = queryset.filter(
+            Q(title__icontains=search) |
+            Q(description__icontains=search) |
+            Q(subject_area__icontains=search)
+        )
+    if media_type:
+        queryset = queryset.filter(media_type=media_type)
+    if category:
+        queryset = queryset.filter(category__name__iexact=category)
+    if educational_level:
+        queryset = queryset.filter(educational_level=educational_level)
+    if location:
+        queryset = queryset.filter(locations__name__iexact=location)
+    queryset = queryset.select_related('category', 'author').prefetch_related('locations')
+    paginator = Paginator(queryset, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    user_cards = None
+    if request.user.is_authenticated:
+        user_cards = MultimediaCard.objects.filter(author=request.user).order_by('-created_at')
+    # Estadísticas
+    featured_count = queryset.filter(is_featured=True).count()
+    total_views = queryset.aggregate(total_views=Sum('views_count'))['total_views'] or 0
+    total_downloads = queryset.aggregate(total_downloads=Sum('downloads_count'))['total_downloads'] or 0
+    context = {
+        'multimedia_cards': page_obj,
+        'categories': Category.objects.all(),
+        'locations': Location.objects.all(),
+        'media_types': MultimediaCard.MEDIA_TYPE_CHOICES,
+        'educational_levels': MultimediaCard.EDUCATIONAL_LEVEL_CHOICES,
+        'page_obj': page_obj,
+        'request': request,
+        'user_cards': user_cards,
+        'featured_count': featured_count,
+        'total_views': total_views,
+        'total_downloads': total_downloads,
+    }
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # Si es AJAX, solo renderizar el grid
+        return render(request, 'multimedia/tabs/multimedia_tab_grid.html', context)
+    return render(request, 'multimedia/tabs/multimedia_tab.html', context)
+
+
+def mapa_tab(request):
+    return render(request, 'main_page/tabs/mapa_tab.html')

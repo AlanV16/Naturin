@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="container-fluid py-5" style="background: linear-gradient(135deg, #388e3c 0%, #2d5016 100%);">
+    <div class="container">
+        <div class="row align-items-center text-white">
+            <div class="col-md-6">
+                <h1 class="display-3 fw-bold mb-3">Río Huallaga</h1>
+                <p class="lead fs-4 mb-4">El eje natural que vertebra la vida en Tingo María y la Amazonía peruana</p>
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
+                        <i class="fas fa-water me-2"></i>1,138 km de longitud
+                    </span>
+                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
+                        <i class="fas fa-thermometer-half me-2"></i>Cuenca: Amazonas
+                    </span>
+                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill">
+                        <i class="fas fa-map-marker-alt me-2"></i>Tingo María, Huánuco
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div id="carouselRio" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#carouselRio" data-bs-slide-to="0" class="active"></button>
+                        <button type="button" data-bs-target="#carouselRio" data-bs-slide-to="1"></button>
+                        <button type="button" data-bs-target="#carouselRio" data-bs-slide-to="2"></button>
+                    </div>
+                    <div class="carousel-inner rounded-4 shadow-lg">
+                        <div class="carousel-item active">
+                            <img src="{% static 'images/explore/huallaga.png' %}" class="d-block w-100 img-zoom" style="height:400px;object-fit:cover;" alt="Río Huallaga">
+                            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-2">
+                                <h5>Vista principal</h5>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'images/explore/huallaga2.png' %}" class="d-block w-100 img-zoom" style="height:400px;object-fit:cover;" alt="Río Huallaga">
+                            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-2">
+                                <h5>Entorno ribereño</h5>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="{% static 'images/explore/huallaga3.png' %}" class="d-block w-100 img-zoom" style="height:400px;object-fit:cover;" alt="Río Huallaga">
+                            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-2">
+                                <h5>Biodiversidad acuática</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselRio" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                        <span class="visually-hidden">Anterior</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselRio" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                        <span class="visually-hidden">Siguiente</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Main Content -->
+<div class="container py-5">
+    <!-- Description Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3" style="color:#388e3c;">Un río fundamental para la Amazonía</h2>
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <p class="lead text-muted fs-5">El Río Huallaga es uno de los principales afluentes de la Amazonía peruana y el eje natural que vertebra la vida en Tingo María. Sus aguas cambian de color según la temporada y es fundamental para la economía local, la biodiversidad y la cultura de la región.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Flora y Fauna Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-header bg-light text-dark text-center py-3 border-bottom">
+                    <h3 class="fw-bold mb-0" style="color:#2d5016;">
+                        <i class="fas fa-leaf me-2"></i>Flora destacada
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-tree text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-1">Vegetación ribereña</h6>
+                                    <p class="text-muted mb-0 small">Bosques de galería y árboles maderables.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-leaf text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-1">Palmeras y bambú</h6>
+                                    <p class="text-muted mb-0 small">Variedad de palmeras nativas y caña brava.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-spa text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-success mb-1">Plantas acuáticas</h6>
+                                    <p class="text-muted mb-0 small">Lentejas de agua y jacintos.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-lg">
+                <div class="card-header bg-light text-dark text-center py-3 border-bottom">
+                    <h3 class="fw-bold mb-0" style="color:#2d5016;">
+                        <i class="fas fa-paw me-2"></i>Fauna destacada
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-fish text-info"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Peces</h6>
+                                    <p class="text-muted mb-0 small">Boquichico, gamitana y otras especies.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-dove text-warning"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Aves ribereñas</h6>
+                                    <p class="text-muted mb-0 small">Garzas, martín pescador.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-danger bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-dragon text-danger"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Reptiles</h6>
+                                    <p class="text-muted mb-0 small">Tortugas y lagartos.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-otter text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Mamíferos</h6>
+                                    <p class="text-muted mb-0 small">Nutrias y capibaras.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                                    <i class="fas fa-frog text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold" style="color:#2d5016;">Anfibios</h6>
+                                    <p class="text-muted mb-0 small">Ranas y sapos.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Map and Activities Section -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header bg-gradient text-white py-3" style="background: linear-gradient(45deg, #388e3c, #4caf50);">
+                    <h4 class="fw-bold mb-0" style="color:#2d5016;">
+                        <i class="fas fa-map-marked-alt me-2"></i>Ubicación en el mapa
+                    </h4>
+                </div>
+                <div class="card-body p-0">
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.google.com/maps?q=-9.295,-76.012&z=12&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 d-flex flex-column gap-3">
+            <div class="card border-0 shadow-lg" style="min-height:120px;">
+                <div class="card-header bg-light text-dark py-2 border-bottom">
+                    <h4 class="fw-bold mb-0 fs-5" style="color:#1565c0;">
+                        <i class="fas fa-hiking me-2"></i>Actividades
+                    </h4>
+                </div>
+                <div class="card-body py-3 px-4">
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2 d-flex align-items-center"><i class="fas fa-walking text-success me-2"></i>Paseos en bote</li>
+                        <li class="mb-2 d-flex align-items-center"><i class="fas fa-binoculars text-primary me-2"></i>Observación de aves</li>
+                        <li class="mb-2 d-flex align-items-center"><i class="fas fa-camera text-warning me-2"></i>Fotografía de paisajes</li>
+                        <li class="d-flex align-items-center"><i class="fas fa-search text-info me-2"></i>Exploración de biodiversidad</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card border-0 shadow-lg flex-fill">
+                <div class="card-header bg-light text-dark py-2 border-bottom">
+                    <h4 class="fw-bold mb-0 fs-5" style="color:#1565c0;">
+                        <i class="fas fa-clock me-2"></i>Horarios y acceso
+                    </h4>
+                </div>
+                <div class="card-body py-3 px-4">
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-clock text-info"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1" style="color:#1565c0;">Horario de visita</h6>
+                            <p class="text-muted mb-0 small">Libre acceso (recomendado de día)</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-map-marker-alt text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1" style="color:#1565c0;">Acceso</h6>
+                            <p class="text-muted mb-0 small">Cruza Tingo María, embarcaderos y miradores en la ciudad</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start">
+                        <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                            <i class="fas fa-info-circle text-warning"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-2" style="color:#1565c0;">Recomendaciones</h6>
+                            <div class="small text-muted">
+                                <div class="mb-1">• Precaución en paseos en bote</div>
+                                <div>• Respetar fauna y entorno</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Call to Action -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);">
+                <div class="card-body text-center py-5">
+                    <h3 class="fw-bold mb-3" style="color:#388e3c;">
+                        <i class="fas fa-heart me-2"></i>Un corredor biológico de la Amazonía
+                    </h3>
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8">
+                            <p class="lead text-muted mb-4">El Río Huallaga es fundamental para la economía local, proporcionando agua para la agricultura, pesca y transporte. Es un importante corredor biológico que conecta diferentes ecosistemas amazónicos.</p>
+                            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                                <span class="badge bg-success px-3 py-2 rounded-pill fs-6">
+                                    <i class="fas fa-shield-alt me-1"></i>Corredor Biológico
+                                </span>
+                                <span class="badge bg-primary px-3 py-2 rounded-pill fs-6">
+                                    <i class="fas fa-globe-americas me-1"></i>Patrimonio Natural
+                                </span>
+                                <span class="badge bg-warning px-3 py-2 rounded-pill fs-6">
+                                    <i class="fas fa-star me-1"></i>Destino Turístico
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

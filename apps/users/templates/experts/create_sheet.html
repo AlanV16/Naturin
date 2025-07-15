@@ -1,0 +1,422 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_head %}
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#667eea">
+{% endblock %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/expert/create_sheet.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="create-sheet-container">
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb-custom animate__animated animate__fadeInDown">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'users:dashboard_expert' user.id %}">
+                        <i class="bi bi-house-door"></i> Dashboard
+                    </a>
+                </li>
+                <li class="breadcrumb-item active text-white">
+                    <i class="bi bi-file-earmark-plus"></i> Crear Ficha
+                </li>
+            </ol>
+        </nav>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="sheet-form-card animate__animated animate__fadeInUp">
+                    <!-- Header -->
+                    <div class="sheet-header">
+                        <div class="sheet-type-badge animate__animated animate__bounceIn">
+                            {% if sheet_type == 'flora' %}
+                                <i class="bi bi-flower1"></i>
+                            {% elif sheet_type == 'fauna' %}
+                                <i class="bi bi-bug"></i>
+                            {% else %}
+                                <i class="bi bi-geo-alt"></i>
+                            {% endif %}
+                            <span>{{ type_names|lookup:sheet_type }}</span>
+                        </div>
+                        <h1 class="mb-3 animate__animated animate__fadeInUp animate__delay-1s">
+                            Crear Nueva Ficha Educativa
+                        </h1>
+                        <p class="mb-0 opacity-75 animate__animated animate__fadeInUp animate__delay-2s">
+                            Comparte tu conocimiento sobre {{ type_names|lookup:sheet_type|lower }}
+                        </p>
+                    </div>
+
+                    <!-- Formulario -->
+                    <form id="createSheetForm" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="sheet_type" value="{{ sheet_type }}">
+
+                        <!-- Información Básica -->
+                        <div class="form-section animate-in">
+                            <h3 class="section-title">
+                                <i class="bi bi-info-circle text-primary"></i>
+                                Información Básica
+                            </h3>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="title" name="title" 
+                                               placeholder="Título de la ficha" required>
+                                        <label for="title">
+                                            <i class="bi bi-pencil me-2"></i>
+                                            Título <span class="text-danger">*</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <textarea class="form-control" id="description" name="description" 
+                                                  placeholder="Descripción" style="height: 120px" required></textarea>
+                                        <label for="description">
+                                            <i class="bi bi-file-text me-2"></i>
+                                            Descripción <span class="text-danger">*</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clasificación y Características -->
+                        <div class="form-section animate-in">
+                            <h3 class="section-title">
+                                <i class="bi bi-tags text-success"></i>
+                                Clasificación y Características
+                            </h3>
+                            
+                            <div class="row">
+                                {% for category, options in predefined_tags.items %}
+                                    <div class="col-md-6">
+                                        <div class="tag-group">
+                                            <div class="tag-group-title">
+                                                <i class="bi bi-bookmark-check"></i>
+                                                {% if category == 'Clasificación Biológica' %}
+                                                    Clasificación Biológica
+                                                {% elif category == 'Tipo de Reproducción' %}
+                                                    Tipo de Reproducción
+                                                {% elif category == 'Estado de Conservación' %}
+                                                    Estado de Conservación
+                                                {% elif category == 'Hábitat/Ecosistema' %}
+                                                    Hábitat/Ecosistema
+                                                {% elif category == 'Alimentación' %}
+                                                    Alimentación
+                                                {% elif category == 'Usos Tradicionales' %}
+                                                    Usos Tradicionales
+                                                {% elif category == 'Nivel de Riesgo' %}
+                                                    Nivel de Riesgo
+                                                {% else %}
+                                                    {{ category }}
+                                                {% endif %}
+                                                {% if 'Clasificación' in category or 'Estado' in category or 'Hábitat' in category %}
+                                                    <span class="required-badge">Requerido</span>
+                                                {% endif %}
+                                            </div>
+                                            <select class="form-select" name="tags_{{ category|slugify }}" 
+                                                    {% if 'Clasificación' in category or 'Estado' in category or 'Hábitat' in category %}required{% endif %}>
+                                                <option value="">Seleccionar...</option>
+                                                {% for option in options %}
+                                                    <option value="{{ option }}">{{ option }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Contenido Detallado -->
+                        <div class="form-section animate-in">
+                            <h3 class="section-title">
+                                <i class="bi bi-file-text text-info"></i>
+                                Contenido Detallado
+                            </h3>
+                            
+                            <div class="form-floating">
+                                <textarea class="form-control" id="content" name="content" 
+                                          placeholder="Contenido detallado" style="height: 200px" required></textarea>
+                                <label for="content">
+                                    <i class="bi bi-file-earmark-text me-2"></i>
+                                    Contenido Detallado <span class="text-danger">*</span>
+                                </label>
+                            </div>
+                            
+                            <div class="alert alert-info alert-custom">
+                                <i class="bi bi-lightbulb me-2"></i>
+                                <strong>Consejo:</strong> Incluye información relevante como características físicas, 
+                                comportamiento, distribución geográfica, importancia ecológica, etc.
+                            </div>
+                        </div>
+
+                        <!-- Recursos Multimedia -->
+                        <div class="form-section animate-in">
+                            <h3 class="section-title">
+                                <i class="bi bi-camera text-warning"></i>
+                                Recursos Multimedia
+                            </h3>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="file-upload-area" onclick="document.getElementById('featured_image').click()">
+                                        <div class="file-upload-icon">
+                                            <i class="bi bi-image"></i>
+                                        </div>
+                                        <h5>Imagen Destacada</h5>
+                                        <p class="text-muted mb-0">JPG, PNG, GIF - Máx. 5MB</p>
+                                        <input type="file" id="featured_image" name="featured_image" 
+                                               accept="image/*" style="display: none;">
+                                    </div>
+                                    <div id="image-preview" class="mt-3"></div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="file-upload-area" onclick="document.getElementById('attachments').click()">
+                                        <div class="file-upload-icon">
+                                            <i class="bi bi-file-earmark"></i>
+                                        </div>
+                                        <h5>Archivos Adjuntos</h5>
+                                        <p class="text-muted mb-0">PDF, DOC, XLS, PPT - Máx. 10MB</p>
+                                        <input type="file" id="attachments" name="attachments" 
+                                               accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" style="display: none;">
+                                    </div>
+                                    <div id="file-preview" class="mt-3"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Opciones de Publicación -->
+                        <div class="form-section animate-in">
+                            <h3 class="section-title">
+                                <i class="bi bi-gear text-secondary"></i>
+                                Opciones de Publicación
+                            </h3>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="submit_for_review" 
+                                               name="submit_for_review" checked>
+                                        <label class="form-check-label" for="submit_for_review">
+                                            <strong>Enviar para revisión inmediatamente</strong>
+                                            <small class="d-block text-muted">
+                                                Si desactivas esta opción, la ficha se guardará como borrador
+                                            </small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="form-section text-center animate-in">
+                            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                                <a href="{% url 'users:dashboard_expert' user.id %}" class="btn btn-outline-secondary btn-lg">
+                                    <i class="bi bi-arrow-left me-2"></i>
+                                    Cancelar
+                                </a>
+                                
+                                <button type="button" id="saveDraftBtn" class="btn btn-outline-primary btn-lg">
+                                    <i class="bi bi-file-earmark me-2"></i>
+                                    Guardar Borrador
+                                </button>
+                                
+                                <button type="submit" class="btn btn-primary-custom btn-lg">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    Crear Ficha
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        setupFilePreview();
+        setupFormSubmission();
+        setupAnimations();
+    });
+
+    function setupAnimations() {
+        // Animaciones de entrada progresiva
+        const sections = document.querySelectorAll('.animate-in');
+        sections.forEach((section, index) => {
+            section.style.animationDelay = `${index * 0.2}s`;
+        });
+
+        // Efectos de hover en inputs
+        const inputs = document.querySelectorAll('.form-control');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'translateY(-2px)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'translateY(0)';
+            });
+        });
+    }
+
+    function setupFilePreview() {
+        // Preview imagen destacada
+        document.getElementById('featured_image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('image-preview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `
+                        <div class="card animate__animated animate__fadeInUp" style="border-radius: 15px; overflow: hidden;">
+                            <img src="${e.target.result}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                            <div class="card-body p-3">
+                                <small class="text-muted">
+                                    <i class="bi bi-file-image me-2"></i>
+                                    ${file.name}
+                                </small>
+                            </div>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.innerHTML = '';
+            }
+        });
+
+        // Preview archivo adjunto
+        document.getElementById('attachments').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('file-preview');
+            
+            if (file) {
+                preview.innerHTML = `
+                    <div class="alert alert-success animate__animated animate__fadeInUp" style="border-radius: 15px;">
+                        <i class="bi bi-file-earmark-check me-2"></i>
+                        <strong>Archivo seleccionado:</strong><br>
+                        <small>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</small>
+                    </div>
+                `;
+            } else {
+                preview.innerHTML = '';
+            }
+        });
+    }
+
+    function setupFormSubmission() {
+        const form = document.getElementById('createSheetForm');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const draftBtn = document.getElementById('saveDraftBtn');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitForm(false);
+        });
+
+        draftBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            submitForm(true);
+        });
+
+        function submitForm(isDraft) {
+            const formData = new FormData(form);
+            const activeBtn = isDraft ? draftBtn : submitBtn;
+            const originalText = activeBtn.innerHTML;
+
+            // Recopilar tags
+            const tags = {};
+            const tagSelects = form.querySelectorAll('select[name^="tags_"]');
+            tagSelects.forEach(select => {
+                if (select.value) {
+                    const tagName = select.name.replace('tags_', '');
+                    tags[tagName] = select.value;
+                }
+            });
+
+            formData.append('tags_data', JSON.stringify(tags));
+            
+            if (isDraft) {
+                formData.set('submit_for_review', 'false');
+            }
+
+            // Deshabilitar botón y mostrar loading
+            activeBtn.disabled = true;
+            activeBtn.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                ${isDraft ? 'Guardando...' : 'Creando...'}
+            `;
+
+            // Simular envío por ahora
+            setTimeout(() => {
+                showToast(`Ficha ${isDraft ? 'guardada como borrador' : 'creada'} exitosamente`, 'success');
+                setTimeout(() => {
+                    window.location.href = '{% url "users:dashboard_expert" user.id %}';
+                }, 2000);
+            }, 2000);
+        }
+    }
+
+    function showToast(message, type) {
+        const toastContainer = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        
+        const bgClass = type === 'success' ? 'bg-success' : 
+                       type === 'error' ? 'bg-danger' : 
+                       type === 'warning' ? 'bg-warning' : 'bg-primary';
+        
+        toast.className = `toast align-items-center text-white ${bgClass} border-0 animate__animated animate__fadeInRight`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-check-circle me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        const bsToast = new bootstrap.Toast(toast, { delay: 5000 });
+        bsToast.show();
+        
+        toast.addEventListener('hidden.bs.toast', () => {
+            toast.remove();
+        });
+    }
+    </script>
+{% endblock %}

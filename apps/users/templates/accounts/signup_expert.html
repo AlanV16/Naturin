@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/forms/auth_forms.css' %}">
+<link rel="stylesheet" href="{% static 'css/expert/expert_signup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="expert-form-container">
+    <div class="expert-form-card">
+        <div class="expert-header">
+            <div class="mb-3">
+                <i class="bi bi-mortarboard-fill text-primary" style="font-size: 3rem;"></i>
+            </div>
+            <h2>{{ title }}</h2>
+            <p>{{ subtitle }}</p>
+        </div>
+
+        <!-- Requisitos -->
+        <div class="requirements-box">
+            <h5><i class="bi bi-check-circle me-2"></i>Requisitos para ser Experto</h5>
+            <ul class="requirements-list">
+                {% for requirement in requirements %}
+                <li>{{ requirement }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Formulario -->
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            <!-- Información Personal -->
+            <div class="form-section">
+                <h4><i class="bi bi-person me-2"></i>Información Personal</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger">{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger">{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger">{{ form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger">{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                            {% if form.email.help_text %}
+                                <div class="help-text">{{ form.email.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Profesional -->
+            <div class="form-section">
+                <h4><i class="bi bi-briefcase me-2"></i>Información Profesional</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.professional_title.id_for_label }}">{{ form.professional_title.label }}</label>
+                            {{ form.professional_title }}
+                            {% if form.professional_title.errors %}
+                                <div class="text-danger">{{ form.professional_title.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.years_experience.id_for_label }}">{{ form.years_experience.label }}</label>
+                            {{ form.years_experience }}
+                            {% if form.years_experience.errors %}
+                                <div class="text-danger">{{ form.years_experience.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.institution.id_for_label }}">{{ form.institution.label }}</label>
+                    {{ form.institution }}
+                    {% if form.institution.errors %}
+                        <div class="text-danger">{{ form.institution.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Especialización -->
+            <div class="form-section">
+                <h4><i class="bi bi-stars me-2"></i>Áreas de Especialización</h4>
+                <div class="form-group">
+                    <label for="{{ form.expertise_areas.id_for_label }}">{{ form.expertise_areas.label }}</label>
+                    {{ form.expertise_areas }}
+                    {% if form.expertise_areas.errors %}
+                        <div class="text-danger">{{ form.expertise_areas.errors.0 }}</div>
+                    {% endif %}
+                    {% if form.expertise_areas.help_text %}
+                        <div class="help-text">{{ form.expertise_areas.help_text }}</div>
+                    {% endif %}
+                </div>
+                
+
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="form-section">
+                <h4><i class="bi bi-file-text me-2"></i>Información Adicional</h4>
+                <div class="form-group">
+                    <label for="{{ form.bio.id_for_label }}">{{ form.bio.label }}</label>
+                    {{ form.bio }}
+                    {% if form.bio.errors %}
+                        <div class="text-danger">{{ form.bio.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.certifications.id_for_label }}">{{ form.certifications.label }}</label>
+                    {{ form.certifications }}
+                    {% if form.certifications.errors %}
+                        <div class="text-danger">{{ form.certifications.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Contraseña -->
+            <div class="form-section">
+                <h4><i class="bi bi-shield-lock me-2"></i>Seguridad</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}
+                                <div class="text-danger">{{ form.password1.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}
+                                <div class="text-danger">{{ form.password2.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón de registro -->
+            <button type="submit" class="btn btn-expert">
+                <i class="bi bi-check-circle me-2"></i>
+                Solicitar Registro como Experto
+            </button>
+        </form>
+
+        <!-- Link de login -->
+        <div class="login-link">
+            <p>¿Ya tienes cuenta? <a href="{% url 'users:login' %}">Inicia sesión aquí</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Agregar clases de Bootstrap a los campos del formulario
+    document.addEventListener('DOMContentLoaded', function() {
+        const formControls = document.querySelectorAll('input, textarea, select');
+        formControls.forEach(function(control) {
+            control.classList.add('form-control');
+        });
+        
+        // Validación en tiempo real
+        const form = document.querySelector('form');
+        const inputs = form.querySelectorAll('input[required], textarea[required]');
+        
+        inputs.forEach(function(input) {
+            input.addEventListener('blur', function() {
+                if (this.value.trim() === '') {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            });
+        });
+        
+        // Validación de email
+        const emailInput = document.querySelector('input[type="email"]');
+        if (emailInput) {
+            emailInput.addEventListener('blur', function() {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(this.value)) {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            });
+        }
+        
+        // Validación de contraseñas
+        const password1 = document.querySelector('input[name="password1"]');
+        const password2 = document.querySelector('input[name="password2"]');
+        
+        if (password1 && password2) {
+            password2.addEventListener('blur', function() {
+                if (password1.value !== password2.value) {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
