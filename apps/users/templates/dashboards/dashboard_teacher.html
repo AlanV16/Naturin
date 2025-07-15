@@ -10,140 +10,55 @@
 {% block extra_css %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboards/dashboard_optimized.css' %}">
     <style>
-        /* Estilos para la cuadrícula de actividades */
-        .activities-grid {
+        /* Estilos específicos del dashboard de docente */
+        .quick-actions {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin-top: 1rem;
         }
         
-        .activity-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .activity-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .activity-card .card {
-            border-radius: 12px;
-            transition: all 0.2s ease;
-        }
-        
-        .activity-card .card:hover {
-            border-color: #007bff;
-        }
-        
-        /* Estilos para la lista de actividades seleccionadas */
-        .selected-activity-item {
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-        }
-        
-        /* Estilos para el código de clase */
-        .code-input-group {
-            border-radius: 8px;
-        }
-        
-        .code-input-group .form-control {
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .activities-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 0.5rem;
-            }
-        }
-        
-        /* Estilos para el modal de perfil */
-        .profile-modal .modal-content {
-            border-radius: 15px;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        
-        .profile-avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 4px solid #fff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            object-fit: cover;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .profile-avatar:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
-        
-        .avatar-upload {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .avatar-upload input[type=file] {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-        
-        .credential-card {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-            border-radius: 15px;
+        .quick-action-card {
+            background: white;
+            border-radius: 16px;
             padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .btn-teacher-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            border: none;
-            border-radius: 10px;
-            padding: 0.75rem 1.5rem;
-            color: white;
-            font-weight: 600;
+            text-align: center;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.1);
+            cursor: pointer;
         }
         
-        .btn-teacher-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        .quick-action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.25);
+        }
+        
+        .quick-action-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
             color: white;
+            font-size: 1.5rem;
         }
-        
-        .alert-custom {
-            border-radius: 10px;
-            border: none;
-            padding: 1rem 1.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .alert-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-        
-        .alert-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
+        .activities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
         }
     </style>
 {% endblock %}
 
 {% block content %}
-<div class="teacher-dashboard-bg" data-user-type="2">
-    <div class="container-fluid py-2">
+<div class="teacher-dashboard-bg main-content" data-user-type="2" style="padding-top: 0; margin-top: 0;">
+    <div class="container-fluid py-2" style="padding-top: 0; margin-top: 0;">
         <div class="row">
             <!-- Sidebar -->
             <div class="col-md-3 col-lg-2 d-none d-md-block">
@@ -152,41 +67,41 @@
                         <img src="{% static 'images/mascota/tuki.png' %}" alt="Tuki" width="80" height="80" class="mb-3" loading="lazy">
                         <h6 class="fw-bold text-primary">¡Hola, Profesor!</h6>
                     </div>
-                    <nav class="nav flex-column px-2 pb-4">
+                    <nav class="nav flex-column">
                         <a class="nav-link sidebar-btn active" href="{% url 'users:dashboard_teacher' user_id=user.id %}">
-                            <i class="bi bi-house-door-fill me-2"></i>
+                            <i class="bi bi-house-door-fill"></i>
                             <span>Dashboard</span>
                         </a>
                         <a class="nav-link sidebar-btn" href="{% url 'users:teacher_courses' %}">
-                            <i class="bi bi-journal-bookmark-fill me-2"></i>
-                            <span>Mis Cursos</span>
+                            <i class="bi bi-journal-bookmark-fill"></i>
+                            <span>Mis Aulas</span>
                         </a>
-                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_assignments' %}">
-                            <i class="bi bi-clipboard-check me-2"></i>
-                            <span>Tareas</span>
+                        <a class="nav-link sidebar-btn" href="{% url 'educational_games:activity_dashboard' %}">
+                            <i class="bi bi-clipboard-check"></i>
+                            <span>Actividades</span>
                         </a>
                         <a class="nav-link sidebar-btn" href="{% url 'users:teacher_grades' %}">
-                            <i class="bi bi-bar-chart-fill me-2"></i>
+                            <i class="bi bi-bar-chart-fill"></i>
                             <span>Calificaciones</span>
                         </a>
                         <a class="nav-link sidebar-btn" href="{% url 'pedagogical_guides:guide_list' %}">
-                            <i class="bi bi-file-earmark-text me-2"></i>
+                            <i class="bi bi-file-earmark-text"></i>
                             <span>Guías Pedagógicas</span>
                         </a>
                         <a class="nav-link sidebar-btn" href="{% url 'users:teacher_students' %}">
-                            <i class="bi bi-people-fill me-2"></i>
+                            <i class="bi bi-people-fill"></i>
                             <span>Estudiantes</span>
                         </a>
                         <a class="nav-link sidebar-btn" href="{% url 'users:teacher_calendar' %}">
-                            <i class="bi bi-calendar3 me-2"></i>
+                            <i class="bi bi-calendar3"></i>
                             <span>Calendario</span>
                         </a>
                         <a class="nav-link sidebar-btn" href="{% url 'users:teacher_messages' %}">
-                            <i class="bi bi-chat-dots-fill me-2"></i>
+                            <i class="bi bi-chat-dots-fill"></i>
                             <span>Mensajes</span>
                         </a>
                         <a class="nav-link sidebar-btn" href="#" onclick="showProfileModal()">
-                            <i class="bi bi-person-circle me-2"></i>
+                            <i class="bi bi-person-circle"></i>
                             <span>Mi Perfil</span>
                         </a>
                     </nav>
@@ -194,13 +109,13 @@
             </div>
 
             <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 px-3">
+            <div class="col-md-9 col-lg-10 main-content">
                 <!-- Welcome Section -->
                 <div class="dashboard-card">
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <h3 class="fw-bold mb-2 text-primary">
-                                ¡Bienvenido de vuelta, {{ user.get_full_name|default:user.username }}! 👨‍🏫
+                                ¡Bienvenido, {{ user.get_full_name|default:user.username }}! 
                             </h3>
                             <p class="text-muted mb-0">Gestiona tus cursos, revisa las tareas de tus estudiantes y mantente al día con el progreso académico.</p>
                         </div>
@@ -214,26 +129,26 @@
                 </div>
 
                 <!-- Stats Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-3 col-6">
+                <div class="row mb-4 g-0">
+                    <div class="col-md-3 col-6 px-2">
                         <div class="dashboard-card stat-card">
                             <div class="stat-number">{{ active_courses|default:0 }}</div>
                             <div class="stat-label">Cursos Activos</div>
                         </div>
                     </div>
-                    <div class="col-md-3 col-6">
+                    <div class="col-md-3 col-6 px-2">
                         <div class="dashboard-card stat-card">
                             <div class="stat-number">{{ total_students|default:0 }}</div>
                             <div class="stat-label">Estudiantes Total</div>
                         </div>
                     </div>
-                    <div class="col-md-3 col-6">
+                    <div class="col-md-3 col-6 px-2">
                         <div class="dashboard-card stat-card">
                             <div class="stat-number">{{ pending_count|default:0 }}</div>
                             <div class="stat-label">Por Calificar</div>
                         </div>
                     </div>
-                    <div class="col-md-3 col-6">
+                    <div class="col-md-3 col-6 px-2">
                         <div class="dashboard-card stat-card">
                             <div class="stat-number">{{ recent_achievements|length|default:0 }}</div>
                             <div class="stat-label">Logros Recientes</div>
@@ -248,7 +163,7 @@
                         Acciones Rápidas
                     </h5>
                     <div class="quick-actions">
-                        <div class="quick-action-card" onclick="showCreateAssignmentModal()">
+                        <div class="quick-action-card" onclick="showAssignmentCreateModal()">
                             <div class="quick-action-icon">
                                 <i class="bi bi-clipboard-plus"></i>
                             </div>
@@ -259,15 +174,15 @@
                             <div class="quick-action-icon">
                                 <i class="bi bi-upload"></i>
                             </div>
-                            <h6 class="fw-bold">Subir Material</h6>
+                            <h6 class="fw-bold">Subir Fichas Educativas</h6>
                             <small class="text-muted">Comparte recursos con tus clases</small>
                         </div>
-                        <div class="quick-action-card" onclick="showScheduleClassModal()">
+                        <div class="quick-action-card" onclick="showScheduleTaskModal()">
                             <div class="quick-action-icon">
                                 <i class="bi bi-calendar-event"></i>
                             </div>
-                            <h6 class="fw-bold">Programar Clase</h6>
-                            <small class="text-muted">Agenda una nueva sesión</small>
+                            <h6 class="fw-bold">Programar Tarea</h6>
+                            <small class="text-muted">Agenda una nueva tarea</small>
                         </div>
                         <div class="quick-action-card" onclick="showReportsModal()">
                             <div class="quick-action-icon">
@@ -304,7 +219,7 @@
                                                 <span class="pending-badge ms-2">{{ stat.pending_submissions }} pendientes</span>
                                                 {% endif %}
                                             </div>
-                                            <button class="btn btn-outline-primary btn-sm" onclick="showCourseDetails('{{ stat.classroom.id }}')">Ver</button>
+                                            <a class="btn btn-outline-primary btn-sm" href="{% url 'users:class_teacher' class_id=stat.classroom.id %}">Ver</a>
                                         </div>
                                         <div class="course-stats">
                                             <div class="course-stat-item">
@@ -317,7 +232,7 @@
                                             </div>
                                             <div class="course-stat-item">
                                                 <div class="fw-bold">{{ stat.assignments_count }}</div>
-                                                <small>Tareas</small>
+                                                <small>Actividades</small>
                                             </div>
                                         </div>
                                     </div>
@@ -644,57 +559,115 @@
     </div>
 </div>
 
-<!-- Modal Crear Tarea -->
-<div class="modal fade" id="createAssignmentModal" tabindex="-1" aria-labelledby="createAssignmentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="createAssignmentModalLabel">
-                    <i class="bi bi-clipboard-plus me-2"></i>Crear Nueva Tarea
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- Modal Crear Tarea (integrado, igual que en activity_dashboard.html) -->
+<div class="modal fade" id="assignmentCreateModal" tabindex="-1" aria-labelledby="assignmentCreateModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="assignmentCreateModalLabel">
+          <i class="bi bi-journal-check me-2"></i>Crear Nueva Tarea
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="assignmentCreateForm" class="needs-validation" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          <div class="form-section mb-3">
+            <h5><i class="bi bi-info-circle me-2"></i>Información Básica</h5>
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                <label for="title" class="form-label">Título de la Tarea *</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+                <div class="invalid-feedback">Por favor ingresa un título para la tarea.</div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="points" class="form-label">Puntuación *</label>
+                <input type="number" class="form-control" id="points" name="points" min="1" max="1000" value="100" required>
+                <div class="help-text">Puntos que puede obtener el estudiante</div>
+              </div>
             </div>
-            <div class="modal-body">
-                <form id="createAssignmentForm">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="assignmentTitle" class="form-label">Título de la Tarea</label>
-                        <input type="text" class="form-control" id="assignmentTitle" name="title" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="assignmentDescription" class="form-label">Descripción</label>
-                        <textarea class="form-control" id="assignmentDescription" name="description" rows="4" required></textarea>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="assignmentCourse" class="form-label">Aula</label>
-                                <select class="form-select" id="assignmentCourse" name="course" required>
-                                    <option value="">Seleccionar aula (Grado y Sección)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="assignmentDueDate" class="form-label">Fecha de Entrega</label>
-                                <input type="datetime-local" class="form-control" id="assignmentDueDate" name="due_date" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="assignmentPoints" class="form-label">Puntos</label>
-                        <input type="number" class="form-control" id="assignmentPoints" name="points" min="1" max="100" value="100">
-                    </div>
-                </form>
+            <div class="mb-3">
+              <label for="description" class="form-label">Descripción *</label>
+              <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+              <div class="invalid-feedback">Por favor ingresa una descripción.</div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-teacher-primary" onclick="submitCreateAssignment()">
-                    <i class="bi bi-check-circle me-2"></i>Crear Tarea
+            <div class="mb-3">
+              <label for="instructions" class="form-label">Instrucciones *</label>
+              <textarea class="form-control" id="instructions" name="instructions" rows="4" required></textarea>
+              <div class="invalid-feedback">Por favor ingresa las instrucciones.</div>
+            </div>
+          </div>
+          <div class="form-section mb-3">
+            <h5><i class="bi bi-calendar-check me-2"></i>Configuración de Entrega</h5>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="due_date" class="form-label">Fecha de Entrega *</label>
+                <input type="datetime-local" class="form-control" id="due_date" name="due_date" required>
+                <div class="invalid-feedback">Por favor selecciona una fecha de entrega.</div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="time_limit" class="form-label">Tiempo Límite (minutos)</label>
+                <input type="number" class="form-control" id="time_limit" name="time_limit" min="0" max="480" value="0">
+                <div class="help-text">0 = sin límite de tiempo</div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="max_attempts" class="form-label">Máximo de Intentos</label>
+                <input type="number" class="form-control" id="max_attempts" name="max_attempts" min="1" max="10" value="1">
+                <div class="help-text">Número máximo de veces que pueden entregar</div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="allow_late_submission" name="allow_late_submission">
+                  <label class="form-check-label" for="allow_late_submission">Permitir entrega tardía</label>
+                </div>
+                <div class="help-text">Los estudiantes podrán entregar después de la fecha límite</div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="attachments" class="form-label">Archivos Adjuntos</label>
+              <input type="file" class="form-control" id="attachments" name="attachments" multiple accept=".doc,.docx,.pdf,.jpg,.png,.jpeg">
+              <div class="help-text">Puedes adjuntar archivos relacionados a la tarea</div>
+            </div>
+          </div>
+          <div class="form-section mb-3">
+            <h5><i class="bi bi-people me-2"></i>Asignar a Aula</h5>
+            <div class="mb-3">
+              <label for="classroom" class="form-label">Aula *</label>
+              <select class="form-select" id="classroom" name="classroom" required>
+                <option value="">Selecciona un aula</option>
+                {% for classroom in classrooms %}
+                  <option value="{{ classroom.id }}">{{ classroom.name }} ({{ classroom.code }})</option>
+                {% endfor %}
+              </select>
+              <div class="invalid-feedback">Por favor selecciona un aula.</div>
+            </div>
+          </div>
+          <div class="form-section mb-0">
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <button type="submit" class="btn btn-primary w-100">
+                  <i class="bi bi-check-circle me-2"></i>Crear Tarea
                 </button>
+              </div>
+              <div class="col-md-6 mb-2">
+                <button type="button" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">
+                  <i class="bi bi-x-circle me-2"></i>Cancelar
+                </button>
+              </div>
             </div>
+          </div>
+        </form>
+        <div id="assignmentCreateSuccess" class="alert alert-success mt-3 d-none" role="alert">
+          ¡Tarea creada exitosamente!
         </div>
+        <div id="assignmentCreateError" class="alert alert-danger mt-3 d-none" role="alert">
+          Error al crear la tarea. Por favor, revisa los campos e inténtalo de nuevo.
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
 <!-- Modal Calificar Tarea -->
@@ -877,6 +850,54 @@
                 <button type="button" class="btn btn-primary" onclick="saveProfileChanges()">
                     <i class="bi bi-check-circle me-2"></i>Guardar Cambios
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Programar Tarea -->
+<div class="modal fade" id="scheduleTaskModal" tabindex="-1" aria-labelledby="scheduleTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="scheduleTaskModalLabel">
+                    <i class="bi bi-calendar-event me-2"></i>Programar Nueva Tarea
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="scheduleTaskForm">
+                    <div class="mb-3">
+                        <label for="taskTitle" class="form-label">Título de la Tarea</label>
+                        <input type="text" class="form-control" id="taskTitle" name="task_title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskDate" class="form-label">Fecha de Entrega</label>
+                        <input type="date" class="form-control" id="taskDate" name="task_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskDescription" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="taskDescription" name="task_description" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Programar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ver Reportes -->
+<div class="modal fade" id="reportsModal" tabindex="-1" aria-labelledby="reportsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportsModalLabel">
+                    <i class="bi bi-graph-up me-2"></i>Reportes de Progreso
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Aquí se mostrarán los reportes y estadísticas de tus cursos y actividades.</p>
             </div>
         </div>
     </div>
@@ -1101,23 +1122,11 @@
                         console.log('Redirigiendo a clase ID:', data.course_id);
                         // Usar setTimeout para asegurar que la actualización AJAX se complete
                         setTimeout(() => {
-                            const url = `{% url 'users:class_teacher' 0 %}`.replace('0', data.course_id);
+                            const url = `{% url 'users:class_teacher' class_id=0 %}`.replace('0', data.course_id);
                             console.log('URL de redirección:', url);
                             
-                            // Verificar que la URL es válida antes de redirigir
-                            fetch(url, { method: 'HEAD' })
-                                .then(response => {
-                                    if (response.ok) {
-                                        window.location.href = url;
-                                    } else {
-                                        console.error('La clase no existe, redirigiendo al dashboard');
-                                        window.location.href = "{% url 'users:dashboard_teacher' user_id=user.id %}";
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error verificando la clase:', error);
-                                    window.location.href = "{% url 'users:dashboard_teacher' user_id=user.id %}";
-                                });
+                            // Redirigir directamente sin verificación previa
+                            window.location.href = url;
                         }, 1000);
                     } else {
                         console.log('No hay course_id, recargando página');
@@ -1204,6 +1213,26 @@
             setTimeout(() => {
                 alertDiv.remove();
             }, 5000);
+        }
+
+        // Funciones para mostrar los modales de acciones rápidas
+        function showUploadMaterialModal() {
+            const modal = new bootstrap.Modal(document.getElementById('uploadMaterialModal'));
+            modal.show();
+        }
+        function showScheduleTaskModal() {
+            const modal = new bootstrap.Modal(document.getElementById('scheduleTaskModal'));
+            modal.show();
+        }
+        function showReportsModal() {
+            const modal = new bootstrap.Modal(document.getElementById('reportsModal'));
+            modal.show();
+        }
+
+        // Función para mostrar el modal de crear tarea
+        function showAssignmentCreateModal() {
+            const modal = new bootstrap.Modal(document.getElementById('assignmentCreateModal'));
+            modal.show();
         }
     </script>
 {% endblock %}

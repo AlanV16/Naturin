@@ -1,0 +1,553 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+    <style>
+        .game-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .game-header {
+            background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 0.5rem;
+        }
+        
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #6f42c1;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        .filter-section {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .btn-create-game {
+            background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-create-game:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(111, 66, 193, 0.3);
+            color: white;
+        }
+        
+        .difficulty-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .difficulty-1 {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .difficulty-2 {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .difficulty-3 {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .difficulty-4 {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .difficulty-5 {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .game-preview {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(45deg, #6f42c1, #e83e8c);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="bi bi-controller text-purple me-2"></i>
+                        Gestión de Juegos
+                    </h2>
+                    <p class="text-muted mb-0">Crea y gestiona juegos educativos para tus estudiantes</p>
+                </div>
+                <button class="btn btn-create-game" onclick="showCreateGameModal()">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Crear Nuevo Juego
+                </button>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filter-section">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="typeFilter" class="form-label">Tipo de Juego</label>
+                        <select class="form-select" id="typeFilter">
+                            <option value="">Todos los tipos</option>
+                            {% for game_type in game_types %}
+                            <option value="{{ game_type.IDtipoJuego }}">{{ game_type.TipoJuego }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="difficultyFilter" class="form-label">Dificultad</label>
+                        <select class="form-select" id="difficultyFilter">
+                            <option value="">Todas las dificultades</option>
+                            <option value="1">Fácil</option>
+                            <option value="2">Básico</option>
+                            <option value="3">Intermedio</option>
+                            <option value="4">Avanzado</option>
+                            <option value="5">Experto</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="statusFilter" class="form-label">Estado</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="">Todos los estados</option>
+                            <option value="active">Activos</option>
+                            <option value="inactive">Inactivos</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="searchFilter" class="form-label">Buscar</label>
+                        <input type="text" class="form-control" id="searchFilter" placeholder="Buscar juegos...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="stat-number">{{ total_games }}</div>
+                            <div class="stat-label">Juegos Totales</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="stat-number">{{ total_plays }}</div>
+                            <div class="stat-label">Partidas Jugadas</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="stat-number">{{ avg_score|floatformat:1 }}</div>
+                            <div class="stat-label">Puntuación Promedio</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="stat-number">{{ active_players }}</div>
+                            <div class="stat-label">Jugadores Activos</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Juegos -->
+            <div id="gamesList">
+                {% if games %}
+                    <div class="row">
+                        {% for game in games %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="game-card">
+                                <div class="game-header">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h5 class="mb-1">{{ game.NombreJuego }}</h5>
+                                        <span class="difficulty-badge difficulty-{{ game.NivelDificultad }}">
+                                            Nivel {{ game.NivelDificultad }}
+                                        </span>
+                                    </div>
+                                    <small>{{ game.IDtipoJuego.TipoJuego }}</small>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <div class="game-preview">
+                                        <i class="bi bi-controller"></i>
+                                    </div>
+                                    
+                                    <p class="text-muted mb-3">{{ game.Descripcion|truncatewords:15 }}</p>
+                                    
+                                    <div class="game-stats">
+                                        <div class="stat-item">
+                                            <div class="stat-number">{{ game.juegousuario_set.count }}</div>
+                                            <div class="stat-label">Jugadas</div>
+                                        </div>
+                                        <div class="stat-item">
+                                            <div class="stat-number">{{ game.avg_score|default:0|floatformat:1 }}</div>
+                                            <div class="stat-label">Promedio</div>
+                                        </div>
+                                        <div class="stat-item">
+                                            <div class="stat-number">{{ game.max_score|default:0 }}</div>
+                                            <div class="stat-label">Máximo</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            {{ game.Instrucciones|truncatewords:10 }}
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'gamification:game_detail' game.IDjuego %}" class="btn btn-outline-purple btn-sm flex-fill">
+                                            <i class="bi bi-eye me-1"></i>Ver
+                                        </a>
+                                        <a href="{% url 'gamification:game_edit' game.IDjuego %}" class="btn btn-outline-primary btn-sm flex-fill">
+                                            <i class="bi bi-pencil me-1"></i>Editar
+                                        </a>
+                                        <button class="btn btn-outline-success btn-sm flex-fill" onclick="assignToClassroom({{ game.IDjuego }})">
+                                            <i class="bi bi-share me-1"></i>Asignar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-controller"></i>
+                        <h4>No hay juegos creados</h4>
+                        <p>Crea tu primer juego educativo para motivar el aprendizaje de tus estudiantes</p>
+                        <button class="btn btn-create-game" onclick="showCreateGameModal()">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Crear Primer Juego
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crear Juego -->
+<div class="modal fade" id="createGameModal" tabindex="-1" aria-labelledby="createGameModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createGameModalLabel">
+                    <i class="bi bi-controller me-2"></i>Crear Nuevo Juego
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createGameForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="gameName" class="form-label">Nombre del Juego *</label>
+                                <input type="text" class="form-control" id="gameName" name="NombreJuego" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="gameType" class="form-label">Tipo de Juego *</label>
+                                <select class="form-select" id="gameType" name="IDtipoJuego" required>
+                                    <option value="">Seleccionar tipo</option>
+                                    {% for game_type in game_types %}
+                                    <option value="{{ game_type.IDtipoJuego }}">{{ game_type.TipoJuego }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="gameDescription" class="form-label">Descripción *</label>
+                        <textarea class="form-control" id="gameDescription" name="Descripcion" rows="2" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="gameInstructions" class="form-label">Instrucciones *</label>
+                        <textarea class="form-control" id="gameInstructions" name="Instrucciones" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="gameDifficulty" class="form-label">Nivel de Dificultad *</label>
+                                <select class="form-select" id="gameDifficulty" name="NivelDificultad" required>
+                                    <option value="">Seleccionar dificultad</option>
+                                    <option value="1">Fácil</option>
+                                    <option value="2">Básico</option>
+                                    <option value="3">Intermedio</option>
+                                    <option value="4">Avanzado</option>
+                                    <option value="5">Experto</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="gameMaxScore" class="form-label">Puntuación Máxima</label>
+                                <input type="number" class="form-control" id="gameMaxScore" name="PuntosMaximos" value="100" min="10" max="1000">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="gameObjectives" class="form-label">Objetivos de Aprendizaje</label>
+                        <textarea class="form-control" id="gameObjectives" name="ObjetivosAprendizaje" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="gameSubject" class="form-label">Área Temática</label>
+                        <input type="text" class="form-control" id="gameSubject" name="AreaTematica" placeholder="Ej: Ciencias, Matemáticas, Historia...">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="gameActive" name="activo" checked>
+                            <label class="form-check-label" for="gameActive">
+                                Juego activo (disponible para jugar)
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-purple" onclick="submitCreateGame()">
+                    <i class="bi bi-check-circle me-2"></i>Crear Juego
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Asignar a Aula -->
+<div class="modal fade" id="assignGameToClassroomModal" tabindex="-1" aria-labelledby="assignGameToClassroomModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignGameToClassroomModalLabel">
+                    <i class="bi bi-share me-2"></i>Asignar Juego a Aula
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="assignGameToClassroomForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="gameId" name="game_id">
+                    <div class="mb-3">
+                        <label for="assignGameClassroom" class="form-label">Seleccionar Aula</label>
+                        <select class="form-select" id="assignGameClassroom" name="classroom" required>
+                            <option value="">Seleccionar aula</option>
+                            {% for classroom in classrooms %}
+                            <option value="{{ classroom.id }}">{{ classroom.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignGameInstructions" class="form-label">Instrucciones (opcional)</label>
+                        <textarea class="form-control" id="assignGameInstructions" name="instructions" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignGameDueDate" class="form-label">Fecha de Entrega (opcional)</label>
+                        <input type="datetime-local" class="form-control" id="assignGameDueDate" name="due_date">
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignGamePoints" class="form-label">Puntos por Completar</label>
+                        <input type="number" class="form-control" id="assignGamePoints" name="points" value="10" min="1" max="100">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="submitAssignGameToClassroom()">
+                    <i class="bi bi-check-circle me-2"></i>Asignar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script>
+        function showCreateGameModal() {
+            const modal = new bootstrap.Modal(document.getElementById('createGameModal'));
+            modal.show();
+        }
+        
+        function submitCreateGame() {
+            const form = document.getElementById('createGameForm');
+            const formData = new FormData(form);
+            
+            fetch('{% url "gamification:game_create" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Juego creado exitosamente', 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createGameModal'));
+                    modal.hide();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showAlert(data.error || 'Error al crear el juego', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error al crear el juego', 'error');
+            });
+        }
+        
+        function assignToClassroom(gameId) {
+            document.getElementById('gameId').value = gameId;
+            const modal = new bootstrap.Modal(document.getElementById('assignGameToClassroomModal'));
+            modal.show();
+        }
+        
+        function submitAssignGameToClassroom() {
+            const form = document.getElementById('assignGameToClassroomForm');
+            const formData = new FormData(form);
+            
+            fetch('{% url "users:assign_game_api" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Juego asignado exitosamente', 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('assignGameToClassroomModal'));
+                    modal.hide();
+                } else {
+                    showAlert(data.error || 'Error al asignar el juego', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error al asignar el juego', 'error');
+            });
+        }
+        
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+        
+        // Filtros
+        document.getElementById('typeFilter').addEventListener('change', filterGames);
+        document.getElementById('difficultyFilter').addEventListener('change', filterGames);
+        document.getElementById('statusFilter').addEventListener('change', filterGames);
+        document.getElementById('searchFilter').addEventListener('input', filterGames);
+        
+        function filterGames() {
+            // Implementar filtrado de juegos
+            console.log('Filtros aplicados');
+        }
+    </script>
+{% endblock %} 
+ 
+ 

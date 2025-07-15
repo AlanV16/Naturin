@@ -1,0 +1,163 @@
+<!-- Modal Crear Juego -->
+<div class="modal fade" id="gameCreateModal" tabindex="-1" aria-labelledby="gameCreateModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="gameCreateModalLabel">
+          <i class="bi bi-puzzle me-2"></i>Crear Nuevo Juego
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="gameCreateForm" class="needs-validation" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          <div class="form-section mb-3">
+            <h5><i class="bi bi-info-circle me-2"></i>Información Básica</h5>
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                <label for="title" class="form-label">Título del Juego *</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+                <div class="invalid-feedback">Por favor ingresa un título para el juego.</div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="game_type" class="form-label">Tipo de Juego *</label>
+                <select class="form-select" id="game_type" name="game_type" required>
+                  <option value="">Selecciona tipo</option>
+                  <option value="quiz">Quiz</option>
+                  <option value="puzzle">Puzzle</option>
+                  <option value="memory">Memoria</option>
+                  <option value="matching">Emparejamiento</option>
+                  <option value="other">Otro</option>
+                </select>
+                <div class="invalid-feedback">Por favor selecciona un tipo de juego.</div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="description" class="form-label">Descripción *</label>
+              <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+              <div class="invalid-feedback">Por favor ingresa una descripción.</div>
+            </div>
+            <div class="mb-3">
+              <label for="instructions" class="form-label">Instrucciones del Juego *</label>
+              <textarea class="form-control" id="instructions" name="instructions" rows="4" required></textarea>
+              <div class="invalid-feedback">Por favor ingresa las instrucciones.</div>
+            </div>
+          </div>
+          <div class="form-section mb-3">
+            <h5><i class="bi bi-gear me-2"></i>Configuración del Juego</h5>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="difficulty" class="form-label">Nivel de Dificultad *</label>
+                <select class="form-select" id="difficulty" name="difficulty" required>
+                  <option value="">Selecciona nivel</option>
+                  <option value="easy">Fácil</option>
+                  <option value="medium">Medio</option>
+                  <option value="hard">Difícil</option>
+                </select>
+                <div class="invalid-feedback">Por favor selecciona un nivel de dificultad.</div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="estimated_time" class="form-label">Tiempo Estimado (minutos)</label>
+                <input type="number" class="form-control" id="estimated_time" name="estimated_time" min="1" max="120" value="5">
+                <div class="help-text">Tiempo estimado para completar el juego</div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="attachments" class="form-label">Archivos Adjuntos</label>
+              <input type="file" class="form-control" id="attachments" name="attachments" multiple accept=".doc,.docx,.pdf,.jpg,.png,.jpeg">
+              <div class="help-text">Puedes adjuntar archivos relacionados al juego</div>
+            </div>
+          </div>
+          <div class="form-section mb-3">
+            <h5><i class="bi bi-people me-2"></i>Asignar a Aula</h5>
+            <div class="mb-3">
+              <label for="classroom" class="form-label">Aula *</label>
+              <select class="form-select" id="classroom" name="classroom" required>
+                <option value="">Selecciona un aula</option>
+                {% for classroom in classrooms %}
+                  <option value="{{ classroom.id }}">{{ classroom.name }} ({{ classroom.code }})</option>
+                {% endfor %}
+              </select>
+              <div class="invalid-feedback">Por favor selecciona un aula.</div>
+            </div>
+          </div>
+          <div class="form-section mb-0">
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <button type="submit" class="btn btn-danger w-100">
+                  <i class="bi bi-check-circle me-2"></i>Crear Juego
+                </button>
+              </div>
+              <div class="col-md-6 mb-2">
+                <button type="button" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">
+                  <i class="bi bi-x-circle me-2"></i>Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+        <div id="gameCreateSuccess" class="alert alert-success mt-3 d-none" role="alert">
+          ¡Juego creado exitosamente!
+        </div>
+        <div id="gameCreateError" class="alert alert-danger mt-3 d-none" role="alert">
+          Error al crear el juego. Por favor, revisa los campos e inténtalo de nuevo.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var form = document.getElementById('gameCreateForm');
+  var errorDiv = document.getElementById('gameCreateError');
+  var successDiv = document.getElementById('gameCreateSuccess');
+  
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Ocultar mensajes anteriores
+      errorDiv.classList.add('d-none');
+      successDiv.classList.add('d-none');
+      
+      // Validar formulario
+      if (!form.checkValidity()) {
+        form.classList.add('was-validated');
+        return;
+      }
+      
+      // Crear FormData
+      var formData = new FormData(form);
+      
+      // Enviar formulario
+      fetch('{% url "educational_games:game_create" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          successDiv.textContent = '¡Juego creado exitosamente!';
+          successDiv.classList.remove('d-none');
+          form.reset();
+          setTimeout(() => {
+            bootstrap.Modal.getInstance(document.getElementById('gameCreateModal')).hide();
+            location.reload();
+          }, 1500);
+        } else {
+          errorDiv.textContent = data.error || 'Error al crear el juego.';
+          errorDiv.classList.remove('d-none');
+        }
+      })
+      .catch(error => {
+        errorDiv.textContent = 'Error de conexión. Por favor, inténtalo de nuevo.';
+        errorDiv.classList.remove('d-none');
+      });
+    });
+  }
+});
+</script> 

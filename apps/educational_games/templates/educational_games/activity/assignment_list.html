@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/dashboard_optimized.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 teacher-dashboard-bg">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-none d-md-block">
+            <div class="sidebar-dashboard">
+                <div class="text-center py-4">
+                    <img src="{% static 'images/mascota/tuki.png' %}" alt="Tuki" width="80" height="80" class="mb-3" loading="lazy">
+                    <h6 class="fw-bold text-primary">Gestión de Actividades</h6>
+                </div>
+                <nav class="nav flex-column px-2 pb-4">
+                    <a class="nav-link sidebar-btn" href="{% url 'educational_games:activity_dashboard' %}">
+                        <i class="bi bi-house-door-fill me-2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a class="nav-link sidebar-btn active" href="{% url 'educational_games:assignment_list' %}">
+                        <i class="bi bi-journal-check me-2"></i>
+                        <span>Tareas</span>
+                    </a>
+                    <a class="nav-link sidebar-btn" href="{% url 'educational_games:reading_list' %}">
+                        <i class="bi bi-book me-2"></i>
+                        <span>Lecturas</span>
+                    </a>
+                    <a class="nav-link sidebar-btn" href="{% url 'educational_games:test_list' %}">
+                        <i class="bi bi-clipboard-check me-2"></i>
+                        <span>Tests</span>
+                    </a>
+                    <a class="nav-link sidebar-btn" href="{% url 'educational_games:game_list' %}">
+                        <i class="bi bi-puzzle me-2"></i>
+                        <span>Juegos</span>
+                    </a>
+                    <a class="nav-link sidebar-btn" href="{% url 'users:dashboard_teacher' user_id=user.id %}">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        <span>Volver al Dashboard</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 px-3">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="dashboard-card d-flex align-items-center gap-3" style="background: #f0fdf4;">
+                        <div class="quick-action-icon" style="background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%); font-size:2rem;">
+                            <i class="bi bi-journal-check"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">Gestión de Tareas</h5>
+                            <p class="mb-1">Aquí puedes ver y gestionar todas tus tareas creadas. Se mostrarán en la lista inferior, con acceso a detalles, edición y revisión de entregas de tus estudiantes.</p>
+                            <p class="mb-0">Haz clic en <b>Crear Tarea</b> para añadir una nueva tarea, ya sea para una clase o como plantilla personal.</p>
+                        </div>
+                        <div class="ms-auto">
+                            <button class="btn btn-primary" id="openAssignmentModalList">
+                                <i class="bi bi-plus-circle me-1"></i>Crear Tarea
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold section-title"><i class="bi bi-journal-check me-2"></i>Tareas</h4>
+                </div>
+                <div class="row g-3">
+                    {% for assignment in assignments %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="dashboard-card" style="background: #fff; color: #222;">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-journal-check me-2" style="font-size: 1.5rem; color: #10b981;"></i>
+                                <span class="fw-bold">{{ assignment.title }}</span>
+                            </div>
+                            <div class="mb-2 text-muted small">{{ assignment.due_date|date:'d M Y H:i' }}</div>
+                            <div class="mb-2">{{ assignment.description|truncatewords:15 }}</div>
+                            <a href="{% url 'educational_games:assignment_detail' assignment.id %}" class="btn btn-outline-primary btn-sm mt-2">Ver Detalle</a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center text-muted py-5">
+                        <i class="bi bi-inbox" style="font-size: 2.5rem;"></i>
+                        <p class="mt-2">No hay tareas registradas.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- Modal Crear Tarea (puedes reutilizar el modal de activity_dashboard.html) -->
+{% include 'educational_games/partials/assignment_create_modal.html' %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('openAssignmentModalList');
+  if (btn) {
+    btn.onclick = function() {
+      var modal = new bootstrap.Modal(document.getElementById('assignmentCreateModal'));
+      modal.show();
+    };
+  }
+});
+</script>

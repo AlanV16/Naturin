@@ -2,10 +2,10 @@
 
 /* Variables CSS para mejor rendimiento */
 :root {
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --secondary-gradient: linear-gradient(135deg, #5a6fd8, #6a42a0);
+    --primary-gradient: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+    --secondary-gradient: linear-gradient(135deg, #059669 0%, #1d4ed8 100%);
     --success-gradient: linear-gradient(135deg, #28a745, #20c997);
-    --warning-gradient: linear-gradient(135deg, #ffc107, #fd7e14);
+    --warning-gradient: linear-gradient(135deg, #ffc107, #dcb697);
     --danger-gradient: linear-gradient(135deg, #dc3545, #e83e8c);
     --card-shadow: 0 4px 20px rgba(0,0,0,0.08);
     --card-shadow-hover: 0 8px 30px rgba(0,0,0,0.12);

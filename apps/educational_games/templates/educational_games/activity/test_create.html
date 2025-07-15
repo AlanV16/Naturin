@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Test{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-0" style="border-radius: 16px;">
+                <div class="card-header bg-success text-white border-0" style="border-radius: 16px 16px 0 0;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-clipboard-check me-3" style="font-size: 2rem;"></i>
+                        <div>
+                            <h4 class="mb-0">Crear Nuevo Test</h4>
+                            <p class="mb-0 opacity-75">Evaluación Interactiva</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" id="test-form">
+                        {% csrf_token %}
+                        <!-- Información Básica del Test -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="titulo" class="form-label fw-semibold fs-5 text-success">
+                                        <i class="bi bi-type me-2"></i>Título del Test *
+                                    </label>
+                                    <input type="text" class="form-control form-control-lg" id="titulo" name="titulo" required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="descripcion" class="form-label fw-semibold fs-5 text-success">
+                                        <i class="bi bi-text-paragraph me-2"></i>Descripción *
+                                    </label>
+                                    <textarea class="form-control" id="descripcion" name="descripcion" rows="4" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Configuración de Fechas y Tiempo -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="fecha_inicio" class="form-label fw-semibold text-success">
+                                        <i class="bi bi-calendar-event me-2"></i>Fecha de Inicio *
+                                    </label>
+                                    <input type="datetime-local" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="fecha_fin" class="form-label fw-semibold text-success">
+                                        <i class="bi bi-calendar-x me-2"></i>Fecha de Fin *
+                                    </label>
+                                    <input type="datetime-local" class="form-control" id="fecha_fin" name="fecha_fin" required>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Configuración de Evaluación -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tiempo_limite" class="form-label fw-semibold text-success">
+                                        <i class="bi bi-clock me-2"></i>Tiempo Límite (minutos) *
+                                    </label>
+                                    <input type="number" class="form-control" id="tiempo_limite" name="tiempo_limite" value="30" min="5" max="180" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="puntos_por_pregunta" class="form-label fw-semibold text-success">
+                                        <i class="bi bi-star me-2"></i>Puntos por Pregunta *
+                                    </label>
+                                    <input type="number" class="form-control" id="puntos_por_pregunta" name="puntos_por_pregunta" value="10" min="1" max="50" required>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Configuración de Visibilidad -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="es_publico" name="es_publico">
+                                    <label class="form-check-label fw-semibold text-success" for="es_publico">
+                                        <i class="bi bi-globe me-2"></i>Hacer público este test
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Sección de Preguntas -->
+                        <div class="card border-success mb-4" style="border-radius: 12px;">
+                            <div class="card-header bg-success text-white border-0" style="border-radius: 12px 12px 0 0;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-question-circle me-2"></i>
+                                        Preguntas del Test
+                                    </h5>
+                                    <button type="button" class="btn btn-light btn-sm" onclick="agregarPregunta()" id="btn-agregar-pregunta">
+                                        <i class="bi bi-plus-circle me-1"></i>Agregar Pregunta
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <div id="preguntas-container">
+                                    <!-- Las preguntas se agregarán dinámicamente aquí -->
+                                </div>
+                                <div class="text-center mt-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Máximo 50 preguntas. Puedes agregar preguntas de opción múltiple, verdadero/falso y texto corto.
+                                    </small>
+                                </div>
+                                <div id="pregunta-error" class="alert alert-danger mt-3 d-none" style="border-radius: 10px;">
+                                    Debes agregar al menos una pregunta antes de guardar el test.
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Asignar a Aula (opcional) -->
+                        <div class="form-section">
+                            <h5 class="form-section-title">
+                                <i class="bi bi-people me-2"></i>Asignar a Aula (opcional)
+                            </h5>
+                            <div class="mb-3">
+                                <label for="classroom" class="form-label fw-semibold">Aula</label>
+                                <select class="form-select" id="classroom" name="classroom">
+                                    <option value="">No asignar a ninguna aula</option>
+                                    {% for classroom in classrooms %}
+                                        <option value="{{ classroom.id }}">{{ classroom.name }} ({{ classroom.code }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg flex-fill">
+                                <i class="bi bi-check-circle me-2"></i>Crear Test con Preguntas
+                            </button>
+                            <a href="{% url 'educational_games:test_list' %}" class="btn btn-outline-secondary btn-lg flex-fill">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

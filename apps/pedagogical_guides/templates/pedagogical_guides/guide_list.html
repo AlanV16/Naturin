@@ -1,38 +1,377 @@
 {% extends 'base.html' %}
-{% block title %}Guías Pedagógicas{% endblock %}
+{% load static %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <style>
+        .guide-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+        
+        .guide-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .guide-header {
+            background: linear-gradient(135deg, #237875 0%, #29845f 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .guide-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 0.5rem;
+        }
+        
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #168263;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        .filter-section {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .btn-create-guide {
+            background: linear-gradient(135deg, #449d67 0%, #338f6a 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-create-guide:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+            color: white;
+        }
+        
+        .type-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .type-guide {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .type-worksheet {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .type-multimedia {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .type-interactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .rating-stars {
+            color: #ffc107;
+            font-size: 1.2rem;
+        }
+        
+        .file-preview {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(45deg, #1f764f, #0056b3);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-12 d-flex justify-content-between align-items-center">
-            <h2 class="mb-0"><i class="bi bi-journal-text"></i> Guías Pedagógicas</h2>
-            {% if user.is_authenticated %}
-            <a href="{% url 'pedagogical_guides:guide_upload' %}" class="btn btn-success">
-                <i class="bi bi-upload"></i> Subir nueva guía
-            </a>
-            {% endif %}
-        </div>
-    </div>
+<div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
-            <div class="list-group">
-                {% for guide in guides %}
-                <div class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="mb-1">{{ guide.title }}</h5>
-                        <p class="mb-1 text-muted">{{ guide.description }}</p>
-                        <small class="text-muted">Subida por {{ guide.author.username }} el {{ guide.created_at|date:"d/m/Y" }}</small>
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="bi bi-book text-primary me-2"></i>
+                        Guías Pedagógicas
+                    </h2>
+                    <p class="text-muted mb-0">Recursos educativos para el aprendizaje</p>
+                </div>
+                <a href="{% url 'users:dashboard_teacher' user_id=user.id %}" class="back-to-dashboard">
+                    <i class="bi bi-arrow-left"></i>
+                    Volver 
+                </a>
+                {% if user.user_type == 2 %}
+                <a href="{% url 'pedagogical_guides:guide_upload' %}" class="btn btn-create-guide">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Subir Nueva Guía
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Filtros -->
+            <div class="filter-section">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="category" class="form-label">Categoría</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">Todas las categorías</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if filters.category_id == category.id|stringformat:"s" %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <a href="{% url 'pedagogical_guides:guide_download' guide.pk %}" class="btn btn-outline-primary">
-                        <i class="bi bi-download"></i> Descargar PDF
-                    </a>
-                </div>
-                {% empty %}
-                <div class="list-group-item text-center text-muted">
-                    No hay guías pedagógicas disponibles.
-                </div>
-                {% endfor %}
+                    <div class="col-md-3">
+                        <label for="content_type" class="form-label">Tipo de Contenido</label>
+                        <select class="form-select" id="content_type" name="content_type">
+                            <option value="">Todos los tipos</option>
+                            {% for value, label in content_types %}
+                            <option value="{{ value }}" {% if filters.content_type == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="educational_level" class="form-label">Nivel Educativo</label>
+                        <select class="form-select" id="educational_level" name="educational_level">
+                            <option value="">Todos los niveles</option>
+                            {% for value, label in educational_levels %}
+                            <option value="{{ value }}" {% if filters.educational_level == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="search" class="form-label">Buscar</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               placeholder="Buscar guías..." value="{{ filters.search }}">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-2"></i>Filtrar
+                        </button>
+                        <a href="{% url 'pedagogical_guides:guide_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Limpiar
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de Guías -->
+            <div id="guidesList">
+                {% if page_obj %}
+                    <div class="row">
+                        {% for guide in page_obj %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="guide-card">
+                                <div class="guide-header">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h5 class="mb-1">{{ guide.title }}</h5>
+                                        <span class="type-badge type-{{ guide.content_type }}">
+                                            {{ guide.get_content_type_display_name }}
+                                        </span>
+                                    </div>
+                                    <small>{{ guide.category.name }}</small>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <div class="file-preview">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                    </div>
+                                    
+                                    <p class="text-muted mb-3">{{ guide.description|truncatewords:20 }}</p>
+                                    
+                                    <div class="guide-stats">
+                                        <div class="stat-item">
+                                            <div class="stat-number">{{ guide.views_count }}</div>
+                                            <div class="stat-label">Vistas</div>
+                                        </div>
+                                        <div class="stat-item">
+                                            <div class="stat-number">{{ guide.downloads_count }}</div>
+                                            <div class="stat-label">Descargas</div>
+                                        </div>
+                                        <div class="stat-item">
+                                            <div class="rating-stars">
+                                                {% for i in "12345" %}
+                                                    {% if forloop.counter <= guide.rating %}
+                                                        <i class="bi bi-star-fill"></i>
+                                                    {% else %}
+                                                        <i class="bi bi-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <div class="stat-label">{{ guide.rating|floatformat:1 }}/5</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                Creado
+                                            </small>
+                                            <small class="fw-semibold">{{ guide.created_at|date:"d/m/Y" }}</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">
+                                                <i class="bi bi-person me-1"></i>
+                                                Autor
+                                            </small>
+                                            <small class="fw-semibold">{{ guide.author.get_full_name }}</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'pedagogical_guides:guide_detail' guide.id %}" class="btn btn-outline-primary btn-sm flex-fill">
+                                            <i class="bi bi-eye me-1"></i>Ver
+                                        </a>
+                                        <a href="{% url 'pedagogical_guides:guide_download' guide.id %}" class="btn btn-outline-success btn-sm flex-fill">
+                                            <i class="bi bi-download me-1"></i>Descargar
+                                        </a>
+                                        {% if user == guide.author %}
+                                        <a href="{% url 'pedagogical_guides:guide_edit' guide.id %}" class="btn btn-outline-secondary btn-sm flex-fill">
+                                            <i class="bi bi-pencil me-1"></i>Editar
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Paginación -->
+                    {% if page_obj.has_other_pages %}
+                    <nav aria-label="Navegación de páginas">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-book"></i>
+                        <h4>No se encontraron guías</h4>
+                        <p>Intenta ajustar los filtros o crear una nueva guía pedagógica</p>
+                        {% if user.user_type == 2 %}
+                        <a href="{% url 'pedagogical_guides:guide_upload' %}" class="btn btn-create-guide">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Crear Primera Guía
+                        </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script>
+        // Búsqueda en tiempo real
+        let searchTimer;
+        document.getElementById('search').addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                document.querySelector('form').submit();
+            }, 500);
+        });
+        document.getElementById('category').addEventListener('change', function() {
+            document.querySelector('form').submit();
+        });
+        document.getElementById('content_type').addEventListener('change', function() {
+            document.querySelector('form').submit();
+        });
+        document.getElementById('educational_level').addEventListener('change', function() {
+            document.querySelector('form').submit();
+        });
+    </script>
 {% endblock %} 

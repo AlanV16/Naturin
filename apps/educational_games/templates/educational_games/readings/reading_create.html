@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Nueva Lectura{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <style>
+        .reading-form-card {
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .reading-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .form-section {
+            border-left: 4px solid #667eea;
+            padding-left: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-section-title {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-action {
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .preview-section {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card reading-form-card">
+                <div class="reading-header p-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-book me-3" style="font-size: 2rem;"></i>
+                        <div>
+                            <h3 class="mb-1">Crear Nueva Lectura</h3>
+                            <p class="mb-0 opacity-75">Desarrolla contenido educativo interactivo</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="post" id="readingForm">
+                        {% csrf_token %}
+                        
+                        <!-- Información Básica -->
+                        <div class="form-section">
+                            <h5 class="form-section-title">
+                                <i class="bi bi-info-circle me-2"></i>Información Básica
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="title" class="form-label fw-semibold">Título de la Lectura *</label>
+                                    <input type="text" class="form-control form-control-lg" id="title" name="title" 
+                                           placeholder="Ej: Introducción a los Ecosistemas Tropicales" required>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Usa un título descriptivo y atractivo
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="description" class="form-label fw-semibold">Descripción *</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3"
+                                              placeholder="Describe brevemente el contenido y objetivos de esta lectura..." required></textarea>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Esta descripción será visible para los estudiantes
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="instructions" class="form-label fw-semibold">Instrucciones para el Estudiante</label>
+                                    <textarea class="form-control" id="instructions" name="instructions" rows="3"
+                                              placeholder="Instrucciones específicas para completar la lectura..."></textarea>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Instrucciones opcionales que verán los estudiantes
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contenido -->
+                        <div class="form-section">
+                            <h5 class="form-section-title">
+                                <i class="bi bi-file-text me-2"></i>Contenido de la Lectura
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <label for="content" class="form-label fw-semibold">Contenido Principal *</label>
+                                <textarea class="form-control" id="content" name="content" rows="15"
+                                          placeholder="Escribe aquí el contenido completo de la lectura. Puedes usar formato HTML básico para mejorar la presentación..." required></textarea>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Puedes usar etiquetas HTML básicas como &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;, &lt;ol&gt;, &lt;li&gt;, &lt;h3&gt;, &lt;h4&gt;, etc.
+                                </div>
+                            </div>
+                            
+                            <div class="preview-section">
+                                <h6 class="fw-semibold mb-3">
+                                    <i class="bi bi-eye me-2"></i>Vista Previa del Contenido
+                                </h6>
+                                <div id="contentPreview" class="border rounded p-3 bg-white">
+                                    <p class="text-muted">La vista previa aparecerá aquí mientras escribes...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Configuración -->
+                        <div class="form-section">
+                            <h5 class="form-section-title">
+                                <i class="bi bi-gear me-2"></i>Configuración
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="points" class="form-label fw-semibold">Puntos *</label>
+                                    <input type="number" class="form-control" id="points" name="points" 
+                                           value="100" min="1" max="1000" required>
+                                    <div class="form-text">
+                                        <i class="bi bi-star me-1"></i>
+                                        Puntos que recibirán los estudiantes al completar
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="estimated_time" class="form-label fw-semibold">Tiempo Estimado (minutos) *</label>
+                                    <input type="number" class="form-control" id="estimated_time" name="estimated_time" 
+                                           value="10" min="1" max="120" required>
+                                    <div class="form-text">
+                                        <i class="bi bi-clock me-1"></i>
+                                        Tiempo aproximado para completar la lectura
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="difficulty_level" class="form-label fw-semibold">Nivel de Dificultad *</label>
+                                    <select class="form-select" id="difficulty_level" name="difficulty_level" required>
+                                        <option value="easy">Fácil</option>
+                                        <option value="medium" selected>Medio</option>
+                                        <option value="hard">Difícil</option>
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="bi bi-bar-chart me-1"></i>
+                                        Nivel de complejidad del contenido
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="subject" class="form-label fw-semibold">Materia</label>
+                                    <select class="form-select" id="subject" name="subject">
+                                        <option value="">Seleccionar materia...</option>
+                                        <option value="biology">Biología</option>
+                                        <option value="ecology">Ecología</option>
+                                        <option value="environmental">Ciencias Ambientales</option>
+                                        <option value="geography">Geografía</option>
+                                        <option value="chemistry">Química</option>
+                                        <option value="physics">Física</option>
+                                        <option value="mathematics">Matemáticas</option>
+                                        <option value="language">Lenguaje</option>
+                                        <option value="history">Historia</option>
+                                        <option value="other">Otro</option>
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="bi bi-bookmark me-1"></i>
+                                        Materia principal del contenido
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Opciones Avanzadas -->
+                        <div class="form-section">
+                            <h5 class="form-section-title">
+                                <i class="bi bi-sliders me-2"></i>Opciones Avanzadas
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="is_public" name="is_public">
+                                        <label class="form-check-label fw-semibold" for="is_public">
+                                            <i class="bi bi-globe me-2"></i>Hacer pública esta lectura
+                                        </label>
+                                        <div class="form-text">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Si activas esta opción, otros docentes podrán ver y copiar esta lectura
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="allow_comments" name="allow_comments" checked>
+                                        <label class="form-check-label fw-semibold" for="allow_comments">
+                                            <i class="bi bi-chat-dots me-2"></i>Permitir comentarios de estudiantes
+                                        </label>
+                                        <div class="form-text">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Los estudiantes podrán dejar comentarios y preguntas
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="track_progress" name="track_progress" checked>
+                                        <label class="form-check-label fw-semibold" for="track_progress">
+                                            <i class="bi bi-graph-up me-2"></i>Rastrear progreso de lectura
+                                        </label>
+                                        <div class="form-text">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Seguimiento del tiempo de lectura y páginas visitadas
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botones de Acción -->
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-primary btn-action flex-fill">
+                                <i class="bi bi-check-circle me-2"></i>Crear Lectura
+                            </button>
+                            <a href="{% url 'educational_games:reading_list' %}" class="btn btn-outline-secondary btn-action flex-fill">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Vista previa en tiempo real del contenido
+    document.getElementById('content').addEventListener('input', function() {
+        const content = this.value;
+        const preview = document.getElementById('contentPreview');
+        
+        if (content.trim() === '') {
+            preview.innerHTML = '<p class="text-muted">La vista previa aparecerá aquí mientras escribes...</p>';
+        } else {
+            // Convertir HTML básico a vista previa
+            let htmlContent = content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+            
+            // Permitir algunas etiquetas HTML básicas
+            htmlContent = htmlContent
+                .replace(/&lt;strong&gt;(.*?)&lt;\/strong&gt;/g, '<strong>$1</strong>')
+                .replace(/&lt;em&gt;(.*?)&lt;\/em&gt;/g, '<em>$1</em>')
+                .replace(/&lt;h3&gt;(.*?)&lt;\/h3&gt;/g, '<h5>$1</h5>')
+                .replace(/&lt;h4&gt;(.*?)&lt;\/h4&gt;/g, '<h6>$1</h6>')
+                .replace(/&lt;ul&gt;(.*?)&lt;\/ul&gt;/g, '<ul>$1</ul>')
+                .replace(/&lt;ol&gt;(.*?)&lt;\/ol&gt;/g, '<ol>$1</ol>')
+                .replace(/&lt;li&gt;(.*?)&lt;\/li&gt;/g, '<li>$1</li>')
+                .replace(/&lt;br&gt;/g, '<br>')
+                .replace(/&lt;br\/&gt;/g, '<br>');
+            
+            preview.innerHTML = htmlContent;
+        }
+    });
+    
+    // Validación del formulario
+    document.getElementById('readingForm').addEventListener('submit', function(e) {
+        const title = document.getElementById('title').value.trim();
+        const description = document.getElementById('description').value.trim();
+        const content = document.getElementById('content').value.trim();
+        
+        if (!title) {
+            e.preventDefault();
+            alert('Por favor ingresa un título para la lectura.');
+            document.getElementById('title').focus();
+            return false;
+        }
+        
+        if (!description) {
+            e.preventDefault();
+            alert('Por favor ingresa una descripción para la lectura.');
+            document.getElementById('description').focus();
+            return false;
+        }
+        
+        if (!content) {
+            e.preventDefault();
+            alert('Por favor ingresa el contenido de la lectura.');
+            document.getElementById('content').focus();
+            return false;
+        }
+        
+        // Mostrar indicador de carga
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Creando...';
+        submitBtn.disabled = true;
+    });
+</script>
+{% endblock %} 
+ 
+ 

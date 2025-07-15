@@ -1,0 +1,31 @@
+{% for resource in resources %}
+<div class="content-card">
+    <div class="content-icon">
+        {% if resource.type == 'video' %}
+            <i class="bi bi-play-circle text-primary"></i>
+        {% elif resource.type == 'document' %}
+            <i class="bi bi-file-earmark-text text-success"></i>
+        {% elif resource.type == 'link' %}
+            <i class="bi bi-link-45deg text-info"></i>
+        {% else %}
+            <i class="bi bi-book text-warning"></i>
+        {% endif %}
+    </div>
+    <h6 class="fw-bold">{{ resource.title }}</h6>
+    <p class="text-muted">{{ resource.description|truncatewords:20 }}</p>
+    <div class="mt-auto">
+        <a href="{{ resource.url }}" class="btn btn-outline-primary btn-sm" target="_blank">
+            <i class="bi bi-box-arrow-up-right me-1"></i>Ver recurso
+        </a>
+    </div>
+    {% if resource.grade %}
+        <small class="text-muted d-block mt-2">Grado: {{ resource.grade }}</small>
+    {% endif %}
+</div>
+{% empty %}
+<div class="text-center py-4">
+    <i class="bi bi-book text-muted" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-2">No hay recursos disponibles</p>
+    <small class="text-muted">Los recursos aparecerán aquí según el grado de tus hijos</small>
+</div>
+{% endfor %} 

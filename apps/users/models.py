@@ -283,34 +283,18 @@ class Notification(models.Model):
 
 
 class Message(models.Model):
-    """Modelo para mensajes entre usuarios"""
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_sent_messages')
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_received_messages')
-    subject = models.CharField(max_length=200)
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    """Modelo para mensajes entre usuarios (actualizado)"""
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    text = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
-    parent_message = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['timestamp']
     
     def __str__(self):
-        return f"De {self.sender.username} a {self.recipient.username}: {self.subject}"
-    
-    def get_conversation_messages(self):
-        """Obtener todos los mensajes de la conversación"""
-        if self.parent_message:
-            # Si es una respuesta, obtener el mensaje padre y todas sus respuestas
-            parent = self.parent_message
-            return Message.objects.filter(
-                Q(id=parent.id) | Q(parent_message=parent)
-            ).order_by('created_at')
-        else:
-            # Si es el mensaje principal, obtener él y todas sus respuestas
-            return Message.objects.filter(
-                Q(id=self.id) | Q(parent_message=self)
-            ).order_by('created_at')
+        return f"Mensaje de {self.sender} a {self.receiver}"
 
 
 class Conversation(models.Model):
@@ -350,4 +334,86 @@ class ConversationMessage(models.Model):
         ordering = ['created_at']
     
     def __str__(self):
-        return f"{self.sender.username}: {self.content[:50]}..."
+        return f"Mensaje de {self.sender} en {self.conversation}"
+
+# ============================================================================
+# MODELOS PARA DASHBOARD DE PADRES
+# ============================================================================
+
+class Child(models.Model):
+    """Modelo para los hijos de los padres"""
+    parent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='children')
+    name = models.CharField(max_length=100)
+    grade = models.CharField(max_length=20)
+    birthdate = models.DateField()
+    document = models.CharField(max_length=20, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    @property
+    def progress(self):
+        """Calcular progreso del hijo basado en sus cursos"""
+        try:
+            enrollments = Enrollment.objects.filter(student=self.parent, course__status='active')
+            if enrollments.exists():
+                total_progress = sum(enrollment.progress for enrollment in enrollments)
+                return round(total_progress / enrollments.count(), 1)
+            return 0
+        except:
+            return 0
+    
+    def __str__(self):
+        return f"{self.name} - Hijo de {self.parent.get_full_name()}"
+
+class Suggestion(models.Model):
+    """Modelo para sugerencias de los padres"""
+    SUGGESTION_TYPES = [
+        ('academic', 'Académica'),
+        ('activity', 'Actividad'),
+        ('resource', 'Recurso'),
+        ('other', 'Otro'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pendiente'),
+        ('approved', 'Aprobada'),
+        ('rejected', 'Rechazada'),
+        ('in_review', 'En revisión'),
+    ]
+    
+    parent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='suggestions')
+    type = models.CharField(max_length=20, choices=SUGGESTION_TYPES)
+    description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    admin_response = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Sugerencia de {self.parent.get_full_name()} - {self.get_type_display()}"
+
+class EducationalResource(models.Model):
+    """Modelo para recursos educativos"""
+    RESOURCE_TYPES = [
+        ('video', 'Video'),
+        ('document', 'Documento'),
+        ('link', 'Enlace'),
+        ('interactive', 'Interactivo'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    url = models.URLField()
+    type = models.CharField(max_length=20, choices=RESOURCE_TYPES, default='link')
+    grade = models.CharField(max_length=20, blank=True)  # Grado para el que es apropiado
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['title']
+    
+    def __str__(self):
+        return f"{self.title} - {self.get_type_display()}"

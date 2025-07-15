@@ -1,0 +1,25 @@
+{% for message in messages %}
+<div class="message {% if message.sender == user %}sent{% else %}received{% endif %}">
+    <div class="message-content">
+        <p class="mb-1">{{ message.content }}</p>
+        <div class="message-meta">
+            <small class="message-time">{{ message.created_at|date:"H:i" }}</small>
+            {% if message.sender == user %}
+                <small class="message-status">
+                    {% if message.is_read %}
+                        <i class="bi bi-check2-all text-primary"></i>
+                    {% else %}
+                        <i class="bi bi-check2"></i>
+                    {% endif %}
+                </small>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="text-center py-4">
+    <i class="bi bi-chat-dots text-muted" style="font-size: 2rem;"></i>
+    <p class="text-muted mt-2">No hay mensajes aún</p>
+    <small class="text-muted">Inicia una conversación enviando un mensaje</small>
+</div>
+{% endfor %} 

@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{# --- BLOQUE DE CSS PERSONALIZADO --- #}
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/activities.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="activities-container">
+    <div class="row">
+        <div class="col-md-3 col-lg-2 d-none d-md-block">
+            <div class="sidebar-dashboard">
+                <div class="text-center text-dark py-4">                    
+                    <h6 class="fw-bold">Gestión de Actividades</h6>
+                </div>
+                <nav class="nav flex-column px-2 pb-4">
+                    <a class="nav-link sidebar-btn active" href="{% url 'educational_games:activity_dashboard' %}">
+                        <i class="bi bi-house-door-fill me-2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a class="nav-link sidebar-btn" href="{% url 'educational_games:assignment_list' %}">
+                        <i class="bi bi-journal-check me-2"></i>
+                        <span>Tareas</span>
+                    </a>
+                    <a class="nav-link sidebar-btn" href="{% url 'educational_games:reading_list' %}">
+                        <i class="bi bi-book me-2"></i>
+                        <span>Lecturas</span>
+                    </a>
+                    <a class="nav-link sidebar-btn" href="{% url 'educational_games:test_list' %}">
+                        <i class="bi bi-clipboard-check me-2"></i>
+                        <span>Tests</span>
+                    </a>
+                    <a class="nav-link sidebar-btn" href="{% url 'educational_games:game_list' %}">
+                        <i class="bi bi-puzzle me-2"></i>
+                        <span>Juegos</span>
+                    </a>
+                    <a class="nav-link sidebar-btn" href="{% url 'users:dashboard_teacher' user_id=user.id %}">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        <span>Volver</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+        <div class="col-md-9 col-lg-10 px-3">
+            <div class="header-section">
+                <div>
+                    <h3>Fichas Multimedia Educativas</h3>
+                    <p>Explora contenido educativo multimedia sobre la naturaleza</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary">Crear Ficha</button>
+                    <a href="{% url 'educational_games:activity_dashboard' %}" class="btn btn-secondary">Mi Dashboard</a>
+                </div>
+            </div>
+            <div class="filter-section">
+                <input type="text" class="form-control" placeholder="Título, descripción...">
+                <select class="form-control">
+                    <option>Todos los tipos</option>
+                    <option>Video</option>
+                    <option>Audio</option>
+                    <option>Imagen</option>
+                </select>
+                <select class="form-control">
+                    <option>Todas las categorías</option>
+                    <option>Flora</option>
+                    <option>Fauna</option>
+                    <option>Ecosistemas</option>
+                </select>
+                <select class="form-control">
+                    <option>Todos los niveles</option>
+                    <option>Primaria</option>
+                    <option>Secundaria</option>
+                    <option>Universitario</option>
+                </select>
+                <select class="form-control">
+                    <option>Todas las ubicaciones</option>
+                    <option>Bosque</option>
+                    <option>Río</option>
+                    <option>Mar</option>
+                </select>
+                <button class="btn">Aplicar</button>
+                <button class="btn btn-secondary">Limpiar</button>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span>{{ total_fichas|default:0 }}</span><br>
+                    <small>Fichas disponibles</small>
+                </div>
+            </div>
+            <div class="no-results">
+                <p>No se encontraron fichas multimedia</p>
+                <p>Intenta ajustar los filtros o crear una nueva ficha.</p>
+                <button class="btn">Crear primera ficha</button>
+            </div>
+            <div class="quick-actions">
+                <div class="quick-action-card" id="openFichaModal">
+                    <h6>Crear Ficha</h6>
+                    <small>Agrega nueva ficha multimedia</small>
+                </div>
+                <div class="quick-action-card" id="openAssignmentModal">
+                    <h6>Crear Tarea</h6>
+                    <small>Asigna nueva tarea a tus estudiantes</small>
+                </div>
+                <div class="quick-action-card" id="openReadingModal">
+                    <h6>Crear Lectura</h6>
+                    <small>Agrega material de lectura</small>
+                </div>
+                <div class="quick-action-card" id="openTestModal">
+                    <h6>Crear Test</h6>
+                    <small>Evalúa a tus estudiantes</small>
+                </div>
+                <div class="quick-action-card" id="openGameModal">
+                    <h6>Crear Juego</h6>
+                    <small>Agrega actividades lúdicas</small>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="recent-section">
+                        <h5 class="section-title">
+                            <i class="bi bi-clock-history"></i>
+                            Actividades Recientes
+                        </h5>
+                        {% if recent_fichas or recent_assignments or recent_readings or recent_tests or recent_games %}
+                            {% for ficha in recent_fichas %}
+                            <div class="recent-item">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ ficha.title }}</h6>
+                                    <small class="text-muted">{{ ficha.created_at|timesince }} atrás</small>
+                                </div>
+                                <a href="{% url 'educational_games:ficha_detail' ficha.id %}" class="btn btn-outline-primary btn-sm">
+                                    Ver
+                                </a>
+                            </div>
+                            {% endfor %}
+                            {% for assignment in recent_assignments %}
+                            <div class="recent-item">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ assignment.title }}</h6>
+                                    <small class="text-muted">{{ assignment.created_at|timesince }} atrás</small>
+                                </div>
+                                <a href="{% url 'educational_games:assignment_detail' assignment.id %}" class="btn btn-outline-primary btn-sm">
+                                    Ver
+                                </a>
+                            </div>
+                            {% endfor %}
+                            {% for reading in recent_readings %}
+                            <div class="recent-item">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ reading.title }}</h6>
+                                    <small class="text-muted">{{ reading.created_at|timesince }} atrás</small>
+                                </div>
+                                <a href="{% url 'educational_games:reading_detail' reading.id %}" class="btn btn-outline-primary btn-sm">
+                                    Ver
+                                </a>
+                            </div>
+                            {% endfor %}
+                            {% for test in recent_tests %}
+                            <div class="recent-item">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ test.title }}</h6>
+                                    <small class="text-muted">{{ test.created_at|timesince }} atrás</small>
+                                </div>
+                                <a href="{% url 'educational_games:test_detail' test.id %}" class="btn btn-outline-primary btn-sm">
+                                    Ver
+                                </a>
+                            </div>
+                            {% endfor %}
+                            {% for game in recent_games %}
+                            <div class="recent-item">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ game.title }}</h6>
+                                    <small class="text-muted">{{ game.created_at|timesince }} atrás</small>
+                                </div>
+                                <a href="{% url 'educational_games:game_detail' game.id %}" class="btn btn-outline-primary btn-sm">
+                                    Ver
+                                </a>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2">No hay actividades recientes</p>
+                                <p class="text-muted">¡Crea tu primera actividad!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="recent-section">
+                        <h5 class="section-title">
+                            <i class="bi bi-people-fill"></i>
+                            Mis Aulas
+                        </h5>
+                        {% if classrooms %}
+                            {% for classroom in classrooms %}
+                            <div class="recent-item">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ classroom.name }}</h6>
+                                    <small class="text-muted">{{ classroom.code }}</small>
+                                </div>
+                                <a href="{% url 'users:class_teacher' class_id=classroom.id %}" class="btn btn-outline-primary btn-sm">
+                                    Ver
+                                </a>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2">No tienes aulas creadas</p>
+                                <a href="{% url 'users:dashboard_teacher' user_id=user.id %}" class="btn btn-primary btn-sm">
+                                    Crear Aula
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script src="{% static 'js/header_logged.js' %}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Botones para abrir modales
+        var btnFicha = document.getElementById('openFichaModal');
+        var btnAssignment = document.getElementById('openAssignmentModal');
+        var btnReading = document.getElementById('openReadingModal');
+        var btnTest = document.getElementById('openTestModal');
+        var btnGame = document.getElementById('openGameModal');
+        if (btnFicha) btnFicha.onclick = function() { new bootstrap.Modal(document.getElementById('fichaCreateModal')).show(); };
+        if (btnAssignment) btnAssignment.onclick = function() { new bootstrap.Modal(document.getElementById('assignmentCreateModal')).show(); };
+        if (btnReading) btnReading.onclick = function() { new bootstrap.Modal(document.getElementById('readingCreateModal')).show(); };
+        if (btnTest) btnTest.onclick = function() { new bootstrap.Modal(document.getElementById('testCreateModal')).show(); };
+        if (btnGame) btnGame.onclick = function() { new bootstrap.Modal(document.getElementById('gameCreateModal')).show(); };
+    });
+    </script>
+    <!-- Incluir los modales parciales para cada tipo de actividad -->
+    {% include 'educational_games/activity/partials/assignment_create_modal.html' %}
+    {% include 'educational_games/activity/partials/reading_create_modal.html' %}
+    {% include 'educational_games/activity/partials/test_create_modal.html' %}
+    {% include 'educational_games/activity/partials/game_create_modal.html' %}
+    {% include 'educational_games/activity/partials/ficha_create_modal.html' %}
+{% endblock %}
+
+<!-- Modal Parcial: assignment_create_modal.html -->
+{% block assignment_create_modal %}
+<div class="modal fade" id="assignmentCreateModal" tabindex="-1" aria-labelledby="assignmentCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignmentCreateModalLabel">Nueva Tarea</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'educational_games:assignment_create' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="assignmentTitle" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="assignmentTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignmentDescription" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="assignmentDescription" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignmentDueDate" class="form-label">Fecha de Entrega</label>
+                        <input type="date" class="form-control" id="assignmentDueDate" name="due_date" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Crear Tarea</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- Modal Parcial: reading_create_modal.html -->
+{% block reading_create_modal %}
+<div class="modal fade" id="readingCreateModal" tabindex="-1" aria-labelledby="readingCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="readingCreateModalLabel">Nueva Lectura</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'educational_games:reading_create' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="readingTitle" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="readingTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="readingContent" class="form-label">Contenido</label>
+                        <textarea class="form-control" id="readingContent" name="content" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Crear Lectura</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- Modal Parcial: test_create_modal.html -->
+{% block test_create_modal %}
+<div class="modal fade" id="testCreateModal" tabindex="-1" aria-labelledby="testCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="testCreateModalLabel">Nuevo Test</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'educational_games:test_create' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="testTitle" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="testTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="testQuestions" class="form-label">Preguntas</label>
+                        <textarea class="form-control" id="testQuestions" name="questions" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Crear Test</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- Modal Parcial: game_create_modal.html -->
+{% block game_create_modal %}
+<div class="modal fade" id="gameCreateModal" tabindex="-1" aria-labelledby="gameCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="gameCreateModalLabel">Nuevo Juego</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'educational_games:game_create' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="gameTitle" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="gameTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="gameDescription" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="gameDescription" name="description" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Crear Juego</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- Modal Parcial: ficha_create_modal.html -->
+{% block ficha_create_modal %}
+<div class="modal fade" id="fichaCreateModal" tabindex="-1" aria-labelledby="fichaCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fichaCreateModalLabel">Nueva Ficha Multimedia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'educational_games:ficha_create' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="fichaTitle" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="fichaTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fichaType" class="form-label">Tipo</label>
+                        <select class="form-control" id="fichaType" name="type" required>
+                            <option value="">Selecciona un tipo</option>
+                            <option value="video">Video</option>
+                            <option value="audio">Audio</option>
+                            <option value="imagen">Imagen</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fichaContent" class="form-label">URL o Descripción</label>
+                        <textarea class="form-control" id="fichaContent" name="content" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Crear Ficha</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

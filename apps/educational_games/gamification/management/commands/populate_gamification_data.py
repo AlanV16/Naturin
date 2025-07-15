@@ -1,20 +1,25 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
+from django.contrib.auth import get_user_model
 from apps.educational_games.gamification.models import (
-    TipoActividad, TipoJuego, Insignias, Desafios, ConfiguracionGamificacion
+    Niveles, Insignias, ActivityType, GameType, 
+    ConfiguracionGamificacion, Desafios
 )
+from django.utils import timezone
+from datetime import timedelta
+
+User = get_user_model()
 
 class Command(BaseCommand):
-    help = 'Pobla datos iniciales para el sistema de gamificación'
+    help = 'Poblar datos iniciales de gamificación'
 
     def handle(self, *args, **options):
         self.stdout.write('Iniciando población de datos de gamificación...')
         
         # Crear tipos de actividades
-        self.create_tipos_actividad()
+        self.create_activity_types()
         
         # Crear tipos de juegos
-        self.create_tipos_juego()
+        self.create_game_types()
         
         # Crear insignias
         self.create_insignias()
@@ -22,212 +27,285 @@ class Command(BaseCommand):
         # Crear desafíos
         self.create_desafios()
         
-        # Crear configuraciones
+        # Crear configuraciones de gamificación
         self.create_configuraciones()
+        
+        # Crear niveles para usuarios existentes
+        self.create_niveles_for_users()
         
         self.stdout.write(
             self.style.SUCCESS('Datos de gamificación poblados exitosamente!')
         )
 
-    def create_tipos_actividad(self):
-        """Crear tipos de actividades básicos"""
-        tipos = [
-            'Cuestionario',
-            'Exploración',
-            'Investigación',
+    def create_activity_types(self):
+        """Crear tipos de actividades"""
+        activity_types = [
+            'Quiz',
+            'Tarea',
+            'Lectura',
+            'Juego Educativo',
+            'Test',
+            'Ficha Educativa',
             'Proyecto',
+            'Investigación',
             'Presentación',
-            'Debate',
-            'Experimento',
-            'Observación',
-            'Documentación',
-            'Análisis'
+            'Evaluación'
         ]
         
-        for tipo in tipos:
-            TipoActividad.objects.get_or_create(TipoActividad=tipo)
+        for tipo in activity_types:
+            ActivityType.objects.get_or_create(
+                TipoActividad=tipo
+            )
         
-        self.stdout.write(f'✓ {len(tipos)} tipos de actividades creados')
+        self.stdout.write(f'✓ {len(activity_types)} tipos de actividades creados')
 
-    def create_tipos_juego(self):
-        """Crear tipos de juegos básicos"""
-        tipos = [
-            (1, 'Cuestionario'),
-            (2, 'Emparejamiento'),
-            (3, 'Crucigrama'),
-            (4, 'Rompecabezas'),
-            (5, 'Memoria'),
-            (6, 'Sopa de Letras'),
-            (7, 'Ordenamiento'),
-            (8, 'Identificación'),
-            (9, 'Clasificación'),
-            (10, 'Simulación')
+    def create_game_types(self):
+        """Crear tipos de juegos"""
+        game_types = [
+            (1, 'Quiz'),
+            (2, 'Memoria'),
+            (3, 'Puzzle'),
+            (4, 'Aventura'),
+            (5, 'Simulación'),
+            (6, 'Estrategia'),
+            (7, 'Rol'),
+            (8, 'Carrera'),
+            (9, 'Rompecabezas'),
+            (10, 'Educativo')
         ]
         
-        for id_tipo, nombre in tipos:
-            TipoJuego.objects.get_or_create(
+        for id_tipo, nombre in game_types:
+            GameType.objects.get_or_create(
                 IDtipoJuego=id_tipo,
                 defaults={'TipoJuego': nombre}
             )
         
-        self.stdout.write(f'✓ {len(tipos)} tipos de juegos creados')
+        self.stdout.write(f'✓ {len(game_types)} tipos de juegos creados')
 
     def create_insignias(self):
-        """Crear insignias básicas"""
+        """Crear insignias según el sistema de niveles"""
         insignias_data = [
+            # Insignias por nivel
             {
-                'nombre': 'Primer Paso',
-                'descripcion': 'Completa tu primera actividad',
-                'tipo_insignia': 'first_activity',
-                'puntos_requeridos': 10,
-                'condicion': 'Completar 1 actividad'
+                'nombre': 'Explorador',
+                'descripcion': 'Has completado tus primeras actividades y comenzado tu viaje de aprendizaje',
+                'condicion': 'Alcanzar Nivel 2 (20-50 puntos)',
+                'puntos_requeridos': 20,
+                'tipo_insignia': 'explorer'
             },
             {
-                'nombre': 'Explorador Novato',
-                'descripcion': 'Completa 5 actividades',
-                'tipo_insignia': 'explorer',
+                'nombre': 'Investigador',
+                'descripcion': 'Has demostrado dedicación en tu investigación y aprendizaje',
+                'condicion': 'Alcanzar Nivel 3 (50-100 puntos)',
                 'puntos_requeridos': 50,
-                'condicion': 'Completar 5 actividades'
+                'tipo_insignia': 'explorer'
             },
             {
-                'nombre': 'Maestro de Cuestionarios',
-                'descripcion': 'Completa 10 cuestionarios',
-                'tipo_insignia': 'quiz_master',
+                'nombre': 'Maestro',
+                'descripcion': 'Has alcanzado un nivel avanzado de conocimiento y habilidad',
+                'condicion': 'Alcanzar Nivel 4 (100-500 puntos)',
                 'puntos_requeridos': 100,
-                'condicion': 'Completar 10 cuestionarios'
+                'tipo_insignia': 'conservationist'
+            },
+            {
+                'nombre': 'Experto',
+                'descripcion': 'Has demostrado dominio excepcional en múltiples áreas',
+                'condicion': 'Alcanzar Nivel 5 (500+ puntos)',
+                'puntos_requeridos': 500,
+                'tipo_insignia': 'conservationist'
+            },
+            {
+                'nombre': 'Leyenda',
+                'descripcion': 'Has alcanzado el nivel más alto de maestría',
+                'condicion': 'Alcanzar Nivel 6 (700+ puntos)',
+                'puntos_requeridos': 700,
+                'tipo_insignia': 'conservationist'
+            },
+            # Insignias especiales
+            {
+                'nombre': 'Primera Actividad',
+                'descripcion': 'Completaste tu primera actividad en la plataforma',
+                'condicion': 'Completar la primera actividad',
+                'puntos_requeridos': 5,
+                'tipo_insignia': 'first_activity'
             },
             {
                 'nombre': 'Puntuación Perfecta',
-                'descripcion': 'Obtén 100% en un cuestionario',
-                'tipo_insignia': 'perfect_score',
+                'descripcion': 'Obtuviste 100% en una evaluación',
+                'condicion': 'Obtener 100% en cualquier evaluación',
                 'puntos_requeridos': 0,
-                'condicion': 'Obtener 100% en cualquier actividad'
+                'tipo_insignia': 'perfect_score'
             },
             {
                 'nombre': 'Racha de 3',
-                'descripcion': 'Completa actividades 3 días seguidos',
-                'tipo_insignia': 'streak_3',
-                'puntos_requeridos': 30,
-                'condicion': 'Actividad diaria por 3 días'
+                'descripcion': 'Completaste 3 actividades consecutivas',
+                'condicion': 'Completar 3 actividades sin fallar',
+                'puntos_requeridos': 0,
+                'tipo_insignia': 'streak_3'
             },
             {
-                'nombre': 'Experto en Especies',
-                'descripcion': 'Completa actividades sobre 10 especies diferentes',
-                'tipo_insignia': 'especies_expert',
-                'puntos_requeridos': 200,
-                'condicion': 'Actividades sobre 10 especies'
+                'nombre': 'Racha de 7',
+                'descripcion': 'Completaste 7 actividades consecutivas',
+                'condicion': 'Completar 7 actividades sin fallar',
+                'puntos_requeridos': 0,
+                'tipo_insignia': 'streak_7'
             },
             {
-                'nombre': 'Conservacionista',
-                'descripcion': 'Completa actividades sobre conservación',
-                'tipo_insignia': 'conservationist',
-                'puntos_requeridos': 150,
-                'condicion': 'Actividades de conservación'
-            },
-            {
-                'nombre': 'Coleccionista',
-                'descripcion': 'Obtén 5 insignias diferentes',
-                'tipo_insignia': 'collector',
-                'puntos_requeridos': 300,
-                'condicion': 'Obtener 5 insignias'
+                'nombre': 'Racha de 30',
+                'descripcion': 'Completaste 30 actividades consecutivas',
+                'condicion': 'Completar 30 actividades sin fallar',
+                'puntos_requeridos': 0,
+                'tipo_insignia': 'streak_30'
             }
         ]
         
         for data in insignias_data:
             Insignias.objects.get_or_create(
                 nombre=data['nombre'],
-                defaults=data
+                defaults={
+                    'descripcion': data['descripcion'],
+                    'condicion': data['condicion'],
+                    'puntos_requeridos': data['puntos_requeridos'],
+                    'tipo_insignia': data['tipo_insignia']
+                }
             )
         
         self.stdout.write(f'✓ {len(insignias_data)} insignias creadas')
 
     def create_desafios(self):
-        """Crear desafíos básicos"""
-        ahora = timezone.now()
-        
+        """Crear desafíos diarios y semanales"""
         desafios_data = [
             {
-                'nombre': 'Desafío Diario: Explorador',
-                'descripcion': 'Completa una actividad de exploración hoy',
-                'tipo_desafio': 'diario',
-                'puntos': 20,
+                'nombre': 'Explorador Diario',
+                'descripcion': 'Completa al menos una actividad hoy',
+                'puntos': 10,
                 'nivel_minimo': 1,
-                'condicion': 'Actividad de exploración',
-                'fecha_inicio': ahora,
-                'fecha_fin': ahora + timezone.timedelta(days=1),
-                'activo': True
+                'tipo_desafio': 'diario',
+                'condicion': 'Completar 1 actividad',
+                'fecha_inicio': timezone.now(),
+                'fecha_fin': timezone.now() + timedelta(days=1)
             },
             {
-                'nombre': 'Desafío Semanal: Investigador',
-                'descripcion': 'Completa 5 actividades de investigación esta semana',
-                'tipo_desafio': 'semanal',
-                'puntos': 100,
+                'nombre': 'Investigador Semanal',
+                'descripcion': 'Completa 5 actividades esta semana',
+                'puntos': 50,
                 'nivel_minimo': 2,
-                'condicion': '5 actividades de investigación',
-                'fecha_inicio': ahora,
-                'fecha_fin': ahora + timezone.timedelta(weeks=1),
-                'activo': True
+                'tipo_desafio': 'semanal',
+                'condicion': 'Completar 5 actividades',
+                'fecha_inicio': timezone.now(),
+                'fecha_fin': timezone.now() + timedelta(days=7)
             },
             {
-                'nombre': 'Desafío Especial: Maestro',
-                'descripcion': 'Obtén 3 puntuaciones perfectas',
-                'tipo_desafio': 'especial',
+                'nombre': 'Maestro Mensual',
+                'descripcion': 'Completa 20 actividades este mes',
                 'puntos': 200,
                 'nivel_minimo': 3,
-                'condicion': '3 puntuaciones perfectas',
-                'fecha_inicio': ahora,
-                'fecha_fin': ahora + timezone.timedelta(weeks=2),
-                'activo': True
+                'tipo_desafio': 'especial',
+                'condicion': 'Completar 20 actividades',
+                'fecha_inicio': timezone.now(),
+                'fecha_fin': timezone.now() + timedelta(days=30)
             }
         ]
         
         for data in desafios_data:
             Desafios.objects.get_or_create(
                 nombre=data['nombre'],
-                defaults=data
+                defaults={
+                    'descripcion': data['descripcion'],
+                    'puntos': data['puntos'],
+                    'nivel_minimo': data['nivel_minimo'],
+                    'tipo_desafio': data['tipo_desafio'],
+                    'condicion': data['condicion'],
+                    'fecha_inicio': data['fecha_inicio'],
+                    'fecha_fin': data['fecha_fin'],
+                    'activo': True
+                }
             )
         
         self.stdout.write(f'✓ {len(desafios_data)} desafíos creados')
 
     def create_configuraciones(self):
-        """Crear configuraciones básicas del sistema"""
+        """Crear configuraciones del sistema de gamificación"""
         configuraciones = [
             {
-                'nombre_configuracion': 'puntos_por_actividad',
-                'valor': '10',
-                'descripcion': 'Puntos base por completar una actividad',
-                'activo': True
-            },
-            {
-                'nombre_configuracion': 'puntos_por_juego',
-                'valor': '15',
-                'descripcion': 'Puntos base por completar un juego',
-                'activo': True
-            },
-            {
-                'nombre_configuracion': 'puntos_bonus_perfecto',
+                'nombre_configuracion': 'puntos_nivel_1',
                 'valor': '5',
-                'descripcion': 'Puntos bonus por puntuación perfecta',
-                'activo': True
+                'descripcion': 'Puntos por actividad en Nivel 1 (0-20 puntos)'
             },
             {
-                'nombre_configuracion': 'puntos_racha_diaria',
-                'valor': '3',
-                'descripcion': 'Puntos bonus por mantener racha diaria',
-                'activo': True
-            },
-            {
-                'nombre_configuracion': 'nivel_maximo',
+                'nombre_configuracion': 'puntos_nivel_2',
                 'valor': '10',
-                'descripcion': 'Nivel máximo alcanzable',
-                'activo': True
+                'descripcion': 'Puntos por actividad en Nivel 2 (20-50 puntos)'
+            },
+            {
+                'nombre_configuracion': 'puntos_nivel_3',
+                'valor': '15',
+                'descripcion': 'Puntos por actividad en Nivel 3 (50-100 puntos)'
+            },
+            {
+                'nombre_configuracion': 'puntos_nivel_4',
+                'valor': '20',
+                'descripcion': 'Puntos por actividad en Nivel 4 (100-500 puntos)'
+            },
+            {
+                'nombre_configuracion': 'puntos_nivel_superior',
+                'valor': '25',
+                'descripcion': 'Puntos por actividad en niveles superiores (500+ puntos)'
+            },
+            {
+                'nombre_configuracion': 'incremento_nivel_superior',
+                'valor': '5',
+                'descripcion': 'Incremento de puntos por nivel adicional en niveles superiores'
+            },
+            {
+                'nombre_configuracion': 'puntos_racha_3',
+                'valor': '15',
+                'descripcion': 'Puntos bonus por racha de 3 actividades'
+            },
+            {
+                'nombre_configuracion': 'puntos_racha_7',
+                'valor': '50',
+                'descripcion': 'Puntos bonus por racha de 7 actividades'
+            },
+            {
+                'nombre_configuracion': 'puntos_racha_30',
+                'valor': '200',
+                'descripcion': 'Puntos bonus por racha de 30 actividades'
+            },
+            {
+                'nombre_configuracion': 'puntos_perfect_score',
+                'valor': '25',
+                'descripcion': 'Puntos bonus por puntuación perfecta (100%)'
             }
         ]
         
         for config in configuraciones:
             ConfiguracionGamificacion.objects.get_or_create(
                 nombre_configuracion=config['nombre_configuracion'],
-                defaults=config
+                defaults={
+                    'valor': config['valor'],
+                    'descripcion': config['descripcion'],
+                    'activo': True
+                }
             )
         
-        self.stdout.write(f'✓ {len(configuraciones)} configuraciones creadas') 
+        self.stdout.write(f'✓ {len(configuraciones)} configuraciones creadas')
+
+    def create_niveles_for_users(self):
+        """Crear niveles para usuarios existentes"""
+        users = User.objects.all()
+        created_count = 0
+        
+        for user in users:
+            nivel, created = Niveles.objects.get_or_create(
+                IDusuario=user,
+                defaults={
+                    'nivel': 1,
+                    'puntos_acumulados': 0,
+                    'fecha_actualizacion': timezone.now()
+                }
+            )
+            if created:
+                created_count += 1
+        
+        self.stdout.write(f'✓ Niveles creados para {created_count} usuarios') 

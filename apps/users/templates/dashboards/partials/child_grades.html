@@ -1,0 +1,33 @@
+{% for grade in grades %}
+<div class="grade-item">
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="flex-grow-1">
+            <h6 class="fw-bold mb-1">{{ grade.assignment }}</h6>
+            <small class="text-muted">{{ grade.course }} - {{ grade.teacher }}</small>
+            <div class="mt-1">
+                <small class="text-muted">Entregada: {{ grade.submitted_date }}</small>
+            </div>
+        </div>
+        <div class="text-end">
+            <div class="grade-score">
+                <span class="fw-bold text-primary">{{ grade.grade }}/{{ grade.max_points }}</span>
+            </div>
+            <div class="grade-percentage">
+                <small class="text-muted">{{ grade.percentage }}%</small>
+            </div>
+            <div class="grade-bar mt-1">
+                <div class="progress" style="width: 60px; height: 6px;">
+                    <div class="progress-bar {% if grade.percentage >= 80 %}bg-success{% elif grade.percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                         role="progressbar" style="width: {{ grade.percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="text-center py-4">
+    <i class="bi bi-star text-muted" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-2">No hay calificaciones disponibles</p>
+    <small class="text-muted">Las calificaciones aparecerán aquí cuando sean publicadas</small>
+</div>
+{% endfor %} 

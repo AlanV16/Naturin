@@ -1,0 +1,33 @@
+<!-- Modal Crear Ficha Multimedia -->
+<div class="modal fade" id="fichaCreateModal" tabindex="-1" aria-labelledby="fichaCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fichaCreateModalLabel">Nueva Ficha Multimedia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="fichaCreateForm">
+                    <div class="mb-3">
+                        <label for="fichaTitle" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="fichaTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fichaType" class="form-label">Tipo</label>
+                        <select class="form-control" id="fichaType" name="type" required>
+                            <option value="">Selecciona un tipo</option>
+                            <option value="video">Video</option>
+                            <option value="audio">Audio</option>
+                            <option value="imagen">Imagen</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fichaContent" class="form-label">URL o Descripción</label>
+                        <textarea class="form-control" id="fichaContent" name="content" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Crear Ficha</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> 

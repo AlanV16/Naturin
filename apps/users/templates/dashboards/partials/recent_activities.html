@@ -1,0 +1,26 @@
+{% for activity in activities %}
+<div class="activity-item">
+    <div class="activity-icon activity-{{ activity.type }}">
+        {% if activity.type == 'assignment' %}
+            <i class="bi bi-file-earmark-check"></i>
+        {% elif activity.type == 'grade' %}
+            <i class="bi bi-star-fill"></i>
+        {% elif activity.type == 'course' %}
+            <i class="bi bi-book"></i>
+        {% else %}
+            <i class="bi bi-activity"></i>
+        {% endif %}
+    </div>
+    <div class="flex-grow-1">
+        <div class="fw-semibold">{{ activity.description }}</div>
+        <small class="text-muted">{{ activity.date }}</small>
+        <div class="text-primary small">{{ activity.time|timesince }} atrás</div>
+    </div>
+</div>
+{% empty %}
+<div class="text-center py-4">
+    <i class="bi bi-clock-history text-muted" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-2">No hay actividad reciente</p>
+    <small class="text-muted">Las actividades de tus hijos aparecerán aquí</small>
+</div>
+{% endfor %} 

@@ -2,7 +2,7 @@
     background: #183c2b;
     min-height: 100vh;
     border-radius: 24px 0 0 24px;
-        padding: 1rem 0; /* Reduce el padding general */
+    padding: 1rem 0; /* Reduce el padding general */
 }
 
 /* Ocultar completamente la sección de la mascota */
@@ -17,7 +17,7 @@
     justify-content: center !important;
     text-align: center !important;
     padding: 12px 8px !important; /* Reduce el padding */
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     color: #a0aec0; /* Color más claro para mejor contraste */
     border-radius: 10px;
     transition: all 0.3s ease;
@@ -25,6 +25,7 @@
     border: 1px solid transparent;
     min-height: 65px; /* Reduce la altura mínima */
     margin-bottom: 6px; /* Reduce el espacio entre botones */
+    font-weight: 500;
 }
 
 .sidebar-btn i {
@@ -45,17 +46,22 @@
 }
 
 .sidebar-btn:hover {
-    background: rgba(102, 126, 234, 0.2);
+    background: rgba(26, 185, 134, 0.18); /* Verde-azulado translúcido */
     color: #ffffff;
     transform: translateY(-2px);
-    border-color: rgba(102, 126, 234, 0.3);
+    border-color: rgba(24, 69, 106, 0.15);
     text-decoration: none;
 }
 
 .sidebar-btn.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #183c2b 0%, #18456a 60%, #1ab986 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(24, 69, 106, 0.18);
+    font-weight: 700;
+}
+
+.sidebar-btn.active i {
+    color: #fff;
 }
 
 /* Reduce el espaciado del nav */
@@ -82,15 +88,15 @@
 }
 
 .achievement-badge.earned {
-    background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
-    border-color: #fdcb6e;
-    color: #2d3436;
-    box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);
+    background: linear-gradient(135deg, #eafaf2 0%, #c0ede3 100%);
+    border-color: #1ab986;
+    color: #15435b;
+    box-shadow: 0 4px 15px rgba(26, 185, 134, 0.10);
 }
 
 .achievement-badge.earned:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(253, 203, 110, 0.4);
+    box-shadow: 0 8px 25px rgba(26, 185, 134, 0.16);
 }
 
 .achievement-badge.locked {
@@ -126,7 +132,7 @@
     top: 5px;
     right: 5px;
     background: rgba(255, 255, 255, 0.9);
-    color: #e17055;
+    color: #1ab986;
     font-size: 0.6rem;
     font-weight: bold;
     padding: 2px 6px;
@@ -162,7 +168,7 @@
 .completion-percentage {
     font-size: 1.8rem;
     font-weight: bold;
-    color: #2d3748;
+    color: #183c2b;
     line-height: 1;
 }
 
@@ -179,30 +185,162 @@
 }
 
 /* Color coding para diferentes niveles de rendimiento */
-.performance-excellent { color: #28a745 !important; }
+.performance-excellent { color: #1ab986 !important; }
 .performance-good { color: #ffc107 !important; }
 .performance-needs-improvement { color: #dc3545 !important; }
+
+/* Card y layout general */
+.stats-card {
+    background: linear-gradient(90deg, #eafaf2 0%, #e8f4fa 100%);
+    color: #183c2b;
+    border-radius: 14px;
+    padding: 1.4rem 1.2rem 1.2rem 1.2rem;
+    box-shadow: 0 2px 14px 0 #d7ece6;
+    border: none;
+    margin-bottom: 1rem;
+}
+
+.stats-card h6 {
+    color: #18456a;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: .2rem;
+}
+
+.stat-label {
+    font-size: .95rem;
+    font-weight: 500;
+    color: #5e7d6b;
+}
+
+.activity-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 1.1rem 1.1rem 1.05rem 1.1rem;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 3px 16px #d7ece6;
+    border: 1px solid #e3f6ee;
+}
+
+.activity-card h6, .section-title, .student-name {
+    color: #183c2b;
+    font-weight: 700;
+}
+
+.activity-card p {
+    color: #5e7d6b;
+}
+
+.btn-success, .btn-primary {
+    background: linear-gradient(90deg, #18456a 0%, #1ab986 100%);
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    color: #fff;
+    transition: all 0.2s ease;
+}
+
+.btn-success:hover, .btn-primary:hover {
+    background: linear-gradient(90deg, #1ab986 0%, #18456a 100%);
+    color: #fff;
+    box-shadow: 0 6px 20px #d7ece6;
+}
+
+.badge.bg-success {
+    background: #1ab986 !important;
+    color: #fff;
+    font-weight: 600;
+}
+
+.badge.bg-primary {
+    background: linear-gradient(90deg, #1ab986 0%, #18456a 100%) !important;
+    color: #fff;
+    font-weight: 600;
+}
+
+.empty-state {
+    text-align: center;
+    color: #5e7d6b;
+    opacity: .92;
+}
+
+.empty-state i {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 1px solid #e3f6ee;
+}
+
+.form-control:focus {
+    border-color: #1ab986;
+    box-shadow: 0 0 0 2px #d7ece6;
+}
+
+.input-group .btn {
+    border-radius: 0 10px 10px 0;
+}
+
+.progress-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: conic-gradient(#1ab986 0deg 270deg, #e3f6ee 270deg 360deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    position: relative;
+}
+
+.progress-circle::before {
+    content: attr(data-progress) '%';
+    background: white;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #183c2b;
+    font-size: 1.5rem;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
 
 @media (max-width: 768px) {
     .sidebar-btn {
         min-height: 55px;
         padding: 8px 6px !important;
     }
-    
+
     .sidebar-btn i {
         font-size: 1.1rem !important;
         margin-bottom: 4px !important;
     }
-    
+
     .sidebar-btn span {
         font-size: 0.7rem !important;
     }
-    
+
     .achievements-grid {
         grid-template-columns: 1fr;
         gap: 8px;
     }
-    
+
     .achievement-badge {
         min-height: 100px;
         padding: 10px;

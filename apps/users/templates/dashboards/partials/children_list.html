@@ -1,0 +1,27 @@
+{% for child in children %}
+<div class="child-card" data-child-id="{{ child.id }}">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h6 class="fw-bold mb-1">{{ child.name }}</h6>
+            <small class="text-muted">Grado: {{ child.grade }}</small>
+        </div>
+        <div class="text-end">
+            <div class="progress mb-2" style="width: 100px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: {{ child.progress|default:0 }}%"></div>
+            </div>
+            <small class="text-muted">Progreso: {{ child.progress|default:0 }}%</small>
+        </div>
+    </div>
+    <div class="mt-2 text-end">
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteChild({{ child.id }})">
+            <i class="bi bi-trash"></i>
+        </button>
+    </div>
+</div>
+{% empty %}
+<div class="text-center py-4">
+    <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-2">No tienes hijos registrados aún</p>
+    <button class="btn btn-parent-primary" data-bs-toggle="modal" data-bs-target="#addChildModal">Registrar Primer Hijo</button>
+</div>
+{% endfor %} 

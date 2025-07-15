@@ -1,0 +1,163 @@
+<!-- Modal Crear Lectura -->
+<div class="modal fade" id="readingCreateModal" tabindex="-1" aria-labelledby="readingCreateModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="readingCreateModalLabel">
+          <i class="bi bi-book me-2"></i>Crear Nueva Lectura
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="readingCreateForm" class="needs-validation" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          <div class="form-section mb-3">
+            <h5><i class="bi bi-info-circle me-2"></i>Información Básica</h5>
+            <div class="row">
+              <div class="col-md-8 mb-3">
+                <label for="title" class="form-label">Título de la Lectura *</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+                <div class="invalid-feedback">Por favor ingresa un título para la lectura.</div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="difficulty" class="form-label">Nivel de Dificultad *</label>
+                <select class="form-select" id="difficulty" name="difficulty" required>
+                  <option value="">Selecciona nivel</option>
+                  <option value="beginner">Principiante</option>
+                  <option value="intermediate">Intermedio</option>
+                  <option value="advanced">Avanzado</option>
+                </select>
+                <div class="invalid-feedback">Por favor selecciona un nivel de dificultad.</div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="description" class="form-label">Descripción *</label>
+              <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+              <div class="invalid-feedback">Por favor ingresa una descripción.</div>
+            </div>
+            <div class="mb-3">
+              <label for="content" class="form-label">Contenido de la Lectura *</label>
+              <textarea class="form-control" id="content" name="content" rows="8" required></textarea>
+              <div class="invalid-feedback">Por favor ingresa el contenido de la lectura.</div>
+            </div>
+          </div>
+          <div class="form-section mb-3">
+            <h5><i class="bi bi-calendar-check me-2"></i>Configuración de Lectura</h5>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="estimated_time" class="form-label">Tiempo Estimado (minutos) *</label>
+                <input type="number" class="form-control" id="estimated_time" name="estimated_time" min="1" max="480" value="15" required>
+                <div class="invalid-feedback">Por favor ingresa el tiempo estimado.</div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="reading_type" class="form-label">Tipo de Lectura *</label>
+                <select class="form-select" id="reading_type" name="reading_type" required>
+                  <option value="">Selecciona tipo</option>
+                  <option value="article">Artículo</option>
+                  <option value="story">Cuento</option>
+                  <option value="poem">Poema</option>
+                  <option value="document">Documento</option>
+                  <option value="other">Otro</option>
+                </select>
+                <div class="invalid-feedback">Por favor selecciona un tipo de lectura.</div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="attachments" class="form-label">Archivos Adjuntos</label>
+              <input type="file" class="form-control" id="attachments" name="attachments" multiple accept=".doc,.docx,.pdf,.jpg,.png,.jpeg">
+              <div class="help-text">Puedes adjuntar archivos relacionados a la lectura</div>
+            </div>
+          </div>
+          <div class="form-section mb-3">
+            <h5><i class="bi bi-people me-2"></i>Asignar a Aula</h5>
+            <div class="mb-3">
+              <label for="classroom" class="form-label">Aula *</label>
+              <select class="form-select" id="classroom" name="classroom" required>
+                <option value="">Selecciona un aula</option>
+                {% for classroom in classrooms %}
+                  <option value="{{ classroom.id }}">{{ classroom.name }} ({{ classroom.code }})</option>
+                {% endfor %}
+              </select>
+              <div class="invalid-feedback">Por favor selecciona un aula.</div>
+            </div>
+          </div>
+          <div class="form-section mb-0">
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <button type="submit" class="btn btn-success w-100">
+                  <i class="bi bi-check-circle me-2"></i>Crear Lectura
+                </button>
+              </div>
+              <div class="col-md-6 mb-2">
+                <button type="button" class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">
+                  <i class="bi bi-x-circle me-2"></i>Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+        <div id="readingCreateSuccess" class="alert alert-success mt-3 d-none" role="alert">
+          ¡Lectura creada exitosamente!
+        </div>
+        <div id="readingCreateError" class="alert alert-danger mt-3 d-none" role="alert">
+          Error al crear la lectura. Por favor, revisa los campos e inténtalo de nuevo.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var form = document.getElementById('readingCreateForm');
+  var errorDiv = document.getElementById('readingCreateError');
+  var successDiv = document.getElementById('readingCreateSuccess');
+  
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Ocultar mensajes anteriores
+      errorDiv.classList.add('d-none');
+      successDiv.classList.add('d-none');
+      
+      // Validar formulario
+      if (!form.checkValidity()) {
+        form.classList.add('was-validated');
+        return;
+      }
+      
+      // Crear FormData
+      var formData = new FormData(form);
+      
+      // Enviar formulario
+      fetch('{% url "educational_games:reading_create" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          successDiv.textContent = '¡Lectura creada exitosamente!';
+          successDiv.classList.remove('d-none');
+          form.reset();
+          setTimeout(() => {
+            bootstrap.Modal.getInstance(document.getElementById('readingCreateModal')).hide();
+            location.reload();
+          }, 1500);
+        } else {
+          errorDiv.textContent = data.error || 'Error al crear la lectura.';
+          errorDiv.classList.remove('d-none');
+        }
+      })
+      .catch(error => {
+        errorDiv.textContent = 'Error de conexión. Por favor, inténtalo de nuevo.';
+        errorDiv.classList.remove('d-none');
+      });
+    });
+  }
+});
+</script> 

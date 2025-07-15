@@ -1,0 +1,28 @@
+{% for suggestion in suggestions %}
+<div class="suggestion-card">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h6 class="fw-bold text-primary">{{ suggestion.get_type_display }}</h6>
+            <p class="mb-1">{{ suggestion.description }}</p>
+            <small class="text-muted">{{ suggestion.created_at|date:"d/m/Y H:i" }}</small>
+        </div>
+        <div class="suggestion-status">
+            {% if suggestion.status == 'pending' %}
+                <span class="badge bg-warning">Pendiente</span>
+            {% elif suggestion.status == 'approved' %}
+                <span class="badge bg-success">Aprobada</span>
+            {% elif suggestion.status == 'rejected' %}
+                <span class="badge bg-danger">Rechazada</span>
+            {% else %}
+                <span class="badge bg-secondary">En revisión</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="text-center py-4">
+    <i class="bi bi-lightbulb text-muted" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-2">No has enviado sugerencias aún</p>
+    <small class="text-muted">Comparte tus ideas para mejorar la experiencia educativa</small>
+</div>
+{% endfor %} 

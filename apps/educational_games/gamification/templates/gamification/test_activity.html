@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Probar Actividad - Gamificación{% endblock %}
+
+{% block extra_css %}
+<style>
+    .test-activity-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    .activity-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .result-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-top: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        display: none;
+    }
+    
+    .points-animation {
+        animation: pointsGain 1s ease-out;
+    }
+    
+    @keyframes pointsGain {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+    
+    .level-up-animation {
+        animation: levelUp 2s ease-out;
+    }
+    
+    @keyframes levelUp {
+        0% { transform: scale(1); }
+        25% { transform: scale(1.1); }
+        50% { transform: scale(1.2); }
+        75% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .achievement-unlocked {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+        animation: achievementUnlock 1s ease-out;
+    }
+    
+    @keyframes achievementUnlock {
+        0% { opacity: 0; transform: translateY(-20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="test-activity-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <!-- Formulario de actividad -->
+                <div class="activity-card">
+                    <h3 class="text-center mb-4">
+                        <i class="bi bi-play-circle me-2"></i>
+                        Probar Sistema de Gamificación
+                    </h3>
+                    
+                    <form id="activityForm">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="actividad_tipo" class="form-label">Tipo de Actividad</label>
+                            <select class="form-select" id="actividad_tipo" name="actividad_tipo" required>
+                                <option value="">Seleccionar tipo de actividad</option>
+                                <option value="Quiz">Quiz</option>
+                                <option value="Tarea">Tarea</option>
+                                <option value="Lectura">Lectura</option>
+                                <option value="Juego Educativo">Juego Educativo</option>
+                                <option value="Test">Test</option>
+                                <option value="Ficha Educativa">Ficha Educativa</option>
+                                <option value="Proyecto">Proyecto</option>
+                                <option value="Investigación">Investigación</option>
+                                <option value="Presentación">Presentación</option>
+                                <option value="Evaluación">Evaluación</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="puntuacion" class="form-label">Puntuación (%)</label>
+                            <input type="range" class="form-range" id="puntuacion" name="puntuacion" 
+                                   min="0" max="100" value="100" oninput="updatePuntuacionValue(this.value)">
+                            <div class="text-center">
+                                <span id="puntuacionValue" class="badge bg-primary fs-5">100%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Completar Actividad
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Resultados -->
+                <div class="result-card" id="resultCard">
+                    <h4 class="text-center mb-4">
+                        <i class="bi bi-trophy-fill text-warning me-2"></i>
+                        ¡Actividad Completada!
+                    </h4>
+                    
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="points-animation">
+                                <h5 class="text-success">+<span id="puntosGanados">0</span></h5>
+                                <p class="text-muted">Puntos Ganados</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="points-animation">
+                                <h5 class="text-primary"><span id="puntosTotales">0</span></h5>
+                                <p class="text-muted">Puntos Totales</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="points-animation">
+                                <h5 class="text-info">Nivel <span id="nivelActual">1</span></h5>
+                                <p class="text-muted">Nivel Actual</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="levelUpMessage" class="alert alert-success text-center mt-3" style="display: none;">
+                        <i class="bi bi-arrow-up-circle me-2"></i>
+                        <strong>¡Felicitaciones! ¡Has subido de nivel!</strong>
+                    </div>
+                    
+                    <div id="achievementsUnlocked">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button class="btn btn-outline-primary" onclick="location.reload()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>
+                            Probar Otra Actividad
+                        </button>
+                        <a href="{% url 'gamification:gamification_dashboard' %}" class="btn btn-primary ms-2">
+                            <i class="bi bi-trophy me-2"></i>
+                            Ver Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updatePuntuacionValue(value) {
+        document.getElementById('puntuacionValue').textContent = value + '%';
+    }
+    
+    document.getElementById('activityForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const submitButton = this.querySelector('button[type="submit"]');
+        const originalText = submitButton.innerHTML;
+        
+        // Cambiar texto del botón
+        submitButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Procesando...';
+        submitButton.disabled = true;
+        
+        fetch('{% url "gamification:test_activity_completion" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mostrar resultados
+                document.getElementById('puntosGanados').textContent = data.puntos_ganados;
+                document.getElementById('puntosTotales').textContent = data.puntos_acumulados;
+                document.getElementById('nivelActual').textContent = data.nivel_actual;
+                
+                // Mostrar mensaje de subida de nivel
+                if (data.subio_nivel) {
+                    document.getElementById('levelUpMessage').style.display = 'block';
+                    document.getElementById('levelUpMessage').classList.add('level-up-animation');
+                }
+                
+                // Mostrar insignias desbloqueadas
+                const achievementsContainer = document.getElementById('achievementsUnlocked');
+                if (data.insignias_desbloqueadas && data.insignias_desbloqueadas.length > 0) {
+                    achievementsContainer.innerHTML = '<h5 class="text-center mb-3">¡Nuevas Insignias Desbloqueadas!</h5>';
+                    data.insignias_desbloqueadas.forEach(insignia => {
+                        achievementsContainer.innerHTML += `
+                            <div class="achievement-unlocked">
+                                <i class="bi bi-award-fill me-2"></i>
+                                <strong>${insignia.nombre}</strong>
+                                <br>
+                                <small>${insignia.descripcion}</small>
+                            </div>
+                        `;
+                    });
+                }
+                
+                // Mostrar tarjeta de resultados
+                document.getElementById('resultCard').style.display = 'block';
+                document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+                
+            } else {
+                alert('Error: ' + (data.error || 'Error desconocido'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al procesar la actividad');
+        })
+        .finally(() => {
+            // Restaurar botón
+            submitButton.innerHTML = originalText;
+            submitButton.disabled = false;
+        });
+    });
+</script>
+{% endblock %} 

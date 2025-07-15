@@ -93,12 +93,12 @@
     <div class="chat-header">
         <div class="d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center">
-                <a href="{% url 'users:class_teacher' class_id=classroom.IDaula %}" class="btn back-btn me-3">
+                <a href="{% if user.user_type == 2 %}{% url 'users:class_teacher' class_id=classroom.id %}{% else %}{% url 'users:class_student' class_id=classroom.id %}{% endif %}" class="btn back-btn me-3">
                     <i class="bi bi-arrow-left me-2"></i>
                     Volver a la Clase
                 </a>
                 <div>
-                    <h5 class="mb-0">Chat de {{ classroom.NombreAula }}</h5>
+                    <h5 class="mb-0">Chat de {{ classroom.name }}</h5>
                     <small class="text-muted">
                         {% if user.user_type == 2 %}
                             Docente: {{ user.get_full_name }}
@@ -110,7 +110,7 @@
             </div>
             <div class="text-end">
                 <span class="badge bg-success">Activo</span>
-                <small class="text-muted ms-2">{{ conversation.participants.count }} participantes</small>
+                <small class="text-muted ms-2">{{ messages.count }} mensajes</small>
             </div>
         </div>
     </div>
@@ -125,13 +125,6 @@
                 <div class="message-text">{{ message.content }}</div>
                 <div class="message-time text-end">
                     {{ message.created_at|date:"H:i" }}
-                    {% if message.sender == user %}
-                        {% if message.is_read %}
-                            <i class="bi bi-check2-all text-primary ms-1"></i>
-                        {% else %}
-                            <i class="bi bi-check2 text-muted ms-1"></i>
-                        {% endif %}
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -173,7 +166,7 @@
         
         if (message) {
             // Enviar mensaje vía AJAX
-            fetch(window.location.href, {
+            fetch('{% url "users:class_chat_api" class_id=classroom.id %}', {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
@@ -181,11 +174,14 @@
                 },
                 body: `message=${encodeURIComponent(message)}`
             })
-            .then(response => {
-                if (response.ok) {
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
                     messageInput.value = '';
-                    // Recargar mensajes
-                    location.reload();
+                    // Agregar mensaje al chat inmediatamente
+                    addMessageToChat(data.message.content, 'sent', data.message.sender_name);
+                } else {
+                    console.error('Error:', data.error);
                 }
             })
             .catch(error => {
@@ -194,20 +190,63 @@
         }
     });
     
+    function addMessageToChat(content, type, senderName = null) {
+        const chatMessages = document.getElementById('chatMessages');
+        const emptyState = chatMessages.querySelector('.text-center');
+        
+        // Remover empty state si existe
+        if (emptyState) {
+            emptyState.remove();
+        }
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        
+        if (type === 'received' && senderName) {
+            const senderDiv = document.createElement('div');
+            senderDiv.className = 'message-sender';
+            senderDiv.textContent = senderName;
+            messageContent.appendChild(senderDiv);
+        }
+        
+        const textDiv = document.createElement('div');
+        textDiv.className = 'message-text';
+        textDiv.textContent = content;
+        messageContent.appendChild(textDiv);
+        
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'message-time text-end';
+        timeDiv.textContent = new Date().toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
+        messageContent.appendChild(timeDiv);
+        
+        messageDiv.appendChild(messageContent);
+        chatMessages.appendChild(messageDiv);
+        
+        // Scroll al final
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
     // Auto-refresh cada 3 segundos para chat de aula
     setInterval(() => {
-        fetch(window.location.href)
-            .then(response => response.text())
-            .then(html => {
-                // Solo actualizar si hay cambios
-                const currentMessages = document.getElementById('chatMessages').innerHTML;
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newMessages = doc.getElementById('chatMessages').innerHTML;
-                
-                if (currentMessages !== newMessages) {
-                    document.getElementById('chatMessages').innerHTML = newMessages;
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
+        fetch('{% url "users:class_chat_api" class_id=classroom.id %}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const currentMessages = document.getElementById('chatMessages');
+                    const messageCount = currentMessages.querySelectorAll('.message').length;
+                    
+                    if (data.messages.length > messageCount) {
+                        // Solo agregar mensajes nuevos
+                        for (let i = messageCount; i < data.messages.length; i++) {
+                            const msg = data.messages[i];
+                            if (!msg.is_own) {
+                                addMessageToChat(msg.content, 'received', msg.sender_name);
+                            }
+                        }
+                    }
                 }
             })
             .catch(error => {

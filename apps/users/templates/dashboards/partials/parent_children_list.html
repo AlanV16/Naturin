@@ -1,23 +1,14 @@
-{% if children %}
-    {% for child in children %}
-    <div class="col-md-6 mb-3">
-        <div class="card child-card h-100">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <img src="{% static 'images/child_placeholder.png' %}" alt="Foto del niño" class="rounded-circle" width="80">
-                </div>
-                <h6 class="card-title fw-bold">{{ child.name }}</h6>
-                <p class="small text-muted mb-2">Grado: {{ child.grade }}</p>
-                <div class="progress mb-2">
-                    <div class="progress-bar bg-success" role="progressbar" aria-valuenow="{{ child.progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ child.progress }}%"></div>
-                </div>
-                <p class="small mb-0">Progreso: {{ child.progress }}%</p>
-            </div>
-        </div>
+{% for child in children %}
+<div class="child-card" data-child-id="{{ child.id }}">
+    <div>
+        <h6 class="fw-bold mb-1">{{ child.get_full_name }}</h6>
+        <small class="text-muted">Usuario: {{ child.username }}</small><br>
+        <small class="text-muted">Correo: {{ child.email }}</small>
     </div>
-    {% endfor %}
-{% else %}
-<div class="col-12">
-    <p class="text-muted">No hay hijos registrados.</p>
 </div>
-{% endif %} 
+{% empty %}
+<div class="text-center py-4">
+    <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-2">No tienes hijos vinculados aún</p>
+</div>
+{% endfor %} 

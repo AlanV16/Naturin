@@ -4,6 +4,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/student/courses.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboards/dashboard_optimized.css' %}">
 {% endblock %}
 
 {% block header %}
@@ -14,7 +15,7 @@
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
-                            <a href="{% url 'users:dashboard_teacher' user_id=user.id %}" class="back-to-dashboard">
+            <a href="{% url 'users:dashboard_teacher' user_id=user.id %}" class="back-to-dashboard">
                 <i class="bi bi-arrow-left"></i>
                 Volver 
             </a>

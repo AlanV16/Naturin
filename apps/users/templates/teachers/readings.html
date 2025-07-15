@@ -1,0 +1,565 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+    <style>
+        .reading-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+        
+        .reading-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .reading-header {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .reading-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 0.5rem;
+        }
+        
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #17a2b8;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        .filter-section {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .btn-create-reading {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-create-reading:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.3);
+            color: white;
+        }
+        
+        .type-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .type-pdf {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .type-video {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .type-audio {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .type-interactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .file-preview {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="bi bi-book text-info me-2"></i>
+                        Gestión de Lecturas
+                    </h2>
+                    <p class="text-muted mb-0">Crea y gestiona material de lectura para tus estudiantes</p>
+                </div>
+                <button class="btn btn-create-reading" onclick="showCreateReadingModal()">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Crear Nueva Lectura
+                </button>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filter-section">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="classroomFilter" class="form-label">Aula</label>
+                        <select class="form-select" id="classroomFilter">
+                            <option value="">Todas las aulas</option>
+                            {% for classroom in classrooms %}
+                            <option value="{{ classroom.id }}">{{ classroom.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="typeFilter" class="form-label">Tipo</label>
+                        <select class="form-select" id="typeFilter">
+                            <option value="">Todos los tipos</option>
+                            <option value="pdf">PDF</option>
+                            <option value="video">Video</option>
+                            <option value="audio">Audio</option>
+                            <option value="interactive">Interactivo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="categoryFilter" class="form-label">Categoría</label>
+                        <select class="form-select" id="categoryFilter">
+                            <option value="">Todas las categorías</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="searchFilter" class="form-label">Buscar</label>
+                        <input type="text" class="form-control" id="searchFilter" placeholder="Buscar lecturas...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="stat-number">{{ total_readings }}</div>
+                            <div class="stat-label">Lecturas Totales</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="stat-number">{{ total_views }}</div>
+                            <div class="stat-label">Visualizaciones</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="stat-number">{{ total_downloads }}</div>
+                            <div class="stat-label">Descargas</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="stat-number">{{ avg_rating|floatformat:1 }}</div>
+                            <div class="stat-label">Calificación Promedio</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Lecturas -->
+            <div id="readingsList">
+                {% if readings %}
+                    <div class="row">
+                        {% for reading in readings %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="reading-card">
+                                <div class="reading-header">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h5 class="mb-1">{{ reading.title }}</h5>
+                                        <span class="type-badge type-{{ reading.media_type }}">
+                                            {{ reading.get_media_type_display }}
+                                        </span>
+                                    </div>
+                                    <small>{{ reading.category.name }}</small>
+                                </div>
+                                
+                                <div class="card-body">
+                                    {% if reading.image_file %}
+                                        <img src="{{ reading.image_file.url }}" alt="Preview" class="file-preview">
+                                    {% endif %}
+                                    
+                                    <p class="text-muted mb-3">{{ reading.description|truncatewords:20 }}</p>
+                                    
+                                    <div class="reading-stats">
+                                        <div class="stat-item">
+                                            <div class="stat-number">{{ reading.views_count }}</div>
+                                            <div class="stat-label">Vistas</div>
+                                        </div>
+                                        <div class="stat-item">
+                                            <div class="stat-number">{{ reading.downloads_count }}</div>
+                                            <div class="stat-label">Descargas</div>
+                                        </div>
+                                        <div class="stat-item">
+                                            <div class="stat-number">{{ reading.duration|default:"N/A" }}</div>
+                                            <div class="stat-label">Minutos</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                Creado
+                                            </small>
+                                            <small class="fw-semibold">{{ reading.created_at|date:"d/m/Y" }}</small>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">
+                                                <i class="bi bi-person me-1"></i>
+                                                Autor
+                                            </small>
+                                            <small class="fw-semibold">{{ reading.author.get_full_name }}</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'multimedia:multimedia_detail' reading.id %}" class="btn btn-outline-info btn-sm flex-fill">
+                                            <i class="bi bi-eye me-1"></i>Ver
+                                        </a>
+                                        <a href="{% url 'multimedia:multimedia_form' reading.id %}" class="btn btn-outline-primary btn-sm flex-fill">
+                                            <i class="bi bi-pencil me-1"></i>Editar
+                                        </a>
+                                        <button class="btn btn-outline-success btn-sm flex-fill" onclick="assignToClassroom({{ reading.id }})">
+                                            <i class="bi bi-share me-1"></i>Asignar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-book"></i>
+                        <h4>No hay lecturas creadas</h4>
+                        <p>Crea tu primera lectura para compartir material educativo con tus estudiantes</p>
+                        <button class="btn btn-create-reading" onclick="showCreateReadingModal()">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Crear Primera Lectura
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crear Lectura -->
+<div class="modal fade" id="createReadingModal" tabindex="-1" aria-labelledby="createReadingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createReadingModalLabel">
+                    <i class="bi bi-book me-2"></i>Crear Nueva Lectura
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createReadingForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="readingTitle" class="form-label">Título *</label>
+                                <input type="text" class="form-control" id="readingTitle" name="title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="readingType" class="form-label">Tipo de Contenido *</label>
+                                <select class="form-select" id="readingType" name="media_type" required>
+                                    <option value="">Seleccionar tipo</option>
+                                    <option value="document">Documento (PDF/Word)</option>
+                                    <option value="video">Video</option>
+                                    <option value="audio">Audio</option>
+                                    <option value="image">Imagen</option>
+                                    <option value="interactive">Interactivo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="readingDescription" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="readingDescription" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="readingCategory" class="form-label">Categoría *</label>
+                                <select class="form-select" id="readingCategory" name="category" required>
+                                    <option value="">Seleccionar categoría</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="readingLevel" class="form-label">Nivel Educativo</label>
+                                <select class="form-select" id="readingLevel" name="educational_level">
+                                    <option value="general">General</option>
+                                    <option value="primaria">Primaria</option>
+                                    <option value="secundaria">Secundaria</option>
+                                    <option value="universidad">Universidad</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="readingFile" class="form-label">Archivo *</label>
+                        <input type="file" class="form-control" id="readingFile" name="file" required>
+                        <div class="form-text">Formatos permitidos: PDF, DOC, DOCX, MP4, MP3, JPG, PNG</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="readingObjectives" class="form-label">Objetivos de Aprendizaje</label>
+                        <textarea class="form-control" id="readingObjectives" name="learning_objectives" rows="2"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="readingDuration" class="form-label">Duración (minutos)</label>
+                                <input type="number" class="form-control" id="readingDuration" name="duration" min="1" max="480">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="readingSubject" class="form-label">Área Temática</label>
+                                <input type="text" class="form-control" id="readingSubject" name="subject_area">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="readingPublic" name="is_public" checked>
+                            <label class="form-check-label" for="readingPublic">
+                                Lectura pública (visible para todos)
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-info" onclick="submitCreateReading()">
+                    <i class="bi bi-check-circle me-2"></i>Crear Lectura
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Asignar a Aula -->
+<div class="modal fade" id="assignToClassroomModal" tabindex="-1" aria-labelledby="assignToClassroomModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignToClassroomModalLabel">
+                    <i class="bi bi-share me-2"></i>Asignar a Aula
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="assignToClassroomForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="readingId" name="reading_id">
+                    <div class="mb-3">
+                        <label for="assignClassroom" class="form-label">Seleccionar Aula</label>
+                        <select class="form-select" id="assignClassroom" name="classroom" required>
+                            <option value="">Seleccionar aula</option>
+                            {% for classroom in classrooms %}
+                            <option value="{{ classroom.id }}">{{ classroom.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignInstructions" class="form-label">Instrucciones (opcional)</label>
+                        <textarea class="form-control" id="assignInstructions" name="instructions" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignDueDate" class="form-label">Fecha de Entrega (opcional)</label>
+                        <input type="datetime-local" class="form-control" id="assignDueDate" name="due_date">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="submitAssignToClassroom()">
+                    <i class="bi bi-check-circle me-2"></i>Asignar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script>
+        function showCreateReadingModal() {
+            const modal = new bootstrap.Modal(document.getElementById('createReadingModal'));
+            modal.show();
+        }
+        
+        function submitCreateReading() {
+            const form = document.getElementById('createReadingForm');
+            const formData = new FormData(form);
+            
+            fetch('{% url "multimedia:multimedia_form" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Lectura creada exitosamente', 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createReadingModal'));
+                    modal.hide();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showAlert(data.error || 'Error al crear la lectura', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error al crear la lectura', 'error');
+            });
+        }
+        
+        function assignToClassroom(readingId) {
+            document.getElementById('readingId').value = readingId;
+            const modal = new bootstrap.Modal(document.getElementById('assignToClassroomModal'));
+            modal.show();
+        }
+        
+        function submitAssignToClassroom() {
+            const form = document.getElementById('assignToClassroomForm');
+            const formData = new FormData(form);
+            
+            fetch('{% url "users:assign_reading_api" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Lectura asignada exitosamente', 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('assignToClassroomModal'));
+                    modal.hide();
+                } else {
+                    showAlert(data.error || 'Error al asignar la lectura', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error al asignar la lectura', 'error');
+            });
+        }
+        
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+        
+        // Filtros
+        document.getElementById('classroomFilter').addEventListener('change', filterReadings);
+        document.getElementById('typeFilter').addEventListener('change', filterReadings);
+        document.getElementById('categoryFilter').addEventListener('change', filterReadings);
+        document.getElementById('searchFilter').addEventListener('input', filterReadings);
+        
+        function filterReadings() {
+            // Implementar filtrado de lecturas
+            console.log('Filtros aplicados');
+        }
+    </script>
+{% endblock %} 
+ 
+ 

@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Etiquetas Multimedia{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h1 class="h2 mb-3">
+                        <i class="bi bi-tags text-success"></i>
+                        Gestión de Etiquetas Multimedia
+                    </h1>
+                    <p class="lead text-muted">Organiza y gestiona las etiquetas para fichas multimedia</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Crear nueva etiqueta -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-plus-circle"></i> Crear Nueva Etiqueta
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="tag-form">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="tag_name" class="form-label">Nombre de la etiqueta</label>
+                            <input type="text" class="form-control" id="tag_name" name="name" 
+                                   placeholder="Ej: Conservación, Biodiversidad, Ecosistemas" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="tag_color" class="form-label">Color de la etiqueta</label>
+                            <input type="color" class="form-control form-control-color" id="tag_color" 
+                                   name="color" value="#007bff" title="Elegir color">
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Crear Etiqueta
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas de etiquetas -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up"></i> Estadísticas de Etiquetas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h3 class="text-primary">{{ total_tags }}</h3>
+                            <small class="text-muted">Total de etiquetas</small>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="text-success">{{ total_usage }}</h3>
+                            <small class="text-muted">Usos totales</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h3 class="text-warning">{{ most_used_tag.name|default:"N/A" }}</h3>
+                            <small class="text-muted">Etiqueta más usada</small>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="text-info">{{ avg_usage|floatformat:1 }}</h3>
+                            <small class="text-muted">Promedio de usos</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de etiquetas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-ul"></i> Todas las Etiquetas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if tags %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Etiqueta</th>
+                                    <th>Color</th>
+                                    <th>Fichas asociadas</th>
+                                    <th>Fecha de creación</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tag in tags %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge me-2" style="background-color: {{ tag.color }}; color: white;">
+                                                {{ tag.name }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="color-preview me-2" style="width: 20px; height: 20px; background-color: {{ tag.color }}; border-radius: 3px;"></div>
+                                            <small class="text-muted">{{ tag.color }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ tag.usage_count|default:0 }}</span>
+                                        <small class="text-muted">fichas</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ tag.created_at|date:"d/m/Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-outline-primary btn-sm" onclick="editTag('{{ tag.id }}', '{{ tag.name }}', '{{ tag.color }}')" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm" onclick="deleteTag('{{ tag.id }}', '{{ tag.name }}')" title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-tags text-muted" style="font-size: 4rem;"></i>
+                        <h4 class="mt-3 text-muted">No hay etiquetas creadas</h4>
+                        <p class="text-muted">Crea tu primera etiqueta para organizar mejor tus fichas multimedia.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de uso de etiquetas -->
+    {% if tags %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart"></i> Uso de Etiquetas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="tagUsageChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal para editar etiqueta -->
+<div class="modal fade" id="editTagModal" tabindex="-1" aria-labelledby="editTagModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTagModalLabel">
+                    <i class="bi bi-pencil"></i> Editar Etiqueta
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="edit-tag-form" method="post">
+                {% csrf_token %}
+                <input type="hidden" id="edit_tag_id" name="tag_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_tag_name" class="form-label">Nombre de la etiqueta</label>
+                        <input type="text" class="form-control" id="edit_tag_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_tag_color" class="form-label">Color de la etiqueta</label>
+                        <input type="color" class="form-control form-control-color" id="edit_tag_color" name="color">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Actualizar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de uso de etiquetas
+    {% if tags %}
+    const tagUsageCtx = document.getElementById('tagUsageChart').getContext('2d');
+    new Chart(tagUsageCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ tag_names|safe }},
+            datasets: [{
+                label: 'Número de usos',
+                data: {{ tag_usage_data|safe }},
+                backgroundColor: {{ tag_colors|safe }},
+                borderColor: {{ tag_colors|safe }},
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // Validación del formulario
+    document.getElementById('tag-form').addEventListener('submit', function(e) {
+        const tagName = document.getElementById('tag_name').value.trim();
+        if (tagName.length < 2) {
+            e.preventDefault();
+            alert('El nombre de la etiqueta debe tener al menos 2 caracteres.');
+        }
+    });
+});
+
+function editTag(tagId, tagName, tagColor) {
+    document.getElementById('edit_tag_id').value = tagId;
+    document.getElementById('edit_tag_name').value = tagName;
+    document.getElementById('edit_tag_color').value = tagColor;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editTagModal'));
+    modal.show();
+}
+
+function deleteTag(tagId, tagName) {
+    if (confirm(`¿Estás seguro de que quieres eliminar la etiqueta "${tagName}"? Esta acción no se puede deshacer.`)) {
+        fetch(`/multimedia/tags/${tagId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al eliminar la etiqueta: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al eliminar la etiqueta');
+        });
+    }
+}
+</script>
+
+<style>
+.color-preview {
+    border: 1px solid #dee2e6;
+}
+
+.form-control-color {
+    width: 100%;
+    height: 38px;
+}
+</style>
+{% endblock %} 
+ 
+ 

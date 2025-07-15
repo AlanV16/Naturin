@@ -1,38 +1,37 @@
 from django.db import models
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
-import uuid
-
-User = get_user_model()
+from django.db.models import Sum, Count, Avg
+from django.contrib.auth import get_user_model
 
 # ============================================================================
 # MODELOS BASE PARA EL SISTEMA DE GAMIFICACIÓN
 # ============================================================================
 
 class ActivityType(models.Model):
-    """Activity types available"""
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, verbose_name="Activity Type")
+    """Tipos de actividades disponibles"""
+    IDtipoActividad = models.AutoField(primary_key=True)
+    TipoActividad = models.CharField(max_length=100, verbose_name="Tipo de Actividad")
     
     def __str__(self):
-        return self.name
+        return self.TipoActividad
     
     class Meta:
-        verbose_name = "Activity Type"
-        verbose_name_plural = "Activity Types"
+        verbose_name = "Tipo de Actividad"
+        verbose_name_plural = "Tipos de Actividades"
 
 class GameType(models.Model):
-    """Game types available"""
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=50, verbose_name="Game Type")
+    """Tipos de juegos disponibles"""
+    IDtipoJuego = models.IntegerField(primary_key=True)
+    TipoJuego = models.CharField(max_length=50, verbose_name="Tipo de Juego")
     
     def __str__(self):
-        return self.name
+        return self.TipoJuego
     
     class Meta:
-        verbose_name = "Game Type"
-        verbose_name_plural = "Game Types"
+        verbose_name = "Tipo de Juego"
+        verbose_name_plural = "Tipos de Juegos"
 
 # ============================================================================
 # MODELOS DE AULAS Y ACTIVIDADES
@@ -47,7 +46,7 @@ class Classroom(models.Model):
     grade = models.CharField(max_length=50, blank=True, null=True, verbose_name="Grade")
     section = models.CharField(max_length=10, blank=True, null=True, verbose_name="Section")
     institution_id = models.IntegerField(default=1, verbose_name="Institution ID")
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Teacher")
+    teacher = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name="Teacher")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
 
     def __str__(self):
@@ -60,7 +59,7 @@ class Classroom(models.Model):
 class ClassroomStudent(models.Model):
     """Relationship between students and classrooms"""
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, verbose_name="Classroom")
-    student = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Student")
+    student = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name="Student")
     classroom_name = models.CharField(max_length=50, verbose_name="Classroom Name")
 
     class Meta:
@@ -69,484 +68,473 @@ class ClassroomStudent(models.Model):
         unique_together = ('classroom', 'student')
 
 class Activities(models.Model):
-    """Activities assigned by teachers to classrooms"""
-    id = models.AutoField(primary_key=True)
-    title = models.CharField(max_length=100, verbose_name="Title")
-    instructions = models.TextField(verbose_name="Instructions")
-    activity_type = models.ForeignKey(ActivityType, on_delete=models.CASCADE, verbose_name="Activity Type")
-    content_id = models.IntegerField(verbose_name="Content ID")  # Reference to content.Ficha
-    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, verbose_name="Classroom")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
+    """Actividades asignadas por docentes a aulas"""
+    IDactividad = models.AutoField(primary_key=True)
+    Titulo = models.CharField(max_length=100, verbose_name="Título")
+    Instrucciones = models.TextField(verbose_name="Instrucciones")
+    IDtipoActividad = models.ForeignKey(ActivityType, on_delete=models.CASCADE, verbose_name="Tipo de Actividad")
+    IDficha = models.IntegerField(verbose_name="ID de Ficha")  # Referencia a content.Ficha
+    IDaula = models.ForeignKey(Classroom, on_delete=models.CASCADE, verbose_name="Aula")
     
     def __str__(self):
-        return self.title
+        return self.Titulo
     
     class Meta:
-        verbose_name = "Activity"
-        verbose_name_plural = "Activities"
+        verbose_name = "Actividad"
+        verbose_name_plural = "Actividades"
 
 # ============================================================================
 # MODELOS DE JUEGOS
 # ============================================================================
 
-class Games(models.Model):
-    """Educational games available"""
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, verbose_name="Game Name")
-    game_type = models.ForeignKey(GameType, on_delete=models.CASCADE, verbose_name="Game Type")
-    instructions = models.CharField(max_length=500, verbose_name="Instructions")
-    description = models.CharField(max_length=50, verbose_name="Description")
-    difficulty_level = models.IntegerField(
+class Juegos(models.Model):
+    """Juegos educativos disponibles"""
+    IDjuego = models.AutoField(primary_key=True)
+    NombreJuego = models.CharField(max_length=100, verbose_name="Nombre del Juego")
+    IDtipoJuego = models.ForeignKey(GameType, on_delete=models.CASCADE, verbose_name="Tipo de Juego")
+    Instrucciones = models.CharField(max_length=500, verbose_name="Instrucciones")
+    Descripcion = models.CharField(max_length=50, verbose_name="Descripción")
+    NivelDificultad = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)],
-        verbose_name="Difficulty Level"
+        verbose_name="Nivel de Dificultad"
     )
     
     def __str__(self):
-        return self.name
+        return self.NombreJuego
     
     class Meta:
-        verbose_name = "Game"
-        verbose_name_plural = "Games"
+        verbose_name = "Juego"
+        verbose_name_plural = "Juegos"
 
-class UserGame(models.Model):
-    """User progress in games"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="User")
-    game = models.ForeignKey(Games, on_delete=models.CASCADE, verbose_name="Game")
-    score = models.IntegerField(default=0, verbose_name="Score")
-    played_at = models.DateTimeField(auto_now_add=True, verbose_name="Played At")
+class JuegoUsuario(models.Model):
+    """Progreso de usuarios en juegos"""
+    IDusuario = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name="Usuario")
+    IDjuego = models.ForeignKey(Juegos, on_delete=models.CASCADE, verbose_name="Juego")
+    Puntaje = models.IntegerField(default=0, verbose_name="Puntaje")
+    FechaJugada = models.DateTimeField(auto_now_add=True, verbose_name="Fecha Jugada")
     
     class Meta:
-        verbose_name = "User Game"
-        verbose_name_plural = "User Games"
-        unique_together = ('user', 'game', 'played_at')
+        verbose_name = "Juego Usuario"
+        verbose_name_plural = "Juegos Usuario"
+        unique_together = ('IDusuario', 'IDjuego', 'FechaJugada')
 
 # ============================================================================
 # MODELOS DE PROGRESO Y NIVELES
 # ============================================================================
 
-class Progress(models.Model):
-    """User progress in activities"""
-    id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="User", related_name='gamification_progress')
-    activity = models.ForeignKey(Activities, on_delete=models.CASCADE, verbose_name="Activity")
-    date = models.DateTimeField(auto_now_add=True, verbose_name="Date")
-    score = models.IntegerField(default=0, verbose_name="Score")
-    completed = models.BooleanField(default=False, verbose_name="Completed")
+class Progreso(models.Model):
+    """Progreso de usuarios en actividades"""
+    IDprogreso = models.AutoField(primary_key=True)
+    IDusuario = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name="Usuario")
+    IDactividad = models.ForeignKey(Activities, on_delete=models.CASCADE, verbose_name="Actividad")
+    Fecha = models.DateTimeField(auto_now_add=True, verbose_name="Fecha")
+    Puntuacion = models.IntegerField(default=0, verbose_name="Puntuación")
+    Completado = models.BooleanField(default=False, verbose_name="Completado")
     
     def __str__(self):
-        return f"{self.user} - {self.activity} ({self.score} pts)"
+        return f"{self.IDusuario} - {self.IDactividad} ({self.Puntuacion} pts)"
     
     class Meta:
-        verbose_name = "Progress"
-        verbose_name_plural = "Progress"
+        verbose_name = "Progreso"
+        verbose_name_plural = "Progresos"
 
-class Levels(models.Model):
-    """Level system for users"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, verbose_name="User")
-    level = models.IntegerField(default=1, verbose_name="Level")
-    accumulated_points = models.IntegerField(default=0, verbose_name="Accumulated Points")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
+class Niveles(models.Model):
+    """Sistema de niveles para usuarios"""
+    IDusuario = models.OneToOneField('users.User', on_delete=models.CASCADE, primary_key=True, verbose_name="Usuario")
+    nivel = models.IntegerField(default=1, verbose_name="Nivel")
+    puntos_acumulados = models.IntegerField(default=0, verbose_name="Puntos Acumulados")
+    fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name="Fecha de Actualización")
     
     def __str__(self):
-        return f"{self.user} - Level {self.level} ({self.accumulated_points} pts)"
+        return f"{self.IDusuario} - Nivel {self.nivel} ({self.puntos_acumulados} pts)"
     
-    def calculate_level(self):
-        """Calculate level based on accumulated points"""
-        if self.accumulated_points < 20:
+    def calcular_nivel(self):
+        """Calcula el nivel basado en los puntos acumulados"""
+        if self.puntos_acumulados < 20:
             return 1
-        elif self.accumulated_points < 50:
+        elif self.puntos_acumulados < 50:
             return 2
-        elif self.accumulated_points < 100:
+        elif self.puntos_acumulados < 100:
             return 3
-        elif self.accumulated_points < 200:
+        elif self.puntos_acumulados < 200:
             return 4
-        elif self.accumulated_points < 350:
+        elif self.puntos_acumulados < 350:
             return 5
-        elif self.accumulated_points < 550:
+        elif self.puntos_acumulados < 550:
             return 6
-        elif self.accumulated_points < 800:
+        elif self.puntos_acumulados < 800:
             return 7
-        elif self.accumulated_points < 1100:
+        elif self.puntos_acumulados < 1100:
             return 8
-        elif self.accumulated_points < 1450:
+        elif self.puntos_acumulados < 1450:
             return 9
         else:
             return 10
     
-    def update_level(self):
-        """Update level based on points"""
-        new_level = self.calculate_level()
-        if new_level != self.level:
-            self.level = new_level
+    def actualizar_nivel(self):
+        """Actualiza el nivel basado en los puntos"""
+        nuevo_nivel = self.calcular_nivel()
+        if nuevo_nivel != self.nivel:
+            self.nivel = nuevo_nivel
             self.save()
             return True
         return False
     
     class Meta:
-        verbose_name = "Level"
-        verbose_name_plural = "Levels"
+        verbose_name = "Nivel"
+        verbose_name_plural = "Niveles"
 
 # ============================================================================
 # MODELOS DE INSIGNIAS
 # ============================================================================
 
-class Badges(models.Model):
-    """Badges that users can earn"""
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, verbose_name="Name")
-    description = models.TextField(verbose_name="Description")
-    image = models.ImageField(upload_to='badges/', blank=True, null=True, verbose_name="Image")
-    condition = models.CharField(max_length=200, verbose_name="Condition")
-    required_points = models.IntegerField(default=0, verbose_name="Required Points")
+class Insignias(models.Model):
+    """Insignias que los usuarios pueden ganar"""
+    IDinsignia = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=100, verbose_name="Nombre")
+    descripcion = models.TextField(verbose_name="Descripción")
+    imagen = models.ImageField(upload_to='insignias/', blank=True, null=True, verbose_name="Imagen")
+    condicion = models.CharField(max_length=200, verbose_name="Condición")
     
-    # Badge types
-    BADGE_TYPES = [
-        ('species_expert', 'Species Expert'),
-        ('quiz_master', 'Quiz Master'),
-        ('speed_demon', 'Speed Demon'),
-        ('explorer', 'Explorer'),
-        ('conservationist', 'Conservationist'),
-        ('collector', 'Collector'),
-        ('first_activity', 'First Activity'),
-        ('perfect_score', 'Perfect Score'),
-        ('streak_3', '3-Day Streak'),
-        ('streak_7', '7-Day Streak'),
-        ('streak_30', '30-Day Streak'),
+    # Tipos de insignias
+    TIPOS_INSIGNIA = [
+        ('especies_expert', 'Experto en Especies'),
+        ('quiz_master', 'Maestro de Cuestionarios'),
+        ('speed_demon', 'Demonio de Velocidad'),
+        ('explorer', 'Explorador'),
+        ('conservationist', 'Conservacionista'),
+        ('collector', 'Coleccionista'),
+        ('first_activity', 'Primera Actividad'),
+        ('perfect_score', 'Puntuación Perfecta'),
+        ('streak_3', 'Racha de 3'),
+        ('streak_7', 'Racha de 7'),
+        ('streak_30', 'Racha de 30'),
     ]
-    badge_type = models.CharField(max_length=20, choices=BADGE_TYPES, verbose_name="Badge Type")
+    tipo_insignia = models.CharField(max_length=20, choices=TIPOS_INSIGNIA, verbose_name="Tipo de Insignia")
+    puntos_requeridos = models.IntegerField(default=0, verbose_name="Puntos Requeridos")
     
     def __str__(self):
-        return self.name
+        return self.nombre
     
     class Meta:
-        verbose_name = "Badge"
-        verbose_name_plural = "Badges"
+        verbose_name = "Insignia"
+        verbose_name_plural = "Insignias"
 
-class UserBadge(models.Model):
-    """Relationship between users and earned badges"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="User")
-    badge = models.ForeignKey(Badges, on_delete=models.CASCADE, verbose_name="Badge")
-    earned_at = models.DateTimeField(auto_now_add=True, verbose_name="Earned At")
-    
-    class Meta:
-        verbose_name = "User Badge"
-        verbose_name_plural = "User Badges"
-        unique_together = ('user', 'badge')
-
-# ============================================================================
-# MODELOS DE DESAFÍOS Y MISIONES
-# ============================================================================
-
-class Challenges(models.Model):
-    """Optional challenges for users"""
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, verbose_name="Name")
-    description = models.TextField(verbose_name="Description")
-    points = models.IntegerField(default=0, verbose_name="Points")
-    minimum_level = models.IntegerField(default=1, verbose_name="Minimum Level")
-    
-    # Challenge types
-    CHALLENGE_TYPES = [
-        ('daily', 'Daily'),
-        ('weekly', 'Weekly'),
-        ('special', 'Special'),
-    ]
-    challenge_type = models.CharField(max_length=20, choices=CHALLENGE_TYPES, verbose_name="Challenge Type")
-    
-    # Challenge conditions
-    condition = models.CharField(max_length=200, verbose_name="Condition")
-    start_date = models.DateTimeField(verbose_name="Start Date")
-    end_date = models.DateTimeField(verbose_name="End Date")
-    active = models.BooleanField(default=True, verbose_name="Active")
+class InsigniasUsuario(models.Model):
+    """Relación entre usuarios e insignias obtenidas"""
+    IDusuario = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name="Usuario")
+    IDinsignia = models.ForeignKey(Insignias, on_delete=models.CASCADE, verbose_name="Insignia")
+    fecha_obtenida = models.DateTimeField(auto_now_add=True, verbose_name="Fecha Obtenida")
     
     def __str__(self):
-        return self.name
+        return f"{self.IDusuario} - {self.IDinsignia}"
     
     class Meta:
-        verbose_name = "Challenge"
-        verbose_name_plural = "Challenges"
-
-class UserChallenge(models.Model):
-    """User progress in challenges"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="User")
-    challenge = models.ForeignKey(Challenges, on_delete=models.CASCADE, verbose_name="Challenge")
-    completed = models.BooleanField(default=False, verbose_name="Completed")
-    completed_at = models.DateTimeField(null=True, blank=True, verbose_name="Completed At")
-    current_progress = models.IntegerField(default=0, verbose_name="Current Progress")
-    
-    class Meta:
-        verbose_name = "User Challenge"
-        verbose_name_plural = "User Challenges"
-        unique_together = ('user', 'challenge')
+        verbose_name = "Insignia Usuario"
+        verbose_name_plural = "Insignias Usuario"
+        unique_together = ('IDusuario', 'IDinsignia')
 
 # ============================================================================
-# MODELOS DE RANKINGS Y CLASIFICACIONES
+# MODELOS DE DESAFÍOS
+# ============================================================================
+
+class Desafios(models.Model):
+    """Desafíos opcionales para usuarios"""
+    IDdesafio = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=100, verbose_name="Nombre")
+    descripcion = models.TextField(verbose_name="Descripción")
+    puntos = models.IntegerField(default=0, verbose_name="Puntos")
+    nivel_minimo = models.IntegerField(default=1, verbose_name="Nivel Mínimo")
+    
+    # Tipos de desafíos
+    TIPOS_DESAFIO = [
+        ('diario', 'Diario'),
+        ('semanal', 'Semanal'),
+        ('especial', 'Especial'),
+    ]
+    tipo_desafio = models.CharField(max_length=20, choices=TIPOS_DESAFIO, verbose_name="Tipo de Desafío")
+    
+    # Condiciones del desafío
+    condicion = models.CharField(max_length=200, verbose_name="Condición")
+    fecha_inicio = models.DateTimeField(verbose_name="Fecha de Inicio")
+    fecha_fin = models.DateTimeField(verbose_name="Fecha de Fin")
+    activo = models.BooleanField(default=True, verbose_name="Activo")
+    
+    def __str__(self):
+        return self.nombre
+    
+    class Meta:
+        verbose_name = "Desafío"
+        verbose_name_plural = "Desafíos"
+
+class DesafiosUsuario(models.Model):
+    """Progreso de usuarios en desafíos"""
+    IDusuario = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name="Usuario")
+    IDdesafio = models.ForeignKey(Desafios, on_delete=models.CASCADE, verbose_name="Desafío")
+    completado = models.BooleanField(default=False, verbose_name="Completado")
+    fecha_completado = models.DateTimeField(null=True, blank=True, verbose_name="Fecha Completado")
+    progreso_actual = models.IntegerField(default=0, verbose_name="Progreso Actual")
+    
+    def __str__(self):
+        return f"{self.IDusuario} - {self.IDdesafio}"
+    
+    class Meta:
+        verbose_name = "Desafío Usuario"
+        verbose_name_plural = "Desafíos Usuario"
+        unique_together = ('IDusuario', 'IDdesafio')
+
+# ============================================================================
+# MODELOS DE RANKING Y ESTADÍSTICAS
 # ============================================================================
 
 class Ranking(models.Model):
-    """User rankings by classroom"""
-    id = models.AutoField(primary_key=True)
-    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, verbose_name="Classroom")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="User")
-    total_points = models.IntegerField(default=0, verbose_name="Total Points")
-    current_level = models.IntegerField(default=1, verbose_name="Current Level")
-    position = models.IntegerField(verbose_name="Position")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
+    """Ranking de usuarios por aula"""
+    IDranking = models.AutoField(primary_key=True)
+    IDaula = models.ForeignKey(Classroom, on_delete=models.CASCADE, verbose_name="Aula")
+    IDusuario = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name="Usuario")
+    puntos_totales = models.IntegerField(default=0, verbose_name="Puntos Totales")
+    nivel_actual = models.IntegerField(default=1, verbose_name="Nivel Actual")
+    posicion = models.IntegerField(verbose_name="Posición")
+    fecha_actualizacion = models.DateTimeField(auto_now=True, verbose_name="Fecha de Actualización")
+    
+    def __str__(self):
+        return f"{self.IDusuario} - {self.IDaula} (Pos: {self.posicion})"
     
     class Meta:
         verbose_name = "Ranking"
         verbose_name_plural = "Rankings"
-        unique_together = ('classroom', 'user')
-        ordering = ['-total_points', 'current_level']
+        unique_together = ('IDaula', 'IDusuario')
+        ordering = ['-puntos_totales', 'nivel_actual']
 
-# ============================================================================
-# MODELOS DE RECOMPENSAS
-# ============================================================================
-
-class UserReward(models.Model):
-    """Rewards earned by users"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="User")
-    game = models.ForeignKey(Games, on_delete=models.CASCADE, verbose_name="Game")
-    earned_at = models.DateTimeField(auto_now_add=True, verbose_name="Earned At")
-    
-    class Meta:
-        verbose_name = "User Reward"
-        verbose_name_plural = "User Rewards"
-        unique_together = ('user', 'game')
-
-# ============================================================================
-# MODELOS DE ESTADÍSTICAS Y SEGUIMIENTO
-# ============================================================================
-
-class UserStatistics(models.Model):
-    """Detailed user statistics"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, verbose_name="User")
-    completed_activities = models.IntegerField(default=0, verbose_name="Completed Activities")
-    games_played = models.IntegerField(default=0, verbose_name="Games Played")
-    badges_earned = models.IntegerField(default=0, verbose_name="Badges Earned")
-    challenges_completed = models.IntegerField(default=0, verbose_name="Challenges Completed")
-    total_game_time = models.IntegerField(default=0, verbose_name="Total Game Time (minutes)")
-    total_score = models.IntegerField(default=0, verbose_name="Total Score")
-    current_streak = models.IntegerField(default=0, verbose_name="Current Streak")
-    best_streak = models.IntegerField(default=0, verbose_name="Best Streak")
-    last_activity = models.DateTimeField(auto_now=True, verbose_name="Last Activity")
+class RecompensasUsuario(models.Model):
+    """Recompensas obtenidas por usuarios"""
+    IDusuario = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name="Usuario")
+    IDjuego = models.ForeignKey(Juegos, on_delete=models.CASCADE, verbose_name="Juego")
+    FechaObtenida = models.DateTimeField(auto_now_add=True, verbose_name="Fecha Obtenida")
     
     def __str__(self):
-        return f"Statistics for {self.user}"
+        return f"{self.IDusuario} - {self.IDjuego}"
     
     class Meta:
-        verbose_name = "User Statistics"
-        verbose_name_plural = "User Statistics"
+        verbose_name = "Recompensa Usuario"
+        verbose_name_plural = "Recompensas Usuario"
+        unique_together = ('IDusuario', 'IDjuego')
 
-# ============================================================================
-# MODELOS DE CONFIGURACIÓN
-# ============================================================================
-
-class GamificationConfiguration(models.Model):
-    """Gamification system configuration"""
-    id = models.AutoField(primary_key=True)
-    configuration_name = models.CharField(max_length=100, verbose_name="Configuration Name")
-    value = models.TextField(verbose_name="Value")
-    description = models.TextField(blank=True, verbose_name="Description")
-    active = models.BooleanField(default=True, verbose_name="Active")
+class EstadisticasUsuario(models.Model):
+    """Estadísticas detalladas de usuarios"""
+    IDusuario = models.OneToOneField('users.User', on_delete=models.CASCADE, primary_key=True, verbose_name="Usuario")
+    actividades_completadas = models.IntegerField(default=0, verbose_name="Actividades Completadas")
+    juegos_jugados = models.IntegerField(default=0, verbose_name="Juegos Jugados")
+    insignias_obtenidas = models.IntegerField(default=0, verbose_name="Insignias Obtenidas")
+    desafios_completados = models.IntegerField(default=0, verbose_name="Desafíos Completados")
+    tiempo_total_juego = models.IntegerField(default=0, verbose_name="Tiempo Total de Juego (minutos)")
+    puntuacion_total = models.IntegerField(default=0, verbose_name="Puntuación Total")
+    racha_actual = models.IntegerField(default=0, verbose_name="Racha Actual")
+    mejor_racha = models.IntegerField(default=0, verbose_name="Mejor Racha")
+    fecha_ultima_actividad = models.DateTimeField(auto_now=True, verbose_name="Última Actividad")
     
     def __str__(self):
-        return self.configuration_name
-
-    class Meta:
-        verbose_name = "Gamification Configuration"
-        verbose_name_plural = "Gamification Configurations"
-
-# ============================================================================
-# MODELOS DE LOGS Y AUDITORÍA
-# ============================================================================
-
-class GamificationLog(models.Model):
-    """Gamification event logs"""
-    id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="User")
-    event_type = models.CharField(max_length=50, verbose_name="Event Type")
-    description = models.TextField(verbose_name="Description")
-    points_earned = models.IntegerField(default=0, verbose_name="Points Earned")
-    event_date = models.DateTimeField(auto_now_add=True, verbose_name="Event Date")
+        return f"Estadísticas de {self.IDusuario}"
     
     class Meta:
-        verbose_name = "Gamification Log"
-        verbose_name_plural = "Gamification Logs"
-        ordering = ['-event_date']
+        verbose_name = "Estadística Usuario"
+        verbose_name_plural = "Estadísticas Usuario"
 
 # ============================================================================
-# MODELOS DE TESTS Y CUESTIONARIOS
+# MODELOS DE CONFIGURACIÓN Y LOG
+# ============================================================================
+
+class ConfiguracionGamificacion(models.Model):
+    """Configuración del sistema de gamificación"""
+    IDconfiguracion = models.AutoField(primary_key=True)
+    nombre_configuracion = models.CharField(max_length=100, verbose_name="Nombre de Configuración")
+    valor = models.TextField(verbose_name="Valor")
+    descripcion = models.TextField(blank=True, verbose_name="Descripción")
+    activo = models.BooleanField(default=True, verbose_name="Activo")
+    
+    def __str__(self):
+        return self.nombre_configuracion
+    
+    class Meta:
+        verbose_name = "Configuración Gamificación"
+        verbose_name_plural = "Configuraciones Gamificación"
+
+class LogGamificacion(models.Model):
+    """Log de eventos de gamificación"""
+    IDlog = models.AutoField(primary_key=True)
+    IDusuario = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name="Usuario")
+    tipo_evento = models.CharField(max_length=50, verbose_name="Tipo de Evento")
+    descripcion = models.TextField(verbose_name="Descripción")
+    puntos_ganados = models.IntegerField(default=0, verbose_name="Puntos Ganados")
+    fecha_evento = models.DateTimeField(auto_now_add=True, verbose_name="Fecha del Evento")
+    
+    def __str__(self):
+        return f"{self.IDusuario} - {self.tipo_evento}"
+    
+    class Meta:
+        verbose_name = "Log Gamificación"
+        verbose_name_plural = "Logs Gamificación"
+        ordering = ['-fecha_evento']
+
+# ============================================================================
+# MODELOS DE TESTS
 # ============================================================================
 
 class Test(models.Model):
-    """Tests created by teachers for specific classrooms"""
-    id = models.AutoField(primary_key=True)
-    title = models.CharField(max_length=200, verbose_name="Test Title")
-    description = models.TextField(verbose_name="Description")
-    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, verbose_name="Classroom")
-    teacher = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Teacher")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
-    start_date = models.DateTimeField(verbose_name="Start Date")
-    end_date = models.DateTimeField(verbose_name="End Date")
-    time_limit = models.IntegerField(default=30, verbose_name="Time Limit (minutes)")
-    points_per_question = models.IntegerField(default=10, verbose_name="Points per Question")
-    active = models.BooleanField(default=True, verbose_name="Active")
+    """Tests creados por docentes para aulas específicas"""
+    IDtest = models.AutoField(primary_key=True)
+    titulo = models.CharField(max_length=200, verbose_name="Título del Test")
+    descripcion = models.TextField(verbose_name="Descripción")
+    IDaula = models.ForeignKey(Classroom, on_delete=models.CASCADE, verbose_name="Aula")
+    IDdocente = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name="Docente")
+    fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    fecha_inicio = models.DateTimeField(verbose_name="Fecha de Inicio")
+    fecha_fin = models.DateTimeField(verbose_name="Fecha de Fin")
+    tiempo_limite = models.IntegerField(default=30, verbose_name="Tiempo Límite (minutos)")
+    puntos_por_pregunta = models.IntegerField(default=10, verbose_name="Puntos por Pregunta")
+    activo = models.BooleanField(default=True, verbose_name="Activo")
     
     def __str__(self):
-        return f"{self.title} - {self.classroom.name}"
+        return self.titulo
     
     class Meta:
         verbose_name = "Test"
         verbose_name_plural = "Tests"
-        ordering = ['-created_at']
+        ordering = ['-fecha_creacion']
 
-class Question(models.Model):
-    """Test questions"""
-    id = models.AutoField(primary_key=True)
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Test")
-    question = models.TextField(verbose_name="Question")
-    question_type = models.CharField(
+class Pregunta(models.Model):
+    """Preguntas de los tests"""
+    IDpregunta = models.AutoField(primary_key=True)
+    IDtest = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Test")
+    pregunta = models.TextField(verbose_name="Pregunta")
+    tipo_pregunta = models.CharField(
         max_length=20,
         choices=[
-            ('multiple_choice', 'Multiple Choice'),
-            ('true_false', 'True/False'),
-            ('short_text', 'Short Text'),
+            ('opcion_multiple', 'Opción Múltiple'),
+            ('verdadero_falso', 'Verdadero/Falso'),
+            ('texto_corto', 'Texto Corto'),
         ],
-        default='multiple_choice',
-        verbose_name="Question Type"
+        default='opcion_multiple',
+        verbose_name="Tipo de Pregunta"
     )
-    order = models.IntegerField(default=1, verbose_name="Order")
-    points = models.IntegerField(default=10, verbose_name="Points")
-
+    orden = models.IntegerField(default=1, verbose_name="Orden")
+    puntos = models.IntegerField(default=10, verbose_name="Puntos")
+    
     def __str__(self):
-        return f"{self.test.title} - Question {self.order}"
-
+        return f"{self.IDtest.titulo} - Pregunta {self.orden}"
+    
     class Meta:
-        verbose_name = "Question"
-        verbose_name_plural = "Questions"
-        ordering = ['test', 'order']
+        verbose_name = "Pregunta"
+        verbose_name_plural = "Preguntas"
+        ordering = ['IDtest', 'orden']
 
-class Option(models.Model):
-    """Answer options for multiple choice questions"""
-    id = models.AutoField(primary_key=True)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Question")
-    text = models.CharField(max_length=500, verbose_name="Option Text")
-    is_correct = models.BooleanField(default=False, verbose_name="Is Correct")
-    order = models.IntegerField(default=1, verbose_name="Order")
-
+class Opcion(models.Model):
+    """Opciones de respuesta para preguntas de opción múltiple"""
+    IDopcion = models.AutoField(primary_key=True)
+    IDpregunta = models.ForeignKey(Pregunta, on_delete=models.CASCADE, verbose_name="Pregunta")
+    texto = models.CharField(max_length=500, verbose_name="Texto de la Opción")
+    es_correcta = models.BooleanField(default=False, verbose_name="Es Correcta")
+    orden = models.IntegerField(default=1, verbose_name="Orden")
+    
     def __str__(self):
-        return f"{self.question.question[:50]} - {self.text[:30]}"
-
+        return f"{self.IDpregunta} - Opción {self.orden}"
+    
     class Meta:
-        verbose_name = "Option"
-        verbose_name_plural = "Options"
-        ordering = ['question', 'order']
+        verbose_name = "Opción"
+        verbose_name_plural = "Opciones"
+        ordering = ['IDpregunta', 'orden']
 
-class StudentAnswer(models.Model):
-    """Student answers to tests"""
-    id = models.AutoField(primary_key=True)
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Test")
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, verbose_name="Question")
-    student = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Student")
-    text_answer = models.TextField(blank=True, null=True, verbose_name="Text Answer")
-    selected_option = models.ForeignKey(
-        Option, 
+class RespuestaEstudiante(models.Model):
+    """Respuestas de estudiantes a tests"""
+    IDrespuesta = models.AutoField(primary_key=True)
+    IDtest = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Test")
+    IDpregunta = models.ForeignKey(Pregunta, on_delete=models.CASCADE, verbose_name="Pregunta")
+    IDestudiante = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name="Estudiante")
+    respuesta_texto = models.TextField(blank=True, null=True, verbose_name="Respuesta de Texto")
+    IDopcion_seleccionada = models.ForeignKey(
+        Opcion, 
         on_delete=models.CASCADE, 
         blank=True, 
         null=True, 
-        verbose_name="Selected Option"
+        verbose_name="Opción Seleccionada"
     )
-    is_correct = models.BooleanField(default=False, verbose_name="Is Correct")
-    points_earned = models.IntegerField(default=0, verbose_name="Points Earned")
-    answered_at = models.DateTimeField(auto_now_add=True, verbose_name="Answered At")
-
+    es_correcta = models.BooleanField(default=False, verbose_name="Es Correcta")
+    puntos_obtenidos = models.IntegerField(default=0, verbose_name="Puntos Obtenidos")
+    fecha_respuesta = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Respuesta")
+    
     def __str__(self):
-        return f"{self.student.username} - {self.test.title}"
-
+        return f"{self.IDestudiante} - {self.IDpregunta}"
+    
     class Meta:
-        verbose_name = "Student Answer"
-        verbose_name_plural = "Student Answers"
-        unique_together = ['test', 'question', 'student']
+        verbose_name = "Respuesta de Estudiante"
+        verbose_name_plural = "Respuestas de Estudiantes"
+        unique_together = ['IDtest', 'IDpregunta', 'IDestudiante']
 
-class TestResult(models.Model):
-    """Complete student results in tests"""
-    id = models.AutoField(primary_key=True)
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Test")
-    student = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Student")
-    total_score = models.IntegerField(default=0, verbose_name="Total Score")
-    max_score = models.IntegerField(default=0, verbose_name="Max Score")
-    accuracy_percentage = models.DecimalField(
+class ResultadoTest(models.Model):
+    """Resultados completos de estudiantes en tests"""
+    IDresultado = models.AutoField(primary_key=True)
+    IDtest = models.ForeignKey(Test, on_delete=models.CASCADE, verbose_name="Test")
+    IDestudiante = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name="Estudiante")
+    puntuacion_total = models.IntegerField(default=0, verbose_name="Puntuación Total")
+    puntuacion_maxima = models.IntegerField(default=0, verbose_name="Puntuación Máxima")
+    porcentaje_acierto = models.DecimalField(
         max_digits=5, 
         decimal_places=2, 
         default=0, 
-        verbose_name="Accuracy Percentage"
+        verbose_name="Porcentaje de Acierto"
     )
-    correct_questions = models.IntegerField(default=0, verbose_name="Correct Questions")
-    total_questions = models.IntegerField(default=0, verbose_name="Total Questions")
-    time_used = models.IntegerField(default=0, verbose_name="Time Used (seconds)")
-    start_time = models.DateTimeField(verbose_name="Start Time")
-    end_time = models.DateTimeField(verbose_name="End Time")
-    completed = models.BooleanField(default=False, verbose_name="Completed")
-
+    preguntas_correctas = models.IntegerField(default=0, verbose_name="Preguntas Correctas")
+    total_preguntas = models.IntegerField(default=0, verbose_name="Total de Preguntas")
+    tiempo_empleado = models.IntegerField(default=0, verbose_name="Tiempo Empleado (segundos)")
+    fecha_inicio = models.DateTimeField(verbose_name="Fecha de Inicio")
+    fecha_fin = models.DateTimeField(verbose_name="Fecha de Fin")
+    completado = models.BooleanField(default=False, verbose_name="Completado")
+    
     def __str__(self):
-        return f"{self.student.username} - {self.test.title} ({self.accuracy_percentage}%)"
-
+        return f"{self.IDestudiante} - {self.IDtest} ({self.porcentaje_acierto}%)"
+    
     class Meta:
-        verbose_name = "Test Result"
-        verbose_name_plural = "Test Results"
-        unique_together = ['test', 'student']
-        ordering = ['-end_time']
+        verbose_name = "Resultado de Test"
+        verbose_name_plural = "Resultados de Tests"
+        unique_together = ['IDtest', 'IDestudiante']
+        ordering = ['-fecha_fin']
 
 # ============================================================================
-# FUNCIONES DE UTILIDAD
+# FUNCIONES AUXILIARES
 # ============================================================================
 
 def generar_codigo_aula():
-    """Genera un código único para aulas"""
-    return str(uuid.uuid4())[:8].upper()
+    """Genera un código único para el aula"""
+    import random
+    import string
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
 def calcular_puntos_por_nivel(nivel):
-    """Calcula los puntos necesarios para un nivel específico"""
+    """Calcula los puntos por actividad según el nivel"""
     if nivel == 1:
-        return 0
+        return 5
     elif nivel == 2:
-        return 20
+        return 10
     elif nivel == 3:
-        return 50
+        return 15
     elif nivel == 4:
-        return 100
-    elif nivel == 5:
-        return 200
-    elif nivel == 6:
-        return 350
-    elif nivel == 7:
-        return 550
-    elif nivel == 8:
-        return 800
-    elif nivel == 9:
-        return 1100
+        return 20
     else:
-        return 1450
-
-# ============================================================================
-# FUNCIONES DE UTILIDAD PARA TESTS
-# ============================================================================
+        return 25 + (nivel - 4) * 5
 
 def calcular_puntuacion_test(resultado):
     """Calcula la puntuación total de un test"""
-    respuestas = StudentAnswer.objects.filter(
-        test=resultado.IDtest,
-        student=resultado.IDestudiante
-    )
-    puntuacion = sum(r.points_earned for r in respuestas)
-    return puntuacion
+    return resultado.preguntas_correctas * resultado.IDtest.puntos_por_pregunta
 
 def calcular_porcentaje_acierto(resultado):
     """Calcula el porcentaje de acierto de un test"""
-    if resultado.total_preguntas == 0:
-        return 0
-    return (resultado.preguntas_correctas / resultado.total_preguntas) * 100
+    if resultado.total_preguntas > 0:
+        return (resultado.preguntas_correctas / resultado.total_preguntas) * 100
+    return 0
+
+# ============================================================================
+# MODELOS DE NOTIFICACIONES Y MENSAJERÍA
+# ============================================================================
 
 class Notification(models.Model):
     NOTIFICATION_TYPES = [
@@ -556,28 +544,24 @@ class Notification(models.Model):
         ('achievement_unlocked', 'Logro Desbloqueado'),
         ('level_up', 'Subida de Nivel'),
     ]
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gamification_notifications')
+    recipient = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='gamification_notifications')
     notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
     title = models.CharField(max_length=200)
     message = models.TextField()
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
-
+    
+    def __str__(self):
+        return f"{self.recipient.username} - {self.get_notification_type_display()}"
+    
     class Meta:
         ordering = ['-created_at']
-
-    def __str__(self):
-        return f"{self.notification_type} - {self.recipient.username}"
-
-# ============================================================================
-# MESSAGING SYSTEM MODELS
-# ============================================================================
 
 class PrivateMessage(models.Model):
     """Private messages between users"""
     id = models.AutoField(primary_key=True)
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gamification_sent_messages', verbose_name="Sender")
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gamification_received_messages', verbose_name="Recipient")
+    sender = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='gamification_sent_messages', verbose_name="Sender")
+    recipient = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='gamification_received_messages', verbose_name="Recipient")
     subject = models.CharField(max_length=200, verbose_name="Subject")
     content = models.TextField(verbose_name="Content")
     is_read = models.BooleanField(default=False, verbose_name="Is Read")
@@ -596,7 +580,7 @@ class ClassroomMessage(models.Model):
     """Group chat messages for classrooms"""
     id = models.AutoField(primary_key=True)
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name='gamification_messages', verbose_name="Classroom")
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gamification_classroom_messages', verbose_name="Sender")
+    sender = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='gamification_classroom_messages', verbose_name="Sender")
     content = models.TextField(verbose_name="Content")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
     
@@ -611,13 +595,13 @@ class ClassroomMessage(models.Model):
 class MessageNotification(models.Model):
     """Notifications for new messages"""
     id = models.AutoField(primary_key=True)
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gamification_message_notifications', verbose_name="Recipient")
+    recipient = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='gamification_message_notifications', verbose_name="Recipient")
     message = models.ForeignKey(PrivateMessage, on_delete=models.CASCADE, related_name='gamification_notifications', verbose_name="Message")
     is_read = models.BooleanField(default=False, verbose_name="Is Read")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
     
     def __str__(self):
-        return f"Message notification for {self.recipient.username}"
+        return f"Notification for {self.recipient.username} about message from {self.message.sender.username}"
     
     class Meta:
         verbose_name = "Message Notification"
@@ -627,8 +611,8 @@ class MessageNotification(models.Model):
 class PrivateConversation(models.Model):
     """Private conversation between two users"""
     id = models.AutoField(primary_key=True)
-    user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gamification_conversations_as_user1', verbose_name="User 1")
-    user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gamification_conversations_as_user2', verbose_name="User 2")
+    user1 = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='gamification_conversations_as_user1', verbose_name="User 1")
+    user2 = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='gamification_conversations_as_user2', verbose_name="User 2")
     last_message = models.ForeignKey(PrivateMessage, on_delete=models.SET_NULL, null=True, blank=True, related_name='gamification_conversation_last_message', verbose_name="Last Message")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
@@ -651,7 +635,7 @@ class PrivateConversation(models.Model):
     def get_unread_count(self, user):
         """Get unread message count for a user"""
         return PrivateMessage.objects.filter(
-            recipient=user,
             conversation=self,
+            recipient=user,
             is_read=False
         ).count()

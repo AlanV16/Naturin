@@ -36,17 +36,17 @@ function submitCreateCourse() {
     const form = document.getElementById('createCourseForm');
     const formData = new FormData(form);
 
-    // Validar campos requeridos
-    const requiredFields = ['courseName', 'courseCode', 'courseSubject', 'courseGrade'];
+    // Validar campos requeridos - corregir para que coincida con los campos reales del formulario
+    const requiredFields = ['courseName', 'courseCode', 'courseGrade', 'courseSection'];
     for (const fieldId of requiredFields) {
         const field = document.getElementById(fieldId);
-        if (!field.value) {
-            showAlert(`Por favor complete el campo ${field.getAttribute('placeholder') || field.getAttribute('aria-label')}`, 'warning');
+        if (!field || !field.value) {
+            showAlert(`Por favor complete el campo ${field ? (field.getAttribute('placeholder') || field.getAttribute('aria-label') || fieldId) : fieldId}`, 'warning');
             return;
         }
     }
 
-    fetch('{% url "users:create_class_api" %}', {
+    fetch('/accounts/api/create_class/', {
         method: 'POST',
         body: formData,
         headers: {
@@ -55,11 +55,12 @@ function submitCreateCourse() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            showAlert('Curso creado exitosamente', 'success');
-            const modal = bootstrap.Modal.getInstance(document.getElementById('createCourseModal'));
-            modal.hide();
-            // Recargar la página para mostrar el nuevo curso
+        if (data.success && data.redirect_url) {
+            window.location.href = data.redirect_url;
+        } else if (data.success && data.course_id) {
+            window.location.href = '/accounts/class/' + data.course_id + '/';
+        } else if (data.success) {
+            showAlert('Curso creado exitosamente, pero no se pudo redirigir.', 'success');
             window.location.reload();
         } else {
             showAlert(data.error || 'Error al crear el curso', 'error');

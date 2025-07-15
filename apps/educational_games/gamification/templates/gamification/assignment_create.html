@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Actividad - NatureIn{% endblock %}
+
+{% block extra_css %}
+<style>
+    .assignment-form {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .form-section h4 {
+        color: #28a745;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #28a745;
+        padding-bottom: 10px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+    
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    .activity-type-card {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .activity-type-card:hover {
+        border-color: #28a745;
+        background-color: #f8fff9;
+    }
+    
+    .activity-type-card.selected {
+        border-color: #28a745;
+        background-color: #d4edda;
+    }
+    
+    .activity-type-icon {
+        font-size: 2rem;
+        color: #28a745;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="assignment-form">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary">
+            <i class="bi bi-plus-circle me-2"></i>
+            Crear Nueva Actividad
+        </h2>
+        <a href="{% url 'gamification:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>
+            Volver al Dashboard
+        </a>
+    </div>
+    
+    <form method="post" id="assignmentForm">
+        {% csrf_token %}
+        
+        <!-- Información Básica -->
+        <div class="form-section">
+            <h4>
+                <i class="bi bi-info-circle me-2"></i>
+                Información de la Actividad
+            </h4>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <label for="titulo" class="form-label">Título de la Actividad *</label>
+                        <input type="text" class="form-control" id="titulo" name="titulo" required>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="aula_id" class="form-label">Aula *</label>
+                        <select class="form-control" id="aula_id" name="aula_id" required>
+                            <option value="">Seleccionar aula</option>
+                            {% for aula in aulas %}
+                                <option value="{{ aula.id }}">{{ aula.name }} ({{ aula.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="descripcion" class="form-label">Descripción *</label>
+                <textarea class="form-control" id="descripcion" name="descripcion" rows="4" required 
+                          placeholder="Describe la actividad, objetivos, instrucciones..."></textarea>
+            </div>
+        </div>
+        
+        <!-- Tipo de Actividad -->
+        <div class="form-section">
+            <h4>
+                <i class="bi bi-list-check me-2"></i>
+                Tipo de Actividad
+            </h4>
+            
+            <div class="row">
+                {% for tipo in tipos_actividad %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="activity-type-card" data-tipo-id="{{ tipo.IDtipoActividad }}">
+                        <div class="text-center">
+                            <div class="activity-type-icon">
+                                <i class="bi bi-journal-check"></i>
+                            </div>
+                            <h6 class="fw-bold">{{ tipo.TipoActividad }}</h6>
+                            <small class="text-muted">Seleccionar este tipo</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <input type="hidden" id="tipo_actividad" name="tipo_actividad" required>
+        </div>
+        
+        <!-- Configuración Adicional -->
+        <div class="form-section">
+            <h4>
+                <i class="bi bi-gear me-2"></i>
+                Configuración Adicional
+            </h4>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
+                        <input type="datetime-local" class="form-control" id="fecha_inicio" name="fecha_inicio">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="fecha_fin" class="form-label">Fecha de Finalización</label>
+                        <input type="datetime-local" class="form-control" id="fecha_fin" name="fecha_fin">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="puntos_maximos" class="form-label">Puntos Máximos</label>
+                        <input type="number" class="form-control" id="puntos_maximos" name="puntos_maximos" 
+                               min="1" max="100" value="100">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="intentos_permitidos" class="form-label">Intentos Permitidos</label>
+                        <input type="number" class="form-control" id="intentos_permitidos" name="intentos_permitidos" 
+                               min="1" max="10" value="3">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botones de Acción -->
+        <div class="form-section text-center">
+            <button type="submit" class="btn btn-primary me-3">
+                <i class="bi bi-check-circle me-2"></i>
+                Crear Actividad
+            </button>
+            <a href="{% url 'gamification:dashboard' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle me-2"></i>
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Selección de tipo de actividad
+    document.querySelectorAll('.activity-type-card').forEach(card => {
+        card.addEventListener('click', function() {
+            // Remover selección previa
+            document.querySelectorAll('.activity-type-card').forEach(c => c.classList.remove('selected'));
+            
+            // Seleccionar actual
+            this.classList.add('selected');
+            
+            // Actualizar input hidden
+            const tipoId = this.getAttribute('data-tipo-id');
+            document.getElementById('tipo_actividad').value = tipoId;
+        });
+    });
+    
+    // Validación del formulario
+    document.getElementById('assignmentForm').addEventListener('submit', function(e) {
+        const titulo = document.getElementById('titulo').value.trim();
+        const descripcion = document.getElementById('descripcion').value.trim();
+        const aulaId = document.getElementById('aula_id').value;
+        const tipoActividad = document.getElementById('tipo_actividad').value;
+        
+        if (!titulo) {
+            e.preventDefault();
+            alert('Por favor ingresa un título para la actividad.');
+            return;
+        }
+        
+        if (!descripcion) {
+            e.preventDefault();
+            alert('Por favor ingresa una descripción para la actividad.');
+            return;
+        }
+        
+        if (!aulaId) {
+            e.preventDefault();
+            alert('Por favor selecciona un aula.');
+            return;
+        }
+        
+        if (!tipoActividad) {
+            e.preventDefault();
+            alert('Por favor selecciona un tipo de actividad.');
+            return;
+        }
+    });
+    
+    // Configurar fechas por defecto
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const endDate = new Date(tomorrow);
+        endDate.setDate(endDate.getDate() + 7);
+        
+        document.getElementById('fecha_inicio').value = tomorrow.toISOString().slice(0, 16);
+        document.getElementById('fecha_fin').value = endDate.toISOString().slice(0, 16);
+    });
+</script>
+{% endblock %} 

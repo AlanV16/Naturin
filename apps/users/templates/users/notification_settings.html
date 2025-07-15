@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+    <style>
+        .settings-card {
+            background: white;
+            border-radius: 15px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .settings-header {
+            background: linear-gradient(135deg, #1c8554 0%, #00b383 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .setting-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-right: 1rem;
+        }
+        
+        .icon-email {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .icon-push {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        }
+        
+        .icon-classroom {
+            background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+        }
+        
+        .icon-achievement {
+            background: linear-gradient(135deg, #e83e8c 0%, #dc3545 100%);
+        }
+        
+        .form-switch {
+            padding-left: 2.5rem;
+        }
+        
+        .form-switch .form-check-input {
+            width: 3rem;
+            height: 1.5rem;
+            margin-left: -2.5rem;
+        }
+        
+        .btn-save-settings {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-save-settings:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+            color: white;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h2 class="mb-1">
+                    <i class="bi bi-bell text-primary me-2"></i>
+                    Configuración de Notificaciones
+                </h2>
+                <p class="text-muted">Personaliza cómo recibes las notificaciones</p>
+            </div>
+
+            <!-- Configuración -->
+            <div class="settings-card">
+                <div class="settings-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-gear me-2"></i>
+                        Preferencias de Notificaciones
+                    </h4>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Notificaciones por Email -->
+                    <div class="setting-item">
+                        <div class="d-flex align-items-center">
+                            <div class="setting-icon icon-email">
+                                <i class="bi bi-envelope"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">Notificaciones por Email</h5>
+                                <p class="text-muted mb-0">Recibe notificaciones importantes por correo electrónico</p>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="email_notifications" 
+                                       name="email_notifications" {% if user.email_notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="email_notifications"></label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notificaciones Push -->
+                    <div class="setting-item">
+                        <div class="d-flex align-items-center">
+                            <div class="setting-icon icon-push">
+                                <i class="bi bi-bell"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">Notificaciones Push</h5>
+                                <p class="text-muted mb-0">Recibe notificaciones instantáneas en el navegador</p>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="push_notifications" 
+                                       name="push_notifications" {% if user.push_notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="push_notifications"></label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notificaciones de Aula -->
+                    <div class="setting-item">
+                        <div class="d-flex align-items-center">
+                            <div class="setting-icon icon-classroom">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">Notificaciones de Aula</h5>
+                                <p class="text-muted mb-0">Recibe notificaciones sobre actividades y mensajes de tus aulas</p>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="classroom_notifications" 
+                                       name="classroom_notifications" {% if user.classroom_notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="classroom_notifications"></label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notificaciones de Logros -->
+                    <div class="setting-item">
+                        <div class="d-flex align-items-center">
+                            <div class="setting-icon icon-achievement">
+                                <i class="bi bi-trophy"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">Notificaciones de Logros</h5>
+                                <p class="text-muted mb-0">Recibe notificaciones cuando desbloquees logros y subas de nivel</p>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="achievement_notifications" 
+                                       name="achievement_notifications" {% if user.achievement_notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="achievement_notifications"></label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botones -->
+                    <div class="p-4 text-center">
+                        <button type="submit" class="btn btn-save-settings">
+                            <i class="bi bi-check-circle me-2"></i>
+                            Guardar Configuración
+                        </button>
+                        <a href="{% url 'users:dashboard_teacher' user.id %}" class="btn btn-outline-secondary ms-2">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            Volver
+                        </a>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Información adicional -->
+            <div class="mt-4">
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-info-circle me-2"></i>Información sobre las notificaciones</h6>
+                    <ul class="mb-0">
+                        <li>Las notificaciones por email se envían a: <strong>{{ user.email }}</strong></li>
+                        <li>Las notificaciones push requieren que el sitio esté abierto en tu navegador</li>
+                        <li>Puedes cambiar estas configuraciones en cualquier momento</li>
+                        <li>Algunas notificaciones importantes siempre se mostrarán independientemente de tu configuración</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script>
+        // Solicitar permisos para notificaciones push
+        document.addEventListener('DOMContentLoaded', function() {
+            const pushSwitch = document.getElementById('push_notifications');
+            
+            pushSwitch.addEventListener('change', function() {
+                if (this.checked) {
+                    // Solicitar permisos de notificación
+                    if ('Notification' in window) {
+                        Notification.requestPermission().then(function(permission) {
+                            if (permission !== 'granted') {
+                                alert('Para recibir notificaciones push, necesitas permitir las notificaciones en tu navegador.');
+                                pushSwitch.checked = false;
+                            }
+                        });
+                    } else {
+                        alert('Tu navegador no soporta notificaciones push.');
+                        pushSwitch.checked = false;
+                    }
+                }
+            });
+        });
+        
+        // Mostrar mensaje de confirmación al guardar
+        document.querySelector('form').addEventListener('submit', function() {
+            const submitBtn = document.querySelector('.btn-save-settings');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Guardando...';
+            submitBtn.disabled = true;
+            
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 2000);
+        });
+    </script>
+{% endblock %} 
+ 
+ 

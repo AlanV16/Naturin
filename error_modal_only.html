@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Acceso no permitido{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <img src="{% static 'images/miscellaneous/no_assignments.png' %}" alt="No permitido" style="max-width:180px;" class="mb-4">
+            <h2 class="text-danger mb-3"><i class="bi bi-exclamation-triangle me-2"></i>Acceso no permitido</h2>
+            <p class="lead mb-4">La creación de tareas solo está disponible desde el dashboard de actividades, usando el botón <b>Crear Tarea</b>.<br>Por favor, regresa al panel principal para continuar.</p>
+            <a href="{% url 'educational_games:activity_dashboard' %}" class="btn btn-primary btn-lg">
+                <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard de Actividades
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

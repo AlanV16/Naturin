@@ -1,0 +1,48 @@
+<!-- Barra de búsqueda -->
+<div class="search-section mb-3">
+    <div class="input-group">
+        <input type="text" id="teacherSearchInput" class="form-control" placeholder="Buscar docente por nombre o correo...">
+        <button class="btn btn-outline-primary" type="button" onclick="searchTeachers()">
+            <i class="bi bi-search"></i>
+        </button>
+    </div>
+    <div id="searchResults" class="mt-2" style="display: none;">
+        <!-- Resultados de búsqueda aparecerán aquí -->
+    </div>
+</div>
+
+<!-- Lista de contactos existentes -->
+<div class="contacts-section">
+    <h6 class="text-muted mb-2">Contactos recientes</h6>
+    {% for teacher in teachers %}
+    <div class="contact-item" onclick="loadChatMessages({{ teacher.id }})" data-contact-id="{{ teacher.id }}">
+        <div class="d-flex align-items-center">
+            <div class="contact-avatar me-3">
+                {% if teacher.avatar %}
+                    <img src="{{ teacher.avatar.url }}" alt="{{ teacher.get_full_name }}" class="rounded-circle" width="40" height="40">
+                {% else %}
+                    <div class="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: #e9ecef;">
+                        <i class="bi bi-person text-muted"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="contact-info">
+                <h6 class="mb-0">{{ teacher.get_full_name }}</h6>
+                <small class="text-muted">{{ teacher.email }}</small>
+                {% if teacher.taught_courses.count %}
+                    <br><small class="text-primary">{{ teacher.taught_courses.count }} curso(s)</small>
+                {% endif %}
+            </div>
+            <div class="ms-auto">
+                <small class="text-muted">{{ teacher.get_user_type_display }}</small>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-4">
+        <i class="bi bi-chat-dots text-muted" style="font-size: 2rem;"></i>
+        <p class="text-muted mt-2">No hay contactos disponibles</p>
+        <small class="text-muted">Busca un docente para iniciar una conversación</small>
+    </div>
+    {% endfor %}
+</div> 

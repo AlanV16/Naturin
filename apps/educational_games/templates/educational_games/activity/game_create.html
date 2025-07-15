@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    Crear Nuevo Juego
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header bg-danger text-white border-0" style="border-radius: 16px 16px 0 0;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-puzzle me-3" style="font-size: 2rem;"></i>
+                        <div>
+                            <h3 class="mb-1">Crear Nuevo Juego</h3>
+                            <p class="mb-0 opacity-75">Agrega una actividad lúdica personalizada</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.NombreJuego|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.IDtipoJuego|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.Dificultad|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.PuntosMaximos|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                {{ form.Descripcion|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.Instrucciones|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.Configuracion|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.Estado|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.FechaCreacion|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                {{ form.Creador|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="mt-4 d-flex gap-3">
+                            <button type="submit" class="btn btn-danger flex-fill">
+                                <i class="bi bi-check-circle"></i> Crear Juego
+                            </button>
+                            <a href="{% url 'educational_games:game_list' %}" class="btn btn-outline-secondary flex-fill">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

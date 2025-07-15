@@ -5,57 +5,228 @@
     {% include 'partials/header_dashboard.html' %}
 {% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2 class="fw-bold mb-2">
-                        <i class="bi bi-bell me-2"></i>Notificaciones
-                    </h2>
-                    <p class="text-muted mb-0">Mantente al día con todas tus actividades</p>
-                </div>
-                <button class="btn btn-outline-primary" onclick="markAllAsRead()">
-                    <i class="bi bi-check-all me-2"></i>Marcar todas como leídas
-                </button>
-            </div>
+{% block footer %}{% endblock %}
 
-            <!-- Notificaciones -->
-            <div class="card">
-                <div class="card-body">
-                    {% if notifications %}
+{% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/dashboard_optimized.css' %}">
+    <style>
+        .notification-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .notification-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .notification-item.unread {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 4px solid #2196f3;
+        }
+        
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-time {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-none d-md-block">
+            <div class="sidebar-dashboard">
+                <div class="text-center py-4">
+                    <img src="{% static 'images/mascota/tuki.png' %}" alt="Tuki" width="80" class="mb-3">
+                    <h6 class="fw-bold text-primary">Notificaciones</h6>
+                </div>
+                <nav class="nav flex-column px-2 pb-4">
+                    <a class="nav-link sidebar-btn active" href="{% url 'users:notifications_list' %}">
+                        <i class="bi bi-bell-fill me-2"></i>
+                        <span>Todas las Notificaciones</span>
+                    </a>
+                    <a class="nav-link sidebar-btn" href="#" onclick="markAllAsRead()">
+                        <i class="bi bi-check-all me-2"></i>
+                        <span>Marcar como Leídas</span>
+                    </a>
+                    <a class="nav-link sidebar-btn" href="{% url 'users:notification_settings' %}">
+                        <i class="bi bi-gear me-2"></i>
+                        <span>Configuración</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 px-3">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold text-primary">
+                        <i class="bi bi-bell me-2"></i>
+                        Notificaciones
+                    </h3>
+                    <div>
+                        <button class="btn btn-outline-primary btn-sm" onclick="markAllAsRead()">
+                            <i class="bi bi-check-all me-2"></i>
+                            Marcar como Leídas
+                        </button>
+                    </div>
+                </div>
+
+                {% if notifications %}
+                    <div id="notifications-container">
                         {% for notification in notifications %}
-                        <div class="notification-item {% if not notification.is_read %}unread{% endif %}" data-id="{{ notification.id }}">
+                        <div class="notification-item {% if not notification.is_read %}unread{% endif %}" data-notification-id="{{ notification.id }}">
                             <div class="d-flex align-items-start">
-                                <div class="notification-icon me-3">
+                                <div class="notification-icon bg-primary text-white">
                                     <i class="bi bi-{{ notification.notification_type|default:'bell' }}"></i>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="notification-title">{{ notification.title }}</h6>
-                                    <p class="notification-message text-muted mb-1">{{ notification.message }}</p>
-                                    <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                                <div class="notification-content">
+                                    <h6 class="mb-1">{{ notification.title }}</h6>
+                                    <p class="mb-2">{{ notification.message }}</p>
+                                    <div class="notification-time">
+                                        {{ notification.created_at|timesince }} atrás
+                                    </div>
                                 </div>
                                 {% if not notification.is_read %}
-                                <button class="btn btn-sm btn-outline-primary" onclick="markAsRead('{{ notification.id }}')">
+                                <button class="btn btn-sm btn-outline-primary" onclick="markAsRead({{ notification.id }})">
                                     <i class="bi bi-check"></i>
                                 </button>
                                 {% endif %}
                             </div>
                         </div>
-                        {% if not forloop.last %}<hr>{% endif %}
                         {% endfor %}
+                    </div>
 
-                        <!-- Paginación -->
-                        {% if notifications.has_other_pages %}
-                        <nav aria-label="Paginación de notificaciones" class="mt-4">
-                            <ul class="pagination justify-content-center">
-                                {% if notifications.has_previous %}
+                    <!-- Paginación -->
+                    {% if notifications.has_other_pages %}
+                    <nav aria-label="Navegación de notificaciones">
+                        <ul class="pagination justify-content-center">
+                            {% if notifications.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ notifications.previous_page_number }}">Anterior</a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in notifications.paginator.page_range %}
+                                {% if notifications.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > notifications.number|add:'-3' and num < notifications.number|add:'3' %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ notifications.previous_page_number }}">Anterior</a>
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
                                     </li>
                                 {% endif %}
+                            {% endfor %}
+
+                            {% if notifications.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ notifications.next_page_number }}">Siguiente</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-bell-slash"></i>
+                        <h5>No hay notificaciones</h5>
+                        <p>Cuando recibas notificaciones, aparecerán aquí.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script>
+        function markAsRead(notificationId) {
+            fetch(`{% url 'users:mark_notification_read' notification_id=0 %}`.replace('0', notificationId), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
+                    notificationItem.classList.remove('unread');
+                    const markButton = notificationItem.querySelector('.btn');
+                    if (markButton) {
+                        markButton.remove();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function markAllAsRead() {
+            fetch('{% url "users:mark_all_notifications_read" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelectorAll('.notification-item.unread').forEach(item => {
+                        item.classList.remove('unread');
+                        const markButton = item.querySelector('.btn');
+                        if (markButton) {
+                            markButton.remove();
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+{% endblock %}
                                 
                                 {% for num in notifications.paginator.page_range %}
                                     {% if num == notifications.number %}

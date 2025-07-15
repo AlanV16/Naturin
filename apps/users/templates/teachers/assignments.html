@@ -1,7 +1,398 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block header %}
+    {% include 'partials/header_dashboard.html' %}
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
 {% block extra_css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
+    <style>
+        .activity-card {
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+        
+        .activity-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .activity-type-badge {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.8rem;
+        }
+        
+        .create-activity-btn {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .create-activity-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            color: white;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="teacher-dashboard-bg" data-user-type="2">
+    <div class="container-fluid py-2">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-none d-md-block">
+                <div class="sidebar-dashboard">
+                    <div class="text-center py-4">
+                        <img src="{% static 'images/mascota/tuki.png' %}" alt="Tuki" width="80" height="80" class="mb-3" loading="lazy">
+                        <h6 class="fw-bold text-primary">¡Hola, Profesor!</h6>
+                    </div>
+                    <nav class="nav flex-column px-2 pb-4">
+                        <a class="nav-link sidebar-btn" href="{% url 'users:dashboard_teacher' user_id=user.id %}">
+                            <i class="bi bi-house-door-fill me-2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_courses' %}">
+                            <i class="bi bi-journal-bookmark-fill me-2"></i>
+                            <span>Mis Aulas</span>
+                        </a>
+                        <a class="nav-link sidebar-btn active" href="{% url 'users:teacher_assignments' %}">
+                            <i class="bi bi-clipboard-check me-2"></i>
+                            <span>Actividades</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_tests' %}">
+                            <i class="bi bi-question-circle me-2"></i>
+                            <span>Tests</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_readings' %}">
+                            <i class="bi bi-book me-2"></i>
+                            <span>Lecturas</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_games' %}">
+                            <i class="bi bi-puzzle me-2"></i>
+                            <span>Juegos</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_grades' %}">
+                            <i class="bi bi-bar-chart-fill me-2"></i>
+                            <span>Calificaciones</span>
+                        </a>
+                        <a class="nav-link sidebar-btn" href="{% url 'users:teacher_messages' %}">
+                            <i class="bi bi-chat-dots-fill me-2"></i>
+                            <span>Mensajes</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 px-3">
+                <!-- Header -->
+                <div class="dashboard-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="fw-bold mb-2 text-primary">
+                                <i class="bi bi-clipboard-check me-2"></i>
+                                Gestión de Actividades
+                            </h3>
+                            <p class="text-muted mb-0">Crea y gestiona actividades para tus aulas virtuales</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn create-activity-btn" onclick="showCreateActivityModal()">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Nueva Actividad
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="dashboard-card">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="classroomFilter" class="form-label">Filtrar por Aula:</label>
+                            <select class="form-select" id="classroomFilter">
+                                <option value="">Todas las aulas</option>
+                                {% for classroom in classrooms %}
+                                    <option value="{{ classroom.id }}">{{ classroom.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="typeFilter" class="form-label">Filtrar por Tipo:</label>
+                            <select class="form-select" id="typeFilter">
+                                <option value="">Todos los tipos</option>
+                                {% for activity_type in activity_types %}
+                                    <option value="{{ activity_type.IDtipoActividad }}">{{ activity_type.TipoActividad }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="statusFilter" class="form-label">Estado:</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="">Todos</option>
+                                <option value="active">Activas</option>
+                                <option value="inactive">Inactivas</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Actividades -->
+                <div class="dashboard-card">
+                    <h5 class="section-title mb-4">
+                        <i class="bi bi-list-ul me-2"></i>
+                        Actividades Creadas
+                    </h5>
+                    
+                    {% if activities %}
+                        <div class="row" id="activitiesList">
+                            {% for activity in activities %}
+                            <div class="col-md-6 col-lg-4 mb-4 activity-item" 
+                                 data-classroom="{{ activity.IDaula.id }}" 
+                                 data-type="{{ activity.IDtipoActividad.IDtipoActividad }}">
+                                <div class="card activity-card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <h6 class="card-title fw-bold">{{ activity.Titulo }}</h6>
+                                            <span class="badge activity-type-badge bg-primary">{{ activity.IDtipoActividad.TipoActividad }}</span>
+                                        </div>
+                                        
+                                        <p class="card-text text-muted small">{{ activity.Instrucciones|truncatechars:100 }}</p>
+                                        
+                                        <div class="mt-3">
+                                            <small class="text-muted">
+                                                <i class="bi bi-building me-1"></i>
+                                                {{ activity.IDaula.name }}
+                                            </small>
+                                        </div>
+                                        
+                                        <div class="mt-3 d-flex gap-2">
+                                            <button class="btn btn-outline-primary btn-sm" onclick="editActivity({{ activity.IDactividad }})">
+                                                <i class="bi bi-pencil me-1"></i>Editar
+                                            </button>
+                                            <button class="btn btn-outline-success btn-sm" onclick="viewActivity({{ activity.IDactividad }})">
+                                                <i class="bi bi-eye me-1"></i>Ver
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm" onclick="deleteActivity({{ activity.IDactividad }})">
+                                                <i class="bi bi-trash me-1"></i>Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-clipboard-x text-muted" style="font-size: 4rem;"></i>
+                            <h5 class="mt-3 text-muted">No hay actividades creadas</h5>
+                            <p class="text-muted">Crea tu primera actividad para comenzar</p>
+                            <button class="btn create-activity-btn" onclick="showCreateActivityModal()">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Crear Primera Actividad
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crear Actividad -->
+<div class="modal fade" id="createActivityModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Crear Nueva Actividad
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createActivityForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="activityTitle" class="form-label">Título de la Actividad *</label>
+                                <input type="text" class="form-control" id="activityTitle" name="title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="activityType" class="form-label">Tipo de Actividad *</label>
+                                <select class="form-select" id="activityType" name="type" required>
+                                    <option value="">Seleccionar tipo</option>
+                                    {% for activity_type in activity_types %}
+                                        <option value="{{ activity_type.IDtipoActividad }}">{{ activity_type.TipoActividad }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="activityClassroom" class="form-label">Aula *</label>
+                        <select class="form-select" id="activityClassroom" name="classroom" required>
+                            <option value="">Seleccionar aula</option>
+                            {% for classroom in classrooms %}
+                                <option value="{{ classroom.id }}">{{ classroom.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="activityInstructions" class="form-label">Instrucciones *</label>
+                        <textarea class="form-control" id="activityInstructions" name="instructions" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="activityDueDate" class="form-label">Fecha de Entrega</label>
+                                <input type="datetime-local" class="form-control" id="activityDueDate" name="due_date">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="activityPoints" class="form-label">Puntos</label>
+                                <input type="number" class="form-control" id="activityPoints" name="points" min="1" max="100" value="10">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn create-activity-btn" onclick="submitCreateActivity()">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Crear Actividad
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ block.super }}
+    <script src="{% static 'js/header_logged.js' %}"></script>
+    <script>
+        // Funciones para el modal
+        function showCreateActivityModal() {
+            const modal = new bootstrap.Modal(document.getElementById('createActivityModal'));
+            modal.show();
+        }
+        
+        function submitCreateActivity() {
+            const form = document.getElementById('createActivityForm');
+            const formData = new FormData(form);
+            
+            fetch('{% url "users:create_activity_api" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Actividad creada exitosamente', 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createActivityModal'));
+                    modal.hide();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    showAlert(data.error || 'Error al crear la actividad', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error al crear la actividad', 'error');
+            });
+        }
+        
+        // Funciones de filtrado
+        document.getElementById('classroomFilter').addEventListener('change', filterActivities);
+        document.getElementById('typeFilter').addEventListener('change', filterActivities);
+        document.getElementById('statusFilter').addEventListener('change', filterActivities);
+        
+        function filterActivities() {
+            const classroomFilter = document.getElementById('classroomFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            const activities = document.querySelectorAll('.activity-item');
+            
+            activities.forEach(activity => {
+                const classroom = activity.dataset.classroom;
+                const type = activity.dataset.type;
+                
+                let show = true;
+                
+                if (classroomFilter && classroom !== classroomFilter) {
+                    show = false;
+                }
+                
+                if (typeFilter && type !== typeFilter) {
+                    show = false;
+                }
+                
+                activity.style.display = show ? 'block' : 'none';
+            });
+        }
+        
+        // Funciones de acción
+        function editActivity(activityId) {
+            // Implementar edición de actividad
+            showAlert('Función en desarrollo', 'info');
+        }
+        
+        function viewActivity(activityId) {
+            // Implementar vista de actividad
+            showAlert('Función en desarrollo', 'info');
+        }
+        
+        function deleteActivity(activityId) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta actividad?')) {
+                // Implementar eliminación de actividad
+                showAlert('Función en desarrollo', 'info');
+            }
+        }
+        
+        // Función para mostrar alertas
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+            alertDiv.style.zIndex = '9999';
+            alertDiv.style.marginTop = '60px';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+    </script>
+{% endblock %}
+
 <link rel="stylesheet" href="{% static 'css/student/courses.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_teacher.css' %}">
 <style>

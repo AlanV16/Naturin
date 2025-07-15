@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-_ds02s5q_^5$7w3^^+$2s6a!8!=r=ak_*ifd%$)fs&$56)+hg!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'testserver']
 
 # Application definition
 
@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'apps.common',
     'apps.content',
     'apps.educational_games.gamification',
+    'apps.educational_games',
     'apps.main_page',
     'apps.multimedia',
     'apps.plants',

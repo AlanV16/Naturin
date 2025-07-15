@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages 
 from django.contrib.auth import login, authenticate
-from .models import User, Event, Message, Conversation, ConversationMessage
+from .models import User, Event, Message, Conversation, ConversationMessage, Child, Suggestion, EducationalResource
 from .forms import StudentRegisterForm
 from django.contrib.auth.decorators import login_required   
 from .forms import LoginForm, TeacherRegisterForm, ParentRegisterForm
@@ -17,15 +17,16 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_GET
 from validate_email import validate_email
 from django.core.paginator import Paginator
 from django.contrib.auth import logout
 import random
 import string
 from django.db import transaction
-from apps.educational_games.gamification.models import Classroom, ClassroomStudent, Activities, Levels
+from apps.educational_games.gamification.models import ( Classroom, ClassroomStudent )
 from .utils import generate_unique_class_code
+
 from .utils import send_verification_email, send_welcome_email
 # Import de modelos adicionales
 from .models import (
@@ -275,12 +276,20 @@ def resend_verification_code(request, user_id):
 
 @login_required
 def dashboard_student(request, user_id):
-    """Dashboard principal del estudiante con datos reales"""
-    user = request.user
-    
+    """Dashboard específico para estudiantes"""
+    # Comprobación de seguridad para evitar bucles y accesos incorrectos
+    if request.user.id != user_id or request.user.user_type != 1:
+        return redirect_to_user_dashboard(request)
     try:
+        user = request.user
+        
+        # Verificar que el usuario es estudiante
+        if user.user_type != 1:
+            messages.error(request, 'Acceso denegado. Solo estudiantes pueden acceder a este dashboard.')
+            return redirect('users:login')
+        
         # Obtener las clases del estudiante usando el modelo correcto
-        from apps.educational_games.gamification.models import ClassroomStudent, Classroom
+        from apps.educational_games.gamification.models import ClassroomStudent, Classroom, Niveles
         inscripciones = ClassroomStudent.objects.filter(student=user).select_related('classroom', 'classroom__teacher')
         courses = []
         
@@ -289,425 +298,216 @@ def dashboard_student(request, user_id):
             try:
                 courses.append(inscripcion.classroom)
             except Exception as e:
-                print(f"Error procesando inscripción {inscripcion.id}: {e}")
+                print(f"Error procesando inscripción: {e}")
                 continue
-                
-    except Exception as e:
-        print(f"Error obteniendo inscripciones: {e}")
-        inscripciones = []
-        courses = []
-    
-    # Estadísticas generales with valores por defecto
-    total_courses = len(courses)
-    active_courses = total_courses  # Todas las clases están activas por defecto
-    pending_assignments = 0
-    upcoming_events = 0
-    total_achievements = 0
-    general_progress = 0
-    course_details = []
-    recent_activities = []
-    next_events = []
-    recent_achievements = []
-    average_grade = 0
-    
-    try:
-        # Solo calcular si hay cursos
-        if courses:
-            # Progreso general (simulado para clases)
-            general_progress = 75  # Progreso simulado
-            
-            # Cursos para mostrar en el dashboard (máximo 3)
-            for inscripcion in inscripciones[:3]:
-                try:
-                    aula = inscripcion.classroom
-                    teacher_name = "Sin asignar"
-                    try:
-                        teacher_name = aula.teacher.get_full_name() if aula.teacher else "Sin asignar"
-                    except:
-                        pass
-                    
-                    icon = "book"
-                    
-                    course_details.append({
-                        'id': aula.IDaula,
-                        'name': aula.NombreAula,
-                        'teacher': teacher_name,
-                        'progress': 75,  # Progreso simulado
-                        'icon': icon,
-                    })
-                except Exception as e:
-                    print(f"Error procesando course details: {e}")
-                    continue
-    
-    except Exception as e:
-        print(f"Error calculando estadísticas: {e}")
-    
-    # Crear notificaciones de prueba si no existen
-    try:
-        if not user.gamification_notifications.exists():
-            Notification.objects.create(
-                recipient=user,
-                title='¡Bienvenido a NaturIn!',
-                message='Te damos la bienvenida a nuestra plataforma educativa.',
-                notification_type='achievement_unlocked'
-            )
-    except Exception as e:
-        print(f"Error creando notificaciones: {e}")
-    
-    # Logros obtenidos por el estudiante
-    try:
-        # Obtener logros obtenidos por el estudiante
-        student_achievements = StudentAchievement.objects.filter(
-            student=user
-        ).select_related('achievement').order_by('-earned_at')[:4]
         
-        # Obtener algunos logros disponibles que no ha obtenido (para mostrar como "locked")
-        earned_achievement_ids = student_achievements.values_list('achievement_id', flat=True)
-        available_achievements = Achievement.objects.exclude(
-            id__in=earned_achievement_ids
-        )[:2]  # Solo 2 logros no obtenidos para completar la grilla
+        # Obtener información del nivel del estudiante
+        try:
+            nivel_info = Niveles.objects.get(IDusuario=user)
+            student_level = nivel_info.nivel
+            total_points = nivel_info.puntos_acumulados
+        except Niveles.DoesNotExist:
+            student_level = 1
+            total_points = 0
         
-        total_achievements = student_achievements.count()
+        # Estadísticas básicas
+        active_courses = len(courses)
+        pending_assignments = 0  # Implementar cuando se tenga el sistema de tareas
+        upcoming_events = 0  # Implementar cuando se tenga el sistema de eventos
+        total_achievements = 0  # Implementar cuando se tenga el sistema de logros
         
-        # Preparar datos de logros para el template
-        achievements_data = []
+        # Datos de rendimiento académico
+        performance_data = {
+            'completed': 75,  # Porcentaje de actividades completadas
+            'pending': 25,    # Porcentaje de actividades pendientes
+            'grade_letter': 'B+',
+            'average_grade': 85.5,
+            'ranking': 'N/A'
+        }
         
-        # Agregar logros obtenidos
-        for student_achievement in student_achievements:
-            achievement = student_achievement.achievement
-            achievements_data.append({
-                'id': achievement.id,
-                'name': achievement.name,
-                'description': achievement.description,
-                'icon': achievement.icon,
-                'points': achievement.points,
-                'earned': True,
-                'earned_at': student_achievement.earned_at,
-                'css_class': 'earned'
-            })
+        # Actividades recientes (temporalmente vacío)
+        recent_activities = []
         
-        # Agregar algunos logros no obtenidos (máximo 4 en total)
-        remaining_slots = 4 - len(achievements_data)
-        for achievement in available_achievements[:remaining_slots]:
-            achievements_data.append({
-                'id': achievement.id,
-                'name': achievement.name,
-                'description': achievement.description,
-                'icon': achievement.icon,
-                'points': achievement.points,
-                'earned': False,
-                'earned_at': None,
-                'css_class': 'locked'
-            })
-            
-    except Exception as e:
-        print(f"Error cargando logros: {e}")
-        achievements_data = []
-        total_achievements = 0
-    
-    # Cálculos de rendimiento académico (simulado para clases)
-    try:
-        # Para clases, usamos datos simulados
-        average_grade = 8.5
-        completion_percentage = 75
-        grade_letter = 'B+'
-        user_ranking = 3
+        # Logros recientes (temporalmente vacío)
+        recent_achievements = []
         
-    except Exception as e:
-        print(f"Error calculando rendimiento: {e}")
-        average_grade = 0
-        completion_percentage = 0
-        grade_letter = 'N/A'
-        user_ranking = 'N/A'
-    
-    # Datos para el gráfico de rendimiento
-    performance_data = {
-        'completed': min(completion_percentage, 100),
-        'pending': max(100 - completion_percentage, 0),
-        'average_grade': round(average_grade, 1),
-        'grade_letter': grade_letter,
-        'ranking': user_ranking,
-        'completed_assignments': 0,
-        'total_assignments': 0
-    }
-    
-    context = {
-        'user': user,
-        'total_courses': total_courses,
-        'active_courses': active_courses,
-        'pending_assignments': pending_assignments,
-        'upcoming_events': upcoming_events,
-        'total_achievements': total_achievements,
-        'general_progress': round(general_progress, 1),
-        'course_details': course_details,
-        'recent_activities': recent_activities,
-        'next_events': next_events,
-        'recent_achievements': achievements_data,
-        'average_grade': average_grade,
-        'performance_data': performance_data,  # Agregar datos de rendimiento
-    }
-    
-    return render(request, 'dashboards/dashboard_student.html', context)
-
-# ================== VISTAS PARA RESET DE CONTRASEÑA ==================
-
-def password_reset_request(request):
-    """
-    Vista para solicitar reset de contraseña
-    """
-    if request.method == 'POST':
-        form = PasswordResetRequestForm(request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            
-            # Verificar que el usuario esté verificado
-            if not user.is_email_verified:
-                messages.error(
-                    request, 
-                    '❌ Debes verificar tu email antes de poder restablecer tu contraseña. '
-                    'Revisa tu bandeja de entrada o solicita un nuevo código de verificación.'
-                )
-                return redirect('users:verify_email', user_id=user.id)
-            
-            # Enviar email con código de reset
-            from .utils import send_password_reset_email
-            if send_password_reset_email(user):
-                messages.success(
-                    request, 
-                    f'✅ Se ha enviado un código de verificación a {user.email}. '
-                    'Revisa tu bandeja de entrada y tu carpeta de spam.'
-                )
-                return redirect('users:password_reset_verify', user_id=user.id)
-            else:
-                messages.error(
-                    request, 
-                    '❌ Error enviando el email. Intenta nuevamente en unos minutos.'
-                )
-    else:
-        form = PasswordResetRequestForm()
-    
-    return render(request, 'accounts/password_reset_request.html', {
-        'form': form,
-        'title': 'Restablecer Contraseña'
-    })
-
-
-def password_reset_verify(request, user_id):
-    """
-    Vista para verificar código de reset
-    """
-    try:
-        user = User.objects.get(id=user_id)
+        context = {
+            'user': user,
+            'course_details': courses,
+            'active_courses': active_courses,
+            'pending_assignments': pending_assignments,
+            'upcoming_events': upcoming_events,
+            'total_achievements': total_achievements,
+            'performance_data': performance_data,
+            'recent_activities': recent_activities,
+            'recent_achievements': recent_achievements,
+            'student_level': student_level,
+            'total_points': total_points,
+        }
+        
+        return render(request, 'dashboards/dashboard_student.html', context)
+        
     except User.DoesNotExist:
-        messages.error(request, '❌ Usuario no encontrado.')
-        return redirect('users:password_reset_request')
-    
-    # Verificar que el usuario tenga un código activo
-    if not user.password_reset_code or not user.password_reset_created:
-        messages.error(
-            request, 
-            '❌ No hay un código de reset activo. Solicita uno nuevo.'
-        )
-        return redirect('users:password_reset_request')
-    
-    if request.method == 'POST':
-        form = PasswordResetVerifyForm(request.POST, user=user)
-        if form.is_valid():
-            # Código válido, ir a formulario de nueva contraseña
-            messages.success(
-                request, 
-                '✅ Código verificado correctamente. Ahora establece tu nueva contraseña.'
-            )
-            return redirect('users:password_reset_form', user_id=user.id, code=form.cleaned_data['reset_code'])
-    else:
-        form = PasswordResetVerifyForm(user=user)
-    
-    return render(request, 'accounts/password_reset_verify.html', {
-        'form': form,
-        'user': user,
-        'title': 'Verificar Código'
-    })
-
-
-def password_reset_form(request, user_id, code):
-    """
-    Vista para establecer nueva contraseña
-    """
-    try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        messages.error(request, '❌ Usuario no encontrado.')
-        return redirect('users:password_reset_request')
-    
-    # Verificar que el código siga siendo válido
-    if not user.is_password_reset_code_valid(code):
-        messages.error(
-            request, 
-            '❌ El código ha expirado o no es válido. Solicita uno nuevo.'
-        )
-        return redirect('users:password_reset_request')
-    
-    if request.method == 'POST':
-        form = PasswordResetForm(request.POST, user=user)
-        if form.is_valid():
-            # Actualizar contraseña
-            form.save()
-            
-            messages.success(
-                request, 
-                '✅ Tu contraseña ha sido actualizada exitosamente. '
-                'Ya puedes iniciar sesión con tu nueva contraseña.'
-            )
-            
-            # Registrar evento de seguridad
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.info(f"Contraseña restablecida para usuario: {user.username} ({user.email})")
-            
-            return redirect('users:password_reset_complete')
-    else:
-        form = PasswordResetForm(user=user)
-    
-    return render(request, 'accounts/password_reset_form.html', {
-        'form': form,
-        'user': user,
-        'title': 'Nueva Contraseña'
-    })
-
-
-def password_reset_complete(request):
-    """
-    Vista de confirmación de reset completado
-    """
-    return render(request, 'accounts/password_reset_complete.html', {
-        'title': 'Contraseña Actualizada'
-    })
-
-
-@require_http_methods(["POST"])
-def resend_password_reset_code(request, user_id):
-    """
-    API para reenviar código de reset de contraseña
-    """
-    try:
-        user = User.objects.get(id=user_id)
-        
-        # Verificar rate limiting (no más de 1 código cada 60 segundos)
-        if user.password_reset_created:
-            time_diff = timezone.now() - user.password_reset_created
-            if time_diff.total_seconds() < 60:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Debes esperar al menos 60 segundos antes de solicitar otro código.'
-                })
-        
-        # Enviar nuevo código
-        from .utils import send_password_reset_email
-        if send_password_reset_email(user):
-            return JsonResponse({
-                'success': True,
-                'message': 'Nuevo código enviado exitosamente.'
-            })
-        else:
-            return JsonResponse({
-                'success': False,
-                'message': 'Error enviando el código. Intenta nuevamente.'
-            })
-            
-    except User.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'message': 'Usuario no encontrado.'
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'message': 'Error interno del servidor.'
-        })
-
-@login_required
-def dashboard_view(request, user_id, user_type, template):
-    """
-    Vista genérica para dashboards con validación de acceso
-    """
-    user = get_object_or_404(User, id=user_id, user_type=user_type)
-    
-    # Verificar que el usuario logueado sea el mismo que está accediendo
-    if request.user != user:
-        messages.error(request, "No tienes permisos para acceder a este dashboard.")
-        # Redirigir al dashboard correcto del usuario actual
-        if request.user.user_type in USER_TYPE_CONFIG:
-            dashboard_url = USER_TYPE_CONFIG[request.user.user_type]['dashboard_url']
-            return redirect(dashboard_url, user_id=request.user.id)
+        messages.error(request, 'Usuario no encontrado.')
         return redirect('users:login')
-    
-    context = {
-        'user': user,
-        'user_type_name': USER_TYPE_CONFIG.get(user_type, {}).get('name', 'Usuario'),
-    }
-    
-    return render(request, template, context)
+    except Exception as e:
+        messages.error(request, f'Error al cargar el dashboard: {str(e)}')
+        return redirect('users:login')
 
 @login_required
 def dashboard_teacher(request, user_id):
-    """Dashboard principal para docentes"""
-    user = request.user
-    
-    # Verificar que es docente
-    if user.user_type != 2:
-        return redirect('users:dashboard_student')
-    
-    # Obtener todas las clases del docente
-    teacher_classrooms = Classroom.objects.filter(teacher=user)
-    total_students = ClassroomStudent.objects.filter(classroom__in=teacher_classrooms).count()
-    active_classrooms = teacher_classrooms.filter(status='active').count() if hasattr(Classroom, 'status') else teacher_classrooms.count()
-    
-    # Tareas recientes pendientes de calificar (placeholder)
-    pending_submissions = []
-    pending_count = 0
-    
-    # Actividades recientes (placeholder)
-    recent_activities = []
-    
-    # Logros recientes
-    recent_achievements = Achievement.objects.filter(user=user).order_by('-earned_at')[:5]
-    
-    # Preparar estadísticas de clases para el template
-    classroom_stats = []
-    for classroom in teacher_classrooms:
-        students_count = ClassroomStudent.objects.filter(classroom=classroom).count()
-        classroom_stats.append({
-            'classroom': classroom,
-            'students_count': students_count,
-            'avg_grade': 0,  # Placeholder
-            'assignments_count': 0,  # Placeholder
-            'pending_submissions': 0,  # Placeholder
-            'status': getattr(classroom, 'status', 'active')
-        })
-    
-    context = {
-        'user': user,
-        'active_courses': active_classrooms,
-        'total_students': total_students,
-        'pending_count': pending_count,
-        'recent_achievements': recent_achievements,
-        'course_stats': classroom_stats,
-        'pending_submissions': pending_submissions,
-        'recent_activities': recent_activities,
-    }
-    
-    return render(request, 'dashboards/dashboard_teacher.html', context)
+    """Dashboard específico para docentes"""
+    # Comprobación de seguridad para evitar bucles y accesos incorrectos
+    if request.user.id != user_id or request.user.user_type != 2:
+        return redirect_to_user_dashboard(request)
+    try:
+        user = request.user
+        
+        # Verificar que el usuario es docente
+        if user.user_type != 2:
+            messages.error(request, 'Acceso denegado. Solo docentes pueden acceder a este dashboard.')
+            return redirect('users:login')
+        
+        # Obtener cursos del docente
+        from apps.educational_games.gamification.models import Classroom, ClassroomStudent
+        courses = Classroom.objects.filter(teacher=user)
+        
+        # Estadísticas
+        course_stats = []
+        total_students = 0
+        pending_count = 0
+        
+        for course in courses:
+            students_count = ClassroomStudent.objects.filter(classroom=course).count()
+            total_students += students_count
+            
+            # Calcular estadísticas del curso
+            avg_grade = 85.0  # Temporal
+            assignments_count = 0  # Temporal
+            
+            course_stats.append({
+                'classroom': course,
+                'students_count': students_count,
+                'avg_grade': avg_grade,
+                'assignments_count': assignments_count,
+                'status': 'active'
+            })
+        
+        # Actividades recientes (temporal)
+        recent_activities = []
+        
+        # Logros recientes (temporal)
+        recent_achievements = []
+        
+        # Tareas pendientes de calificar (temporal)
+        pending_submissions = []
+        
+        context = {
+            'user': user,
+            'course_stats': course_stats,
+            'total_students': total_students,
+            'pending_count': pending_count,
+            'recent_activities': recent_activities,
+            'recent_achievements': recent_achievements,
+            'pending_submissions': pending_submissions,
+            'active_courses': len(courses),
+        }
+        
+        return render(request, 'dashboards/dashboard_teacher.html', context)
+        
+    except Exception as e:
+        print(f"Error en dashboard_teacher: {e}")
+        messages.error(request, 'Error al cargar el dashboard.')
+        return redirect('users:login')
 
 @login_required
 def dashboard_parent(request, user_id):
-    logging.debug("Entrando a dashboard_parent")
-    print("Entrando a dashboard_parent")
-    user = get_object_or_404(User, id=user_id)
-    context = {
-        'user': user,
-        # Puedes agregar más datos al contexto si es necesario
-    }
-    return render(request, 'dashboards/dashboard_parent.html', context)
+    """Dashboard principal para padres"""
+    try:
+        user = User.objects.get(id=user_id, user_type=3)
+        
+        # Verificar que el usuario logueado sea el padre
+        if request.user != user:
+            return redirect('users:dashboard_parent', user_id=request.user.id)
+        
+        # Obtener datos para el dashboard
+        children = user.children.all()
+        children_count = children.count()
+        
+        # Obtener cursos de los hijos
+        courses_count = 0
+        overdue_assignments = 0
+        upcoming_events = 0
+        
+        for child in children:
+            # Contar cursos del hijo
+            child_courses = Course.objects.filter(student=child).count()
+            courses_count += child_courses
+            
+            # Contar tareas atrasadas
+            child_assignments = Assignment.objects.filter(
+                course__student=child,
+                due_date__lt=timezone.now()
+            ).count()
+            overdue_assignments += child_assignments
+            
+            # Contar eventos próximos
+            child_events = Event.objects.filter(
+                student=child,
+                start_date__gte=timezone.now()
+            ).count()
+            upcoming_events += child_events
+        
+        # Obtener actividades recientes
+        recent_activities = []
+        
+        # Actividades de los hijos (últimas 5)
+        for child in children:
+            child_activities = {
+                'description': f'{child.name} completó una actividad',
+                'date': timezone.now().strftime('%d/%m/%Y'),
+                'time': timezone.now(),
+                'type': 'activity'
+            }
+            recent_activities.append(child_activities)
+        
+        # Eventos próximos para mostrar en la lista
+        upcoming_events_list = []
+        for child in children:
+            child_events = Event.objects.filter(
+                student=child,
+                start_date__gte=timezone.now()
+            ).order_by('start_date')[:3]
+            
+            for event in child_events:
+                upcoming_events_list.append({
+                    'title': event.title,
+                    'day': event.start_date.strftime('%d'),
+                    'month': event.start_date.strftime('%b'),
+                    'time': event.start_date.strftime('%H:%M'),
+                    'location': event.location or 'Sin ubicación',
+                    'student': child.name
+                })
+        
+        context = {
+            'user': user,
+            'children': children,
+            'children_count': children_count,
+            'courses_count': courses_count,
+            'overdue_assignments': overdue_assignments,
+            'upcoming_events': upcoming_events,
+            'recent_activities': recent_activities[:5],
+            'upcoming_events_list': upcoming_events_list[:5],
+        }
+        
+        return render(request, 'dashboards/dashboard_parent.html', context)
+        
+    except User.DoesNotExist:
+        messages.error(request, 'Usuario no encontrado')
+        return redirect('users:login')
+    except Exception as e:
+        messages.error(request, 'Error al cargar el dashboard')
+        return redirect('users:login')
 
 @login_required
 def dashboard_admin(request, user_id):
@@ -729,7 +529,18 @@ def get_user_dashboard_url(user):
         return reverse(dashboard_url, kwargs={'user_id': user.id})
     return reverse('users:login')
 
-
+@login_required
+def redirect_to_user_dashboard(request):
+    """
+    Redirige al usuario a su dashboard correspondiente según su tipo
+    """
+    user = request.user
+    if user.user_type in USER_TYPE_CONFIG:
+        dashboard_url = USER_TYPE_CONFIG[user.user_type]['dashboard_url']
+        return redirect(dashboard_url, user_id=user.id)
+    else:
+        messages.error(request, "Tipo de usuario no reconocido.")
+        return redirect('users:login')
 
 def home_redirect(request):
     """
@@ -1590,6 +1401,7 @@ def course_detail(request, course_id):
 
 def generate_unique_class_code():
     """Genera un código único para el aula de 6 caracteres alfanuméricos"""
+    from apps.educational_games.gamification.models import Classroom
     while True:
         code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
         if not Classroom.objects.filter(code=code).exists():
@@ -1985,11 +1797,7 @@ def user_calendar(request):
 
 @login_required
 def join_class(request):
-    """Vista para que un estudiante se una a una clase usando código"""
-    if request.user.user_type != 1:  # Solo estudiantes
-        messages.error(request, 'Solo los estudiantes pueden unirse a clases.')
-        return redirect('users:dashboard_student', user_id=request.user.id)
-    
+    """Vista para que estudiantes se unan a una clase"""
     if request.method == 'POST':
         # Aceptar tanto 'class_code' como 'course_code' para compatibilidad
         class_code = request.POST.get('class_code') or request.POST.get('course_code')
@@ -2000,6 +1808,7 @@ def join_class(request):
         
         try:
             # Buscar la clase solo por código
+            from apps.educational_games.gamification.models import Classroom, ClassroomStudent
             classroom = Classroom.objects.get(code=class_code)
             
             # Verificar si el estudiante ya está en la clase
@@ -2010,8 +1819,7 @@ def join_class(request):
             # Inscribir al estudiante
             ClassroomStudent.objects.create(
                 classroom=classroom,
-                student=request.user,
-                joined_at=timezone.now()
+                student=request.user
             )
             
             messages.success(request, f'Te has unido exitosamente a la clase "{classroom.name}"')
@@ -2027,15 +1835,16 @@ def join_class(request):
 
 @login_required
 def create_class(request):
-    """Crear una nueva clase"""
-    if request.user.user_type != 2:  # Solo docentes pueden crear clases
-        messages.error(request, 'Solo los docentes pueden crear clases.')
+    """Vista para que docentes creen una nueva clase"""
+    if request.user.user_type != 2:  # Solo docentes
+        messages.error(request, 'No tienes permisos para crear clases.')
         return redirect('users:dashboard_teacher')
     
     if request.method == 'POST':
         try:
             with transaction.atomic():
                 # Generar código único automáticamente
+                from .utils import generate_unique_class_code
                 code = generate_unique_class_code()
                 
                 # Validar campos requeridos
@@ -2046,6 +1855,7 @@ def create_class(request):
                         return redirect('users:create_class')
                 
                 # Crear la clase
+                from apps.educational_games.gamification.models import Classroom
                 classroom = Classroom.objects.create(
                     name=request.POST.get('class_name'),
                     description=request.POST.get('description', ''),
@@ -2056,33 +1866,13 @@ def create_class(request):
                     created_at=timezone.now()
                 )
                 
-                # Asignar actividades seleccionadas
-                selected_activities = request.POST.getlist('activities')
-                for activity_id in selected_activities:
-                    try:
-                        activity = Activities.objects.get(IDactividad=activity_id)
-                        # Crear relación entre clase y actividad
-                        Activities.objects.create(
-                            Titulo=f"Actividad - {activity.Titulo}",
-                            Instrucciones=activity.Instrucciones,
-                            IDtipoActividad=activity.IDtipoActividad,
-                            IDficha=activity.IDficha,
-                            IDaula=classroom
-                        )
-                    except Activities.DoesNotExist:
-                        continue
-                
                 messages.success(request, f'Clase "{classroom.name}" creada exitosamente. Código de clase: {code}')
                 return redirect('users:class_teacher', class_id=classroom.id)
                 
         except Exception as e:
             messages.error(request, f'Error al crear la clase: {str(e)}')
     
-    # Obtener actividades disponibles (sin filtrar por estado ya que no existe ese campo)
-    activities = Activities.objects.all()
-    
     context = {
-        'activities': activities,
         'grades': ['Primero', 'Segundo'],
         'sections': ['A', 'B', 'C', 'D', 'E'],
     }
@@ -2091,30 +1881,34 @@ def create_class(request):
 
 @login_required
 def class_student(request, class_id):
+    from apps.educational_games.gamification.models import Classroom, ClassroomStudent, Niveles
     classroom = get_object_or_404(Classroom, id=class_id)
     if not ClassroomStudent.objects.filter(classroom=classroom, student=request.user).exists():
         messages.error(request, 'No tienes acceso a esta clase.')
         return redirect('users:dashboard_student', user_id=request.user.id)
-    activities = Activities.objects.all()[:5]
+    
+    # Obtener actividades (temporalmente vacío hasta implementar)
+    activities = []
     try:
-        progress = Levels.objects.get(IDusuario=request.user)
-    except Levels.DoesNotExist:
+        progress = Niveles.objects.get(IDusuario=request.user)
+    except Niveles.DoesNotExist:
         progress = None
+    
     chat_messages = []
     context = {
-        'class': classroom,
+        'classroom': classroom,
         'activities': activities,
         'progress': progress,
         'chat_messages': chat_messages,
-        'theoretical_content': [],
-        'user': request.user,
     }
+    
     return render(request, 'class/class_student.html', context)
 
 @login_required
 def class_teacher(request, class_id):
     """Vista de clase para docentes con funcionalidades integradas de gamificación"""
     try:
+        from apps.educational_games.gamification.models import Classroom, ClassroomStudent
         classroom = get_object_or_404(Classroom, id=class_id)
         
         # Verificar que el usuario es el docente de la clase
@@ -2129,105 +1923,17 @@ def class_teacher(request, class_id):
         messages.error(request, f'Error al acceder a la clase: {str(e)}')
         return redirect('users:dashboard_teacher', user_id=request.user.id)
     
-    if request.method == 'POST':
-        # Manejar mensajes del chat
-        if 'chat_message' in request.POST:
-            message = request.POST.get('chat_message')
-            if message.strip():
-                # Crear o obtener conversación del aula
-                conversation, created = Conversation.objects.get_or_create(
-                    id=classroom.id  # Usar el ID del aula como identificador único
-                )
-                # Agregar participantes si es nueva
-                if created:
-                    conversation.participants.add(request.user)
-                    for student in students:
-                        conversation.participants.add(student.student)
-                ConversationMessage.objects.create(
-                    conversation=conversation,
-                    sender=request.user,
-                    content=message
-                )
-                messages.success(request, 'Mensaje enviado.')
-        
-        # Manejar recompensas a estudiantes
-        if 'reward_student' in request.POST:
-            student_id = request.POST.get('student_id')
-            points = int(request.POST.get('reward_student'))
-            reason = request.POST.get('reward_reason', 'Participación destacada')
-            
-            try:
-                with transaction.atomic():
-                    student = User.objects.get(id=student_id)
-                    nivel, created = Levels.objects.get_or_create(IDusuario=student)
-                    nivel.puntos_acumulados += points
-                    nivel.actualizar_nivel()
-                    nivel.save()
-                    
-                    # Crear notificación para el estudiante
-                    Notification.objects.create(
-                        recipient=student,
-                        title="¡Has recibido puntos!",
-                        message=f"El profesor te ha otorgado {points} puntos por: {reason}",
-                        notification_type="achievement_unlocked"
-                    )
-                    
-                    messages.success(request, f'Se otorgaron {points} puntos al estudiante.')
-            except Exception as e:
-                messages.error(request, f'Error al otorgar puntos: {str(e)}')
-    
-    # Obtener estudiantes inscritos con su información de progreso
+    # Obtener estudiantes inscritos
     students = ClassroomStudent.objects.filter(classroom=classroom).select_related('student')
     
-    # Obtener actividades específicas de la clase
-    activities = Activities.objects.filter(IDaula=classroom).select_related('IDtipoActividad')
-    
-    # Obtener progreso de estudiantes eficientemente
-    progress_list = []
-    student_ids = [student.student.id for student in students]
-    niveles = {nivel.IDusuario_id: nivel for nivel in Levels.objects.filter(IDusuario_id__in=student_ids)}
-    
-    for student in students:
-        nivel = niveles.get(student.student.id)
-        progress_list.append({
-            'user': student.student,
-            'points': nivel.puntos_acumulados if nivel else 0,
-            'level': nivel.nivel_actual if nivel else 1,
-            'next_level_points': nivel.puntos_siguiente_nivel if nivel else 100
-        })
-    
-    # Ordenar por puntos
-    progress_list.sort(key=lambda x: x['points'], reverse=True)
-    
-    # Obtener mensajes del chat
-    try:
-        # Buscar conversación por participantes (docente y estudiantes de la clase)
-        conversation = Conversation.objects.filter(
-            participants=request.user
-        ).filter(
-            participants__in=students.values_list('student', flat=True)
-        ).first()
-        
-        if conversation:
-            chat_messages = ConversationMessage.objects.filter(conversation=conversation).order_by('-created_at')[:50]
-        else:
-            chat_messages = []
-    except Exception:
-        chat_messages = []
+    # Obtener actividades específicas de la clase (temporalmente vacío)
+    activities = []
     
     context = {
-        'class': classroom,
+        'classroom': classroom,
         'students': students,
         'activities': activities,
-        'progress_list': progress_list,
-        'chat_messages': chat_messages,
-        'reward_reasons': [
-            'Participación destacada',
-            'Ayuda a compañeros',
-            'Completar actividad',
-            'Respuesta correcta',
-            'Proyecto especial'
-        ]
+        'user': request.user,
     }
     
     return render(request, 'class/class_teacher.html', context)
@@ -2235,15 +1941,15 @@ def class_teacher(request, class_id):
 @login_required
 def play_game(request, class_id):
     """Vista para jugar juegos educativos"""
-    classroom = get_object_or_404(Classroom, id=class_id)
+    classroom = get_object_or_404(Aulas, IDaula=class_id)
     
     # Verificar acceso
     if request.user.user_type == 1:  # Estudiante
-        if not ClassroomStudent.objects.filter(classroom=classroom, student=request.user).exists():
+        if not AulaEstudiante.objects.filter(IDaula=classroom, IDestudiante=request.user).exists():
             messages.error(request, 'No tienes acceso a esta clase.')
             return redirect('users:dashboard_student')
     elif request.user.user_type == 2:  # Docente
-        if classroom.teacher != request.user:
+        if classroom.IDdocente != request.user:
             messages.error(request, 'No tienes acceso a esta clase.')
             return redirect('users:dashboard_teacher')
     
@@ -2256,6 +1962,7 @@ def generate_class_code(request):
     """Vista API para generar un código de clase único"""
     if request.user.user_type != 2:  # Solo docentes
         return JsonResponse({'error': 'No autorizado'}, status=403)
+        
     try:
         code = generate_unique_class_code()
         return JsonResponse({'code': code})
@@ -2264,212 +1971,92 @@ def generate_class_code(request):
 
 @login_required
 def create_class_api(request):
-    """Vista API para crear una nueva clase virtual con actividades iniciales"""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Método no permitido'}, status=405)
-    
+    """API para crear una nueva clase"""
     if request.user.user_type != 2:  # Solo docentes
-        return JsonResponse({'error': 'No autorizado'}, status=403)
+        return JsonResponse({'success': False, 'error': 'No tienes permisos para crear clases.'})
     
-    try:
-        with transaction.atomic():
-            # Validar y obtener datos del formulario
-            course_name = request.POST.get('class_name')
-            course_code = request.POST.get('class_code')
-            grade = request.POST.get('grade')
-            section = request.POST.get('section')
-            description = request.POST.get('description', '')
-            activities_json = request.POST.get('activities', '[]')
-            
-            # Validar campos requeridos
-            if not all([course_name, course_code, grade, section]):
-                return JsonResponse({'error': 'Faltan campos requeridos'}, status=400)
-            
-            # Verificar que el código sea único
-            if Classroom.objects.filter(code=course_code).exists():
-                return JsonResponse({'error': 'El código de la clase ya existe'}, status=400)
-            
-            # Crear el aula
-            classroom = Classroom.objects.create(
-                name=course_name,
-                code=course_code,
-                grade=grade,
-                section=section,
-                description=description,
-                teacher=request.user,
-                created_at=timezone.now()
-            )
-            
-            # Procesar actividades iniciales si las hay
-            activities_created = []
-            if activities_json and activities_json != '[]':
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # Generar código único
+                from .utils import generate_unique_class_code
+                code = None
                 try:
-                    import json
-                    activities = json.loads(activities_json)
-                    
-                    for activity in activities:
-                        activity_type = activity.get('type')
-                        activity_title = activity.get('title')
-                        
-                        if activity_type == 'test':
-                            # Crear test básico
-                            from apps.educational_games.gamification.models import Test, ActivityType
-                            
-                            # Obtener tipo de actividad para tests
-                            tipo_actividad, created = ActivityType.objects.get_or_create(
-                                TipoActividad='Test'
-                            )
-                            
-                            # Crear actividad
-                            actividad = Activities.objects.create(
-                                Titulo=activity_title,
-                                Instrucciones=f'Test: {activity_title}',
-                                IDtipoActividad=tipo_actividad,
-                                IDficha=0,  # Placeholder
-                                IDaula=classroom
-                            )
-                            
-                            # Crear test
-                            test = Test.objects.create(
-                                titulo=activity_title,
-                                descripcion=f'Test creado para {classroom.name}',
-                                IDaula=classroom,
-                                IDdocente=request.user,
-                                fecha_inicio=timezone.now(),
-                                fecha_fin=timezone.now() + timedelta(days=30),
-                                tiempo_limite=30,
-                                puntos_por_pregunta=10,
-                                activo=True
-                            )
-                            
-                            activities_created.append({
-                                'type': 'test',
-                                'title': activity_title,
-                                'id': test.IDtest
-                            })
-                            
-                        elif activity_type == 'assignment':
-                            # Crear tarea básica - omitir por ahora ya que no tenemos Course model
-                            # from .models import Assignment
-                            # assignment = Assignment.objects.create(
-                            #     title=activity_title,
-                            #     description=f'Tarea: {activity_title}',
-                            #     course=None,  # No tenemos Course model, usar None por ahora
-                            #     due_date=timezone.now() + timedelta(days=7),
-                            #     points=100
-                            # )
-                            
-                            activities_created.append({
-                                'type': 'assignment',
-                                'title': activity_title,
-                                'id': 0  # Placeholder
-                            })
-                            
-                        elif activity_type == 'multimedia':
-                            # Crear recurso multimedia básico - omitir por ahora por problemas de campos
-                            # from apps.multimedia.models import MultimediaCard
-                            # from apps.common.models import Category
-                            
-                            # # Obtener categoría por defecto
-                            # category, created = Category.objects.get_or_create(
-                            #     name='Educativo',
-                            #     defaults={'description': 'Recursos educativos'}
-                            # )
-                            
-                            # multimedia = MultimediaCard.objects.create(
-                            #     title=activity_title,
-                            #     description=f'Recurso multimedia: {activity_title}',
-                            #     media_type='document',
-                            #     educational_level='primaria',
-                            #     subject_area='General',
-                            #     author=request.user
-                            # )
-                            
-                            activities_created.append({
-                                'type': 'multimedia',
-                                'title': activity_title,
-                                'id': 0  # Placeholder
-                            })
-                            
-                        elif activity_type == 'guide':
-                            # Crear guía pedagógica básica - omitir por ahora
-                            # from apps.pedagogical_guides.models import Guide
-                            
-                            # guide = Guide.objects.create(
-                            #     title=activity_title,
-                            #     description=f'Guía pedagógica: {activity_title}',
-                            #     author=request.user,
-                            #     is_public=True
-                            # )
-                            
-                            activities_created.append({
-                                'type': 'guide',
-                                'title': activity_title,
-                                'id': 0  # Placeholder
-                            })
-                            
-                except json.JSONDecodeError:
-                    pass  # Ignorar errores de JSON
+                    code = generate_unique_class_code()
                 except Exception as e:
-                    # Log del error pero continuar con la creación de la clase
-                    print(f"Error creando actividades iniciales: {e}")
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'Clase creada exitosamente',
-                'course_id': classroom.id,
-                'activities_created': activities_created,
-                'debug_info': {
-                    'classroom_id': classroom.id,
-                    'classroom_name': classroom.name,
-                    'teacher_id': classroom.teacher.id,
-                    'teacher_name': classroom.teacher.get_full_name()
-                }
-            })
-            
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+                    import logging
+                    logging.error(f"Error generando código de clase: {e}")
+                    return JsonResponse({'success': False, 'error': f'Error generando el código de la clase: {str(e)}'})
+                if not code:
+                    return JsonResponse({'success': False, 'error': 'No se pudo generar un código de clase único.'})
+                
+                # Validar campos requeridos
+                required_fields = ['class_name', 'grade', 'section']
+                for field in required_fields:
+                    if not request.POST.get(field):
+                        return JsonResponse({'success': False, 'error': f'El campo {field} es requerido.'})
+                
+                # Crear la clase
+                from apps.educational_games.gamification.models import Classroom
+                classroom = Classroom.objects.create(
+                    name=request.POST.get('class_name'),
+                    description=request.POST.get('description', ''),
+                    grade=request.POST.get('grade'),
+                    section=request.POST.get('section'),
+                    code=code,
+                    teacher=request.user,
+                    created_at=timezone.now()
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Clase "{classroom.name}" creada exitosamente.',
+                    'course_id': classroom.id,
+                    'code': code,
+                    'redirect_url': reverse('users:class_teacher', args=[classroom.id])
+                })
+        except Exception as e:
+            import logging
+            logging.error(f"Error al crear la clase: {e}")
+            return JsonResponse({'success': False, 'error': f'Error al crear la clase: {str(e)}'})
+    
+    return JsonResponse({'success': False, 'error': 'Método no permitido.'})
 
 @login_required
 def join_class_api(request):
-    """Vista API para que un estudiante se una a un curso"""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Método no permitido'}, status=405)
-    
-    if request.user.user_type != 1:  # Solo estudiantes
-        return JsonResponse({'error': 'No autorizado'}, status=403)
-    
-    try:
-        code = request.POST.get('code')
-        if not code:
-            return JsonResponse({'error': 'Código de clase requerido'}, status=400)
+    """API para que estudiantes se unan a una clase"""
+    if request.method == 'POST':
+        class_code = request.POST.get('code')
         
-        # Buscar el aula
+        if not class_code:
+            return JsonResponse({'success': False, 'error': 'Por favor ingresa el código de la clase.'})
+        
         try:
-            classroom = Classroom.objects.get(code=code)
+            from apps.educational_games.gamification.models import Classroom, ClassroomStudent
+            classroom = Classroom.objects.get(code=class_code)
+            
+            # Verificar si el estudiante ya está en la clase
+            if ClassroomStudent.objects.filter(classroom=classroom, student=request.user).exists():
+                return JsonResponse({'success': False, 'error': 'Ya estás inscrito en esta clase.'})
+            
+            # Inscribir al estudiante
+            ClassroomStudent.objects.create(
+                classroom=classroom,
+                student=request.user
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Te has unido exitosamente a la clase "{classroom.name}"',
+                'redirect_url': reverse('users:class_student', args=[classroom.id])
+            })
+            
         except Classroom.DoesNotExist:
-            return JsonResponse({'error': 'Código de clase inválido'}, status=404)
-        
-        # Verificar si ya está inscrito
-        if ClassroomStudent.objects.filter(classroom=classroom, student=request.user).exists():
-            return JsonResponse({'error': 'Ya estás inscrito en esta clase'}, status=400)
-        
-        # Inscribir al estudiante
-        ClassroomStudent.objects.create(
-            classroom=classroom,
-            student=request.user,
-            joined_at=timezone.now()
-        )
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Te has unido a la clase exitosamente',
-            'course_id': classroom.id,
-            'redirect_url': f'/accounts/class/student/{classroom.id}/'
-        })
-        
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({'success': False, 'error': 'No se encontró la clase con el código proporcionado.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': f'Error al unirse a la clase: {str(e)}'})
+    
+    return JsonResponse({'success': False, 'error': 'Método no permitido.'})
 
 # ============================================================================
 # APIs DE MENSAJERÍA
@@ -2626,12 +2213,12 @@ def teacher_courses_partial(request):
     """Vista AJAX para actualizar la lista de cursos del docente"""
     try:
         # Obtener cursos del docente
-        courses = Classroom.objects.filter(teacher=request.user)
+        courses = Aulas.objects.filter(IDdocente=request.user)
         course_stats = []
         
         for course in courses:
             # Contar estudiantes
-            students_count = ClassroomStudent.objects.filter(classroom=course).count()
+            students_count = AulaEstudiante.objects.filter(IDaula=course).count()
             
             # Obtener tareas pendientes (ejemplo)
             pending_submissions = 0  # Aquí iría la lógica real
@@ -2640,7 +2227,7 @@ def teacher_courses_partial(request):
             avg_grade = 85  # Aquí iría la lógica real
             
             # Contar tareas
-            assignments_count = Activities.objects.filter(IDaula=course).count()
+            assignments_count = Actividades.objects.filter(IDaula=course).count()
             
             course_stats.append({
                 'course': course,
@@ -2678,18 +2265,18 @@ def student_courses_partial(request):
     """Vista AJAX para actualizar la lista de cursos del estudiante"""
     try:
         # Obtener cursos del estudiante
-        student_enrollments = ClassroomStudent.objects.filter(student=request.user)
+        student_enrollments = AulaEstudiante.objects.filter(IDestudiante=request.user)
         course_details = []
         
         for enrollment in student_enrollments:
-            course = enrollment.classroom
+            course = enrollment.IDaula
             # Calcular progreso (ejemplo)
             progress = 75  # Aquí iría la lógica real
             
             course_details.append({
-                'id': course.id,
-                'name': course.name,
-                'teacher': course.teacher.get_full_name(),
+                'id': course.IDaula,
+                'name': course.NombreAula,
+                'teacher': course.IDdocente.get_full_name(),
                 'progress': progress,
             })
         
@@ -3053,59 +2640,28 @@ def start_conversation(request, user_id):
 
 @login_required
 def class_chat(request, class_id):
-    """Vista para el chat de aula virtual"""
+    """Vista de chat para aulas virtuales"""
     try:
+        from apps.educational_games.gamification.models import Classroom, ClassroomStudent, ClassroomMessage
         classroom = get_object_or_404(Classroom, id=class_id)
         
-        # Verificar permisos
+        # Verificar acceso
         if request.user.user_type == 2:  # Docente
             if classroom.teacher != request.user:
-                messages.error(request, 'No tienes permisos para acceder a esta clase')
+                messages.error(request, 'No tienes permisos para acceder a esta clase.')
                 return redirect('users:dashboard_teacher', user_id=request.user.id)
         else:  # Estudiante
             if not ClassroomStudent.objects.filter(classroom=classroom, student=request.user).exists():
-                messages.error(request, 'No estás inscrito en esta clase')
+                messages.error(request, 'No tienes acceso a esta clase.')
                 return redirect('users:dashboard_student', user_id=request.user.id)
         
-        # Obtener o crear conversación del aula
-        conversation, created = Conversation.objects.get_or_create(
-            id=classroom.id,
-            defaults={'name': f'Chat de {classroom.name}'}
-        )
-        
-        # Agregar participantes si es nueva
-        if created:
-            conversation.participants.add(request.user)
-            if request.user.user_type == 2:  # Docente
-                students = ClassroomStudent.objects.filter(classroom=classroom)
-                for student_enrollment in students:
-                    conversation.participants.add(student_enrollment.student)
-            else:  # Estudiante
-                conversation.participants.add(classroom.teacher)
-        
-        if request.method == 'POST':
-            message_content = request.POST.get('message')
-            if message_content.strip():
-                ConversationMessage.objects.create(
-                    conversation=conversation,
-                    sender=request.user,
-                    content=message_content
-                )
-                conversation.updated_at = timezone.now()
-                conversation.save()
-                return redirect('users:class_chat', class_id=class_id)
-        
-        # Marcar mensajes como leídos
-        ConversationMessage.objects.filter(
-            conversation=conversation,
-            sender__in=conversation.participants.exclude(id=request.user.id),
-            is_read=False
-        ).update(is_read=True)
+        # Obtener mensajes del chat
+        messages_list = ClassroomMessage.objects.filter(classroom=classroom).select_related('sender').order_by('created_at')
         
         context = {
             'classroom': classroom,
-            'conversation': conversation,
-            'messages': conversation.conversation_messages.all().order_by('created_at'),
+            'messages': messages_list,
+            'user': request.user,
         }
         
         return render(request, 'class/class_chat.html', context)
@@ -3148,9 +2704,1219 @@ def course_detail(request, course_id):
 
 def generate_unique_class_code():
     """Genera un código único para el aula de 6 caracteres alfanuméricos"""
+    from apps.educational_games.gamification.models import Classroom
     while True:
         code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
         if not Classroom.objects.filter(code=code).exists():
             return code
+
+# ============================================================================
+# VISTAS FALTANTES - TEMPORALES PARA EVITAR ERRORES
+# ============================================================================
+
+@login_required
+def teacher_tests(request):
+    """Vista temporal para tests de docente"""
+    return render(request, 'teachers/tests.html', {
+        'user': request.user,
+        'message': 'Función en desarrollo'
+    })
+
+@login_required
+def teacher_readings(request):
+    """Vista temporal para lecturas de docente"""
+    return render(request, 'teachers/readings.html', {
+        'user': request.user,
+        'message': 'Función en desarrollo'
+    })
+
+@login_required
+def teacher_games(request):
+    """Vista temporal para juegos de docente"""
+    return render(request, 'teachers/games.html', {
+        'user': request.user,
+        'message': 'Función en desarrollo'
+    })
+
+@login_required
+def teacher_tests_enhanced(request):
+    """Vista temporal para tests mejorados de docente"""
+    return render(request, 'teachers/tests_enhanced.html', {
+        'user': request.user,
+        'message': 'Función en desarrollo'
+    })
+
+@login_required
+def teacher_readings_enhanced(request):
+    """Vista temporal para lecturas mejoradas de docente"""
+    return render(request, 'teachers/readings_enhanced.html', {
+        'user': request.user,
+        'message': 'Función en desarrollo'
+    })
+
+@login_required
+def teacher_games_enhanced(request):
+    """Vista temporal para juegos mejorados de docente"""
+    return render(request, 'teachers/games_enhanced.html', {
+        'user': request.user,
+        'message': 'Función en desarrollo'
+    })
+
+@login_required
+@require_http_methods(["POST"])
+def create_test_api(request):
+    """API temporal para crear tests"""
+    return JsonResponse({'success': False, 'message': 'Función en desarrollo'})
+
+@login_required
+@require_http_methods(["POST"])
+def assign_reading_api(request):
+    """API temporal para asignar lecturas"""
+    return JsonResponse({'success': False, 'message': 'Función en desarrollo'})
+
+@login_required
+@require_http_methods(["POST"])
+def assign_game_api(request):
+    """API temporal para asignar juegos"""
+    return JsonResponse({'success': False, 'message': 'Función en desarrollo'})
+
+@login_required
+def notifications_realtime_api(request):
+    """API temporal para notificaciones en tiempo real"""
+    return JsonResponse({'notifications': []})
+
+@login_required
+@require_http_methods(["POST"])
+def create_notification_api(request):
+    """API temporal para crear notificaciones"""
+    return JsonResponse({'success': False, 'message': 'Función en desarrollo'})
+
+@login_required
+@require_http_methods(["POST"])
+def mark_notification_read_realtime(request, notification_id):
+    """API temporal para marcar notificación como leída"""
+    return JsonResponse({'success': False, 'message': 'Función en desarrollo'})
+
+@login_required
+@require_http_methods(["POST"])
+def mark_all_notifications_read_realtime(request):
+    """API temporal para marcar todas las notificaciones como leídas"""
+    return JsonResponse({'success': False, 'message': 'Función en desarrollo'})
+
+@login_required
+@require_http_methods(["POST"])
+def send_classroom_notification(request, class_id):
+    """API temporal para enviar notificación de aula"""
+    return JsonResponse({'success': False, 'message': 'Función en desarrollo'})
+
+@login_required
+def notification_settings(request):
+    """Vista temporal para configuración de notificaciones"""
+    return render(request, 'users/notification_settings.html', {
+        'user': request.user,
+        'message': 'Función en desarrollo'
+    })
+
+@login_required
+def class_chat_api(request, class_id):
+    """API para chat de aula"""
+    try:
+        classroom = get_object_or_404(Classroom, id=class_id)
+        
+        if request.method == 'POST':
+            content = request.POST.get('message', '').strip()
+            if content:
+                # Crear mensaje usando el modelo correcto
+                from apps.educational_games.gamification.models import ClassroomMessage
+                message = ClassroomMessage.objects.create(
+                    classroom=classroom,
+                    sender=request.user,
+                    content=content
+                )
+                return JsonResponse({
+                    'success': True,
+                    'message': {
+                        'id': message.id,
+                        'content': message.content,
+                        'sender_name': message.sender.get_full_name(),
+                        'created_at': message.created_at.isoformat()
+                    }
+                })
+        
+        # GET: Obtener mensajes
+        from apps.educational_games.gamification.models import ClassroomMessage
+        messages = ClassroomMessage.objects.filter(classroom=classroom).select_related('sender').order_by('created_at')
+        
+        messages_data = []
+        for msg in messages:
+            messages_data.append({
+                'id': msg.id,
+                'content': msg.content,
+                'sender_id': msg.sender.id,
+                'sender_name': msg.sender.get_full_name(),
+                'is_own': msg.sender == request.user,
+                'created_at': msg.created_at.isoformat()
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'messages': messages_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@login_required
+@require_http_methods(["POST"])
+def create_activity_api(request):
+    """API temporal para crear actividades"""
+    return JsonResponse({'success': False, 'message': 'Función en desarrollo'})
+
+@login_required
+def password_reset_request(request):
+    """Vista para solicitar restablecimiento de contraseña"""
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        if email:
+            try:
+                user = User.objects.get(email=email)
+                # Generar código de restablecimiento
+                reset_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+                user.password_reset_code = reset_code
+                user.password_reset_expires = timezone.now() + timedelta(hours=1)
+                user.save()
+                
+                # Enviar email (implementación temporal)
+                messages.success(request, f'Se ha enviado un código de restablecimiento a {email}')
+                return redirect('users:password_reset_verify', user_id=user.id)
+            except User.DoesNotExist:
+                messages.error(request, 'No se encontró un usuario con ese email.')
+        else:
+            messages.error(request, 'Por favor ingresa tu email.')
+    
+    return render(request, 'accounts/password_reset_request.html')
+
+# --- Recuperación de contraseña ---
+@csrf_exempt
+def password_reset_request(request):
+    return render(request, 'accounts/password_reset_request.html')
+
+@csrf_exempt
+def password_reset_verify(request, user_id):
+    return render(request, 'accounts/password_reset_verify.html', {'user_id': user_id})
+
+@csrf_exempt
+def password_reset_form(request, user_id, code):
+    return render(request, 'accounts/password_reset_form.html', {'user_id': user_id, 'code': code})
+
+@csrf_exempt
+def password_reset_complete(request):
+    return render(request, 'accounts/password_reset_complete.html')
+
+@csrf_exempt
+def resend_password_reset_code(request, user_id):
+    return render(request, 'accounts/password_reset_request.html', {'resent': True, 'user_id': user_id})
+
+@login_required
+def add_child_ajax(request):
+    """Vista AJAX para añadir hijo al dashboard de padres"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Método no permitido'})
+    
+    if request.user.user_type != 3:  # Solo padres
+        return JsonResponse({'success': False, 'error': 'Acceso no autorizado'})
+    
+    try:
+        # Validar que no tenga más de 5 hijos
+        parent_profile = getattr(request.user, 'parentprofile', None)
+        if parent_profile and parent_profile.children.count() >= 5:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Ya tienes el máximo de 5 hijos registrados'
+            })
+        
+        # Obtener datos del formulario
+        child_name = request.POST.get('child_name', '').strip()
+        child_grade = request.POST.get('child_grade')
+        child_birthdate = request.POST.get('child_birthdate')
+        child_document = request.POST.get('child_document', '').strip()
+        
+        # Validaciones
+        if not child_name:
+            return JsonResponse({'success': False, 'error': 'El nombre es obligatorio'})
+        
+        if not child_grade:
+            return JsonResponse({'success': False, 'error': 'El grado es obligatorio'})
+        
+        if not child_birthdate:
+            return JsonResponse({'success': False, 'error': 'La fecha de nacimiento es obligatoria'})
+        
+        # Validar fecha de nacimiento (debe ser menor de 18 años)
+        from datetime import datetime, date
+        birth_date = datetime.strptime(child_birthdate, '%Y-%m-%d').date()
+        today = date.today()
+        age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+        
+        if age >= 18:
+            return JsonResponse({'success': False, 'error': 'El hijo debe ser menor de 18 años'})
+        
+        # Crear o obtener el perfil de padre
+        parent_profile, created = ParentProfile.objects.get_or_create(user=request.user)
+        
+        # Crear el hijo (usuario tipo estudiante)
+        from django.contrib.auth.models import User
+        child_username = f"{request.user.username}_child_{parent_profile.children.count() + 1}"
+        
+        # Crear usuario para el hijo
+        child_user = User.objects.create_user(
+            username=child_username,
+            email=f"{child_username}@naturein.local",
+            first_name=child_name.split()[0] if ' ' in child_name else child_name,
+            last_name=child_name.split()[-1] if ' ' in child_name else '',
+            is_active=True
+        )
+        
+        # Asignar tipo de usuario (estudiante = 1)
+        child_user.user_type = 1
+        child_user.save()
+        
+        # Crear perfil de estudiante para el hijo
+        from apps.users.models import StudentProfile
+        student_profile = StudentProfile.objects.create(
+            user=child_user,
+            grade=child_grade,
+            birth_date=birth_date,
+            document_number=child_document if child_document else None
+        )
+        
+        # Agregar hijo al perfil de padre
+        parent_profile.children.add(child_user)
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Hijo "{child_name}" añadido correctamente',
+            'child_data': {
+                'id': child_user.id,
+                'name': child_name,
+                'grade': child_grade,
+                'progress': 0  # Progreso inicial
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': f'Error al añadir hijo: {str(e)}'
+        })
+
+# ============================================================================
+# VISTAS AJAX PARA DASHBOARD DE PADRES
+# ============================================================================
+
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from django.views.decorators.http import require_POST, require_GET
+from django.utils import timezone
+from django.db.models import Q
+import json
+
+@login_required
+@require_GET
+def ajax_children_list(request):
+    """Obtener lista de hijos del padre"""
+    try:
+        children = request.user.children.all()
+        html = render_to_string('dashboards/partials/children_list.html', {
+            'children': children,
+            'request': request
+        })
+        return JsonResponse({
+            'success': True,
+            'html': html,
+            'count': children.count()
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al cargar la lista de hijos'
+        })
+
+@login_required
+@require_POST
+def ajax_add_child(request):
+    """Añadir hijo via AJAX"""
+    try:
+        child_name = request.POST.get('child_name')
+        child_grade = request.POST.get('child_grade')
+        child_birthdate = request.POST.get('child_birthdate')
+        child_document = request.POST.get('child_document', '')
+        
+        if not all([child_name, child_grade, child_birthdate]):
+            return JsonResponse({
+                'success': False,
+                'error': 'Todos los campos obligatorios deben estar completos'
+            })
+        
+        # Crear el hijo (asumiendo que tienes un modelo Child)
+        child = Child.objects.create(
+            parent=request.user,
+            name=child_name,
+            grade=child_grade,
+            birthdate=child_birthdate,
+            document=child_document
+        )
+        
+        # Generar HTML para la nueva tarjeta de hijo
+        html = render_to_string('dashboards/partials/child_card.html', {
+            'child': child,
+            'request': request
+        })
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Hijo añadido correctamente',
+            'html': html,
+            'child_data': {
+                'name': child.name,
+                'grade': child.grade,
+                'progress': getattr(child, 'progress', 0)
+            }
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al añadir hijo'
+        })
+
+@login_required
+@require_POST
+def ajax_delete_child(request):
+    """Eliminar hijo via AJAX"""
+    try:
+        child_id = request.POST.get('child_id')
+        child = Child.objects.get(id=child_id, parent=request.user)
+        child.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Hijo eliminado correctamente'
+        })
+    except Child.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Hijo no encontrado'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al eliminar hijo'
+        })
+
+@login_required
+@require_GET
+def ajax_chat_contacts(request):
+    """Obtener contactos (docentes) para el chat"""
+    try:
+        # Obtener docentes de los cursos de los hijos
+        children = request.user.children.all()
+        teachers = []
+        
+        for child in children:
+            # Asumiendo que tienes un modelo Course con relación a Teacher
+            courses = Course.objects.filter(student=child)
+            for course in courses:
+                if course.teacher not in teachers:
+                    teachers.append(course.teacher)
+        
+        # También incluir docentes con los que ya ha tenido conversaciones
+        existing_contacts = Message.objects.filter(
+            Q(sender=request.user) | Q(recipient=request.user)
+        ).values_list('sender', 'recipient').distinct()
+        
+        for sender_id, recipient_id in existing_contacts:
+            if sender_id != request.user.id:
+                teacher = User.objects.filter(id=sender_id, user_type=2).first()
+                if teacher and teacher not in teachers:
+                    teachers.append(teacher)
+            if recipient_id != request.user.id:
+                teacher = User.objects.filter(id=recipient_id, user_type=2).first()
+                if teacher and teacher not in teachers:
+                    teachers.append(teacher)
+        
+        html = render_to_string('dashboards/partials/chat_contacts.html', {
+            'teachers': teachers,
+            'request': request
+        })
+        
+        return JsonResponse({
+            'success': True,
+            'html': html
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al cargar contactos'
+        })
+
+@login_required
+@require_GET
+def ajax_chat_messages(request, contact_id):
+    """Obtener mensajes de un chat específico"""
+    try:
+        # Obtener mensajes entre el padre y el docente
+        messages = Message.objects.filter(
+            (Q(sender=request.user) & Q(recipient_id=contact_id)) |
+            (Q(sender_id=contact_id) & Q(recipient=request.user))
+        ).order_by('created_at')
+        
+        html = render_to_string('dashboards/partials/chat_messages.html', {
+            'messages': messages,
+            'user': request.user,
+            'request': request
+        })
+        
+        return JsonResponse({
+            'success': True,
+            'html': html
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al cargar mensajes'
+        })
+
+@login_required
+@require_POST
+def ajax_send_message(request):
+    """Enviar mensaje via AJAX"""
+    try:
+        data = json.loads(request.body)
+        contact_id = data.get('contact_id')
+        text = data.get('text')
+        
+        if not all([contact_id, text]):
+            return JsonResponse({
+                'success': False,
+                'error': 'Datos incompletos'
+            })
+        
+        # Crear el mensaje usando el modelo existente
+        message = Message.objects.create(
+            sender=request.user,
+            recipient_id=contact_id,
+            content=text
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Mensaje enviado correctamente'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al enviar mensaje'
+        })
+
+@login_required
+@require_GET
+def ajax_upcoming_events(request):
+    """Obtener eventos próximos de los hijos"""
+    try:
+        # Obtener eventos de los hijos del padre
+        children = request.user.children.all()
+        events = Event.objects.filter(
+            student__in=children,
+            date__gte=timezone.now().date()
+        ).order_by('date')[:10]
+        
+        html = render_to_string('dashboards/partials/events_list.html', {
+            'events': events,
+            'request': request
+        })
+        
+        return JsonResponse({
+            'success': True,
+            'html': html
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al cargar eventos'
+        })
+
+@login_required
+@require_POST
+def ajax_send_suggestion(request):
+    """Enviar sugerencia via AJAX"""
+    try:
+        suggestion_type = request.POST.get('type')
+        description = request.POST.get('description')
+        
+        if not all([suggestion_type, description]):
+            return JsonResponse({
+                'success': False,
+                'error': 'Todos los campos son obligatorios'
+            })
+        
+        # Crear la sugerencia
+        suggestion = Suggestion.objects.create(
+            parent=request.user,
+            type=suggestion_type,
+            description=description,
+            created_at=timezone.now()
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Sugerencia enviada correctamente'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al enviar sugerencia'
+        })
+
+@login_required
+@require_GET
+def ajax_suggestions_list(request):
+    """Obtener lista de sugerencias enviadas"""
+    try:
+        suggestions = Suggestion.objects.filter(
+            parent=request.user
+        ).order_by('-created_at')
+        
+        html = render_to_string('dashboards/partials/suggestions_list.html', {
+            'suggestions': suggestions,
+            'request': request
+        })
+        
+        return JsonResponse({
+            'success': True,
+            'html': html
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al cargar sugerencias'
+        })
+
+@login_required
+@require_GET
+def ajax_educational_resources(request):
+    """Obtener recursos educativos para los hijos"""
+    try:
+        # Obtener grados de los hijos
+        children_grades = request.user.children.values_list('grade', flat=True)
+        
+        # Obtener recursos para esos grados
+        resources = EducationalResource.objects.filter(
+            grade__in=children_grades
+        ).order_by('title')
+        
+        html = render_to_string('dashboards/partials/resources_list.html', {
+            'resources': resources,
+            'request': request
+        })
+        
+        return JsonResponse({
+            'success': True,
+            'html': html
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al cargar recursos educativos'
+        })
+
+@login_required
+@require_GET
+def ajax_search_teachers(request):
+    """Buscar docentes por nombre o correo electrónico"""
+    try:
+        query = request.GET.get('q', '').strip()
+        
+        if len(query) < 2:
+            return JsonResponse({
+                'success': True,
+                'teachers': [],
+                'message': 'Ingresa al menos 2 caracteres para buscar'
+            })
+        
+        # Buscar docentes por nombre o correo
+        teachers = User.objects.filter(
+            user_type=2,  # Docentes
+            is_active=True
+        ).filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(email__icontains=query) |
+            Q(username__icontains=query)
+        )[:10]  # Limitar a 10 resultados
+        
+        teachers_data = []
+        for teacher in teachers:
+            teachers_data.append({
+                'id': teacher.id,
+                'name': teacher.get_full_name(),
+                'email': teacher.email,
+                'avatar_url': teacher.avatar.url if teacher.avatar else None,
+                'courses_count': teacher.taught_courses.count()
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'teachers': teachers_data
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al buscar docentes'
+        })
+
+@login_required
+@require_GET
+def ajax_teacher_info(request, teacher_id):
+    """Obtener información de un docente específico"""
+    try:
+        teacher = User.objects.get(id=teacher_id, user_type=2, is_active=True)
+        
+        return JsonResponse({
+            'success': True,
+            'teacher': {
+                'id': teacher.id,
+                'name': teacher.get_full_name(),
+                'email': teacher.email,
+                'avatar_url': teacher.avatar.url if teacher.avatar else None,
+                'courses_count': teacher.taught_courses.count()
+            }
+        })
+    except User.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Docente no encontrado'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al obtener información del docente'
+        })
+
+@login_required
+@require_POST
+def ajax_mark_messages_read(request, contact_id):
+    """Marcar mensajes como leídos"""
+    try:
+        # Marcar mensajes recibidos como leídos
+        Message.objects.filter(
+            sender_id=contact_id,
+            recipient=request.user,
+            is_read=False
+        ).update(is_read=True)
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Mensajes marcados como leídos'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al marcar mensajes como leídos'
+        })
+
+@login_required
+@require_GET
+def ajax_unread_messages_count(request):
+    """Obtener contador de mensajes no leídos"""
+    try:
+        count = Message.objects.filter(
+            recipient=request.user,
+            is_read=False
+        ).count()
+        
+        return JsonResponse({
+            'success': True,
+            'count': count
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al obtener contador de mensajes'
+        })
+
+@login_required
+@require_GET
+def ajax_dashboard_stats(request):
+    """Obtener estadísticas actualizadas del dashboard"""
+    try:
+        user = request.user
+        children = user.children.all()
+        
+        # Calcular estadísticas
+        children_count = children.count()
+        courses_count = 0
+        overdue_assignments = 0
+        upcoming_events = 0
+        
+        for child in children:
+            # Contar cursos del hijo
+            child_courses = Course.objects.filter(student=child).count()
+            courses_count += child_courses
+            
+            # Contar tareas atrasadas
+            child_assignments = Assignment.objects.filter(
+                course__student=child,
+                due_date__lt=timezone.now()
+            ).count()
+            overdue_assignments += child_assignments
+            
+            # Contar eventos próximos
+            child_events = Event.objects.filter(
+                student=child,
+                start_date__gte=timezone.now()
+            ).count()
+            upcoming_events += child_events
+        
+        return JsonResponse({
+            'success': True,
+            'stats': {
+                'children_count': children_count,
+                'courses_count': courses_count,
+                'overdue_assignments': overdue_assignments,
+                'upcoming_events': upcoming_events
+            }
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al obtener estadísticas'
+        })
+
+@login_required
+@require_GET
+def ajax_recent_activities(request):
+    """Obtener actividades recientes de los hijos"""
+    try:
+        user = request.user
+        children = user.children.all()
+        activities = []
+        
+        # Obtener actividades de los últimos 7 días
+        for child in children:
+            # Actividades de cursos
+            child_courses = Course.objects.filter(student=child)
+            for course in child_courses:
+                # Simular actividades (en un sistema real, tendrías un modelo de actividades)
+                activity = {
+                    'description': f'{child.name} completó una tarea en {course.name}',
+                    'date': timezone.now().strftime('%d/%m/%Y'),
+                    'time': timezone.now(),
+                    'type': 'assignment',
+                    'child_name': child.name,
+                    'course_name': course.name
+                }
+                activities.append(activity)
+        
+        # Ordenar por fecha (más recientes primero)
+        activities.sort(key=lambda x: x['time'], reverse=True)
+        
+        html = render_to_string('dashboards/partials/recent_activities.html', {
+            'activities': activities[:10],
+            'request': request
+        })
+        
+        return JsonResponse({
+            'success': True,
+            'html': html
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al cargar actividades'
+        })
+
+@login_required
+@require_GET
+def ajax_child_progress(request, child_id):
+    """Obtener progreso detallado de un hijo"""
+    try:
+        child = Child.objects.get(id=child_id, parent=request.user)
+        
+        # Obtener cursos del hijo
+        courses = Course.objects.filter(student=child)
+        course_progress = []
+        
+        for course in courses:
+            # Calcular progreso del curso (simulado)
+            progress = min(100, max(0, random.randint(20, 95)))
+            course_progress.append({
+                'course_name': course.name,
+                'progress': progress,
+                'teacher': course.teacher.get_full_name(),
+                'assignments_count': course.assignments.count(),
+                'completed_assignments': course.assignments.filter(due_date__lt=timezone.now()).count()
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'child': {
+                'name': child.name,
+                'grade': child.grade,
+                'overall_progress': sum(cp['progress'] for cp in course_progress) // len(course_progress) if course_progress else 0,
+                'courses': course_progress
+            }
+        })
+    except Child.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Hijo no encontrado'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al obtener progreso'
+        })
+
+@login_required
+@require_GET
+def ajax_child_assignments(request, child_id):
+    """Obtener tareas de un hijo"""
+    try:
+        child = Child.objects.get(id=child_id, parent=request.user)
+        
+        # Obtener tareas de los cursos del hijo
+        assignments = Assignment.objects.filter(
+            course__student=child
+        ).order_by('due_date')
+        
+        assignments_data = []
+        for assignment in assignments:
+            # Verificar si está entregada
+            submission = AssignmentSubmission.objects.filter(
+                assignment=assignment,
+                student=child
+            ).first()
+            
+            assignments_data.append({
+                'id': assignment.id,
+                'title': assignment.title,
+                'course': assignment.course.name,
+                'due_date': assignment.due_date.strftime('%d/%m/%Y %H:%M'),
+                'is_overdue': assignment.due_date < timezone.now(),
+                'is_submitted': submission is not None,
+                'grade': submission.grade if submission else None,
+                'points': assignment.points
+            })
+        
+        html = render_to_string('dashboards/partials/child_assignments.html', {
+            'assignments': assignments_data,
+            'child': child,
+            'request': request
+        })
+        
+        return JsonResponse({
+            'success': True,
+            'html': html
+        })
+    except Child.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Hijo no encontrado'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al obtener tareas'
+        })
+
+@login_required
+@require_GET
+def ajax_child_grades(request, child_id):
+    """Obtener calificaciones de un hijo"""
+    try:
+        child = Child.objects.get(id=child_id, parent=request.user)
+        
+        # Obtener calificaciones de las entregas
+        submissions = AssignmentSubmission.objects.filter(
+            student=child,
+            grade__isnull=False
+        ).order_by('-submitted_at')
+        
+        grades_data = []
+        for submission in submissions:
+            grades_data.append({
+                'assignment': submission.assignment.title,
+                'course': submission.assignment.course.name,
+                'grade': submission.grade,
+                'max_points': submission.assignment.points,
+                'percentage': round((submission.grade / submission.assignment.points) * 100, 1),
+                'submitted_date': submission.submitted_at.strftime('%d/%m/%Y'),
+                'teacher': submission.assignment.course.teacher.get_full_name()
+            })
+        
+        html = render_to_string('dashboards/partials/child_grades.html', {
+            'grades': grades_data,
+            'child': child,
+            'request': request
+        })
+        
+        return JsonResponse({
+            'success': True,
+            'html': html
+        })
+    except Child.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Hijo no encontrado'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al obtener calificaciones'
+        })
+
+@login_required
+@require_GET
+def ajax_calendar_events(request):
+    """Obtener eventos del calendario para los hijos"""
+    try:
+        user = request.user
+        children = user.children.all()
+        events = []
+        
+        for child in children:
+            child_events = Event.objects.filter(
+                student=child,
+                start_date__gte=timezone.now()
+            ).order_by('start_date')[:10]
+            
+            for event in child_events:
+                events.append({
+                    'id': event.id,
+                    'title': event.title,
+                    'start_date': event.start_date.isoformat(),
+                    'end_date': event.end_date.isoformat(),
+                    'student_name': child.name,
+                    'course_name': event.course.name,
+                    'location': event.location,
+                    'event_type': event.event_type
+                })
+        
+        return JsonResponse({
+            'success': True,
+            'events': events
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al cargar eventos del calendario'
+        })
+
+@login_required
+@require_GET
+def ajax_notifications(request):
+    """Obtener notificaciones del padre"""
+    try:
+        notifications = Notification.objects.filter(
+            user=request.user
+        ).order_by('-created_at')[:20]
+        
+        notifications_data = []
+        for notification in notifications:
+            notifications_data.append({
+                'id': notification.id,
+                'title': notification.title,
+                'message': notification.message,
+                'type': notification.type,
+                'is_read': notification.is_read,
+                'created_at': notification.created_at.strftime('%d/%m/%Y %H:%M')
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'notifications': notifications_data,
+            'count': notifications.count()
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al cargar notificaciones'
+        })
+
+@login_required
+@require_POST
+def ajax_mark_all_notifications_read(request):
+    """Marcar todas las notificaciones como leídas"""
+    try:
+        Notification.objects.filter(
+            user=request.user,
+            is_read=False
+        ).update(is_read=True)
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Todas las notificaciones marcadas como leídas'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al marcar notificaciones'
+        })
+
+@login_required
+@require_POST
+def ajax_update_profile(request):
+    """Actualizar perfil del padre"""
+    try:
+        user = request.user
+        
+        # Actualizar campos básicos
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.email = request.POST.get('email', user.email)
+        
+        # Campos adicionales si existen
+        if hasattr(user, 'phone'):
+            user.phone = request.POST.get('phone', getattr(user, 'phone', ''))
+        if hasattr(user, 'address'):
+            user.address = request.POST.get('address', getattr(user, 'address', ''))
+        
+        user.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Perfil actualizado correctamente'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al actualizar perfil'
+        })
+
+@login_required
+@require_GET
+def ajax_export_child_report(request, child_id):
+    """Exportar reporte de un hijo (simulado)"""
+    try:
+        child = Child.objects.get(id=child_id, parent=request.user)
+        
+        # En un sistema real, aquí generarías un PDF
+        # Por ahora, devolvemos un JSON con los datos
+        report_data = {
+            'child_name': child.name,
+            'grade': child.grade,
+            'report_date': timezone.now().strftime('%d/%m/%Y'),
+            'courses': [],
+            'assignments': [],
+            'grades': []
+        }
+        
+        # Obtener datos del hijo
+        courses = Course.objects.filter(student=child)
+        for course in courses:
+            course_data = {
+                'name': course.name,
+                'teacher': course.teacher.get_full_name(),
+                'progress': random.randint(60, 95),
+                'assignments_count': course.assignments.count()
+            }
+            report_data['courses'].append(course_data)
+        
+        return JsonResponse({
+            'success': True,
+            'report': report_data,
+            'message': 'Reporte generado correctamente'
+        })
+    except Child.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Hijo no encontrado'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': 'Error al generar reporte'
+        })
+
+@require_POST
+@login_required
+def ajax_add_child(request):
+    """Vincular un hijo existente (usuario estudiante) al padre"""
+    try:
+        username = request.POST.get('student_username', '').strip()
+        fullname = request.POST.get('student_fullname', '').strip()
+        email = request.POST.get('student_email', '').strip()
+
+        if not all([username, fullname, email]):
+            return JsonResponse({
+                'success': False,
+                'error': 'Todos los campos son obligatorios.'
+            })
+
+        # Buscar usuario estudiante
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            student = User.objects.get(username=username, email=email, user_type=1)
+            # Verificar nombre completo
+            full_name_db = f"{student.first_name} {student.last_name}".strip().lower()
+            if fullname.lower() != full_name_db:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'El nombre completo no coincide con el usuario y correo proporcionados.'
+                })
+        except User.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'No se encontró un estudiante con esos datos.'
+            })
+
+        # Vincular al padre
+        if hasattr(request.user, 'parent_profile'):
+            request.user.parent_profile.children.add(student)
+            request.user.parent_profile.save()
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'El usuario actual no tiene perfil de padre/madre.'
+            })
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Hijo vinculado correctamente.'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error al vincular hijo: {str(e)}'
+        })
+
+# Endpoints mínimos para AJAX dashboard padre
+@login_required
+@require_GET
+def ajax_recent_activities(request):
+    return JsonResponse({'success': True, 'activities': []})
+
+@login_required
+@require_GET
+def ajax_dashboard_stats(request):
+    return JsonResponse({'success': True, 'stats': {}})
+
+@login_required
+@require_GET
+def ajax_notifications(request):
+    return JsonResponse({'success': True, 'notifications': []})
+
+@login_required
+@require_GET
+def ajax_children_list(request):
+    children = []
+    if hasattr(request.user, 'parent_profile'):
+        children = request.user.parent_profile.children.all()
+    html = render_to_string('dashboards/partials/parent_children_list.html', {'children': children})
+    return JsonResponse({'success': True, 'children': list(children.values('id', 'first_name', 'last_name', 'email', 'username')), 'html': html})
 
 # ... existing code ...

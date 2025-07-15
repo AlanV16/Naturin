@@ -1,0 +1,21 @@
+{% for event in events %}
+<div class="event-item">
+    <div class="event-date">
+        <small>{{ event.date|date:"d" }}</small><br>
+        <strong>{{ event.date|date:"M" }}</strong>
+    </div>
+    <div class="event-info">
+        <h6 class="mb-0">{{ event.title }}</h6>
+        <small class="text-muted">{{ event.time|default:"" }} - {{ event.location|default:"" }}</small>
+        {% if event.student %}
+            <br><small class="text-primary">{{ event.student.name }}</small>
+        {% endif %}
+    </div>
+</div>
+{% empty %}
+<div class="text-center py-4">
+    <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-2">No hay eventos próximos</p>
+    <small class="text-muted">Los eventos académicos aparecerán aquí</small>
+</div>
+{% endfor %} 

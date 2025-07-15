@@ -4,7 +4,7 @@ import string
 from django.db.models import Avg, Count, Q, Sum
 from django.utils import timezone
 from .models import User, Achievement, StudentAchievement
-from apps.educational_games.gamification.models import Classroom, ClassroomStudent, Activities, ActivityType, GameType, Levels
+from apps.educational_games.gamification.models import Classroom, ClassroomStudent, Activities, Niveles
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -209,7 +209,7 @@ def get_user_level(user):
         total_points=Sum('achievement__points')
     )['total_points'] or 0
     
-    return Levels.objects.filter(
+    return Niveles.objects.filter(
         points_required__lte=total_points
     ).order_by('-points_required').first()
 
@@ -229,14 +229,10 @@ def get_class_achievements(classroom):
     )['class_points'] or 0
 
 def generate_unique_class_code():
-    """Generar código único para clase"""
-    attempts = 0
+    """Genera un código único para el aula de 6 caracteres alfanuméricos"""
     max_attempts = 100
-    
-    while Classroom.objects.filter(code=code).exists() and attempts < max_attempts:
-        letters = ''.join(random.choices(string.ascii_uppercase, k=3))
-        numbers = ''.join(random.choices(string.digits, k=3))
-        code = letters + numbers
-        attempts += 1
-    
-    return code
+    for _ in range(max_attempts):
+        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        if not Classroom.objects.filter(code=code).exists():
+            return code
+    raise Exception("No se pudo generar un código único tras 100 intentos")

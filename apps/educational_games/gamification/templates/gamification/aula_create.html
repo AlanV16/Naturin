@@ -1,0 +1,38 @@
+{% extends 'gamification/base.html' %}
+{% load static %}
+
+{% block title %}Crear Aula - Gamificación{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/activities.css' %}">
+{% endblock %}
+
+{% block gamification_content %}
+<div class="container activities-container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="mb-4 text-center">Crear Nueva Aula</h3>
+                    <form method="post" autocomplete="off" class="activities-form">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre del Aula *</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required maxlength="100">
+                        </div>
+                        <div class="mb-3">
+                            <label for="codigo" class="form-label">Código (opcional)</label>
+                            <input type="text" class="form-control" id="codigo" name="codigo" maxlength="20">
+                            <div class="form-text">Si no ingresas un código, se generará uno automáticamente.</div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Crear e ir a la clase</button>
+                            <a href="{% url 'gamification:aula_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

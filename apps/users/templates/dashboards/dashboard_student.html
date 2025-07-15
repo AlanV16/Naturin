@@ -18,11 +18,12 @@
 {% block extra_css %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_student.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboards/style_dashboard_common.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboards/dashboard_optimized.css' %}">
     <!-- Preload crítico para mejorar rendimiento -->
     <link rel="preload" href="{% static 'images/mascota/tuki.png' %}" as="image">
     <style>
-        /* Estilos para el modal de perfil */
+        /* Estilos específicos del dashboard de estudiante */
         .profile-modal .modal-content {
             border-radius: 15px;
             border: none;
@@ -56,67 +57,6 @@
             width: 100%;
             height: 100%;
             cursor: pointer;
-        }
-        
-        .credential-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .join-class-form {
-            background: white;
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 1px solid #e9ecef;
-        }
-        
-        .join-class-form .form-control {
-            border-radius: 10px;
-            border: 2px solid #e9ecef;
-            padding: 0.75rem 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .join-class-form .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .btn-student-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 10px;
-            padding: 0.75rem 1.5rem;
-            color: white;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-student-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-            color: white;
-        }
-        
-        .alert-custom {
-            border-radius: 10px;
-            border: none;
-            padding: 1rem 1.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .alert-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-        
-        .alert-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
         }
     </style>
 {% endblock %}
@@ -243,7 +183,7 @@
                                 <div class="col-md-8">
                                     <div class="mb-3">
                                         <label for="courseCode" class="form-label fw-semibold">Código del curso</label>
-                                        <input type="text" class="form-control" id="courseCode" name="course_code" placeholder="Ej: ABC123" required autocomplete="off">
+                                        <input type="text" class="form-control" id="courseCode" name="code" placeholder="Ej: ABC123" required autocomplete="off">
                                         <div class="form-text">Solicita el código a tu profesor</div>
                                     </div>
                                 </div>
@@ -280,7 +220,7 @@
                                     </div>
                                     <div class="mt-2">
                                         <div class="progress-bar-custom">
-                                            <div class="progress-fill" style="width: {{ course.progress|default:0 }}%"></div>
+                                            <div class="progress-fill" style="width: {{ course.progress|default:0 }}%;"></div>
                                         </div>
                                         <small class="text-muted">Progreso: {{ course.progress|default:0|floatformat:1 }}%</small>
                                     </div>
@@ -334,6 +274,34 @@
                                             <small>Ranking</small>
                                         </div>
                                     </div>
+                                </div>
+                                
+                                <!-- Información del Nivel -->
+                                <div class="mt-4 p-3 bg-light rounded">
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="level-info">
+                                                <div class="fw-bold text-primary fs-4">{{ student_level|default:1 }}</div>
+                                                <small class="text-muted">Nivel Actual</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="points-info">
+                                                <div class="fw-bold text-success fs-4">{{ total_points|default:0 }}</div>
+                                                <small class="text-muted">Puntos Totales</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="progress mt-2" style="height: 8px;">
+                                        {% with next_level_points=student_level|add:1|multiply:50 %}
+                                            {% with progress_percentage=total_points|default:0|divide:next_level_points|multiply:100 %}
+                                                <div class="progress-bar bg-primary" style="width: {{ progress_percentage|floatformat:0 }}%"></div>
+                                            {% endwith %}
+                                        {% endwith %}
+                                    </div>
+                                    <small class="text-muted">
+                                        {{ total_points|default:0 }} / {{ student_level|add:1|multiply:50 }} puntos para el siguiente nivel
+                                    </small>
                                 </div>
                             </div>
                         </div>

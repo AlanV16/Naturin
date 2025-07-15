@@ -12,6 +12,7 @@ urlpatterns = [
     path('multimedia/', include('apps.multimedia.urls')),
     path('guias/', include('apps.pedagogical_guides.urls')),
     path('gamification/', include(('apps.educational_games.gamification.urls', 'gamification'), namespace='gamification')),
+    path('activities/', include('apps.educational_games.urls')),
     path('content/', include('apps.content.urls')),
 ]
 

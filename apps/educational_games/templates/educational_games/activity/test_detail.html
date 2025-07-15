@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ test.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header del Test -->
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="flex-grow-1">
+                            <h2 class="mb-2 fw-bold text-success">{{ test.title }}</h2>
+                            <p class="text-muted mb-3">{{ test.description }}</p>
+                            
+                            <!-- Información del Autor -->
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="avatar rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3" 
+                                     style="width: 40px; height: 40px; font-size: 1rem;">
+                                    {{ test.author.username|first|upper }}
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Autor</small>
+                                    <span class="fw-semibold text-success">{{ test.author.get_full_name }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-calendar-event me-1"></i>Inicio
+                                    </small>
+                                    <span class="fw-semibold text-success">{{ test.start_date|date:"d/m/Y H:i" }}</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-calendar-x me-1"></i>Fin
+                                    </small>
+                                    <span class="fw-semibold text-success">{{ test.end_date|date:"d/m/Y H:i" }}</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-clock me-1"></i>Tiempo
+                                    </small>
+                                    <span class="fw-semibold text-success">{{ test.time_limit }} min</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-star me-1"></i>Puntos
+                                    </small>
+                                    <span class="fw-semibold text-success">{{ test.points_per_question }} c/u</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge {% if test.is_active %}bg-success{% else %}bg-secondary{% endif %} rounded-pill fs-6">
+                                {% if test.is_active %}Activo{% else %}Inactivo{% endif %}
+                            </span>
+                            {% if test.is_public %}
+                                <span class="badge bg-info rounded-pill fs-6 ms-2">
+                                    <i class="bi bi-globe me-1"></i>Público
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="d-flex gap-2 mt-4">
+                        {% if user.user_type == 2 %}
+                            <a href="{% url 'educational_games:test_edit' test.id %}" class="btn btn-outline-success">
+                                <i class="bi bi-pencil me-2"></i>Editar Test
+                            </a>
+                            <a href="{% url 'educational_games:test_results' test.id %}" class="btn btn-outline-info">
+                                <i class="bi bi-graph-up me-2"></i>Ver Resultados
+                            </a>
+                        {% else %}
+                            {% if test.is_active %}
+                                <a href="{% url 'educational_games:test_take' test.id %}" class="btn btn-success btn-lg">
+                                    <i class="bi bi-play-circle me-2"></i>Comenzar Test
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preguntas del Test -->
+            <div class="card shadow-sm border-0" style="border-radius: 16px;">
+                <div class="card-header bg-light border-0" style="border-radius: 16px 16px 0 0;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-success">
+                            <i class="bi bi-question-circle me-2"></i>
+                            Preguntas ({{ questions.count }})
+                        </h5>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    {% if questions %}
+                        {% for question in questions %}
+                        <div class="border-start border-4 ps-3 mb-4" style="border-color: var(--primary-green) !important;">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-semibold mb-0 text-success">
+                                    Pregunta {{ forloop.counter }}: {{ question.text }}
+                                </h6>
+                                <span class="badge bg-success rounded-pill">{{ question.points }} pts</span>
+                            </div>
+                            
+                            <small class="text-muted d-block mb-2">
+                                <i class="bi bi-tag me-1"></i>
+                                {{ question.get_question_type_display }}
+                            </small>
+                            
+                            {% if question.question_type == 'multiple_choice' %}
+                                {% with options=question.options.all %}
+                                {% if options %}
+                                <div class="ms-3">
+                                    {% for option in options %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" disabled 
+                                               {% if option.is_correct %}checked{% endif %}>
+                                        <label class="form-check-label {% if option.is_correct %}fw-bold text-success{% endif %}">
+                                            {{ option.text }}
+                                            {% if option.is_correct %}
+                                                <i class="bi bi-check-circle text-success ms-2"></i>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                {% endwith %}
+                            {% elif question.question_type == 'true_false' %}
+                                <div class="ms-3">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" disabled>
+                                        <label class="form-check-label">Verdadero</label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" disabled>
+                                        <label class="form-check-label">Falso</label>
+                                    </div>
+                                </div>
+                            {% elif question.question_type == 'short_text' %}
+                                <div class="ms-3">
+                                    <input type="text" class="form-control" placeholder="Respuesta de texto..." disabled>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-question-circle" style="font-size: 4rem; color: #B0BEC5;"></i>
+                            <h5 class="mt-3 text-muted">No hay preguntas</h5>
+                            <p class="text-muted mb-3">{% if user.user_type == 2 %}Agrega la primera pregunta para este test{% else %}Aún no se han agregado preguntas{% endif %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

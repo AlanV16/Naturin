@@ -1,0 +1,472 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalles de Lectura - {{ reading.title }}{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <style>
+        .reading-header {
+            background: linear-gradient(135deg, #6cf2f2 0%, #4ba289 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .reading-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .progress-item {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-item:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .progress-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-in-progress {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-not-started {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .btn-action {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .reading-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .difficulty-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .difficulty-easy {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .difficulty-medium {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .difficulty-hard {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Header de la Lectura -->
+            <div class="reading-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h2 class="mb-2">
+                            <i class="bi bi-book me-2"></i>
+                            {{ reading.title }}
+                        </h2>
+                        <p class="mb-0 opacity-75">{{ reading.description }}</p>
+                    </div>
+                    <div class="text-end">
+                        <div class="badge bg-light text-dark mb-2">
+                            <i class="bi bi-clock me-1"></i>
+                            {{ reading.estimated_time }} min
+                        </div>
+                        <div class="badge bg-primary">
+                            <i class="bi bi-star me-1"></i>
+                            {{ reading.points }} puntos
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Estadísticas -->
+                <div class="reading-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ total_students }}</div>
+                        <div>Estudiantes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ completed_students }}</div>
+                        <div>Completados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ in_progress_students|default:0 }}</div>
+                        <div>En Progreso</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ completion_rate|default:0|floatformat:1 }}%</div>
+                        <div>Tasa de Completado</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de la Lectura -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Información de la Lectura
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Autor:</strong> {{ reading.author.get_full_name }}</p>
+                            <p><strong>Creada:</strong> {{ reading.created_at|date:"d/m/Y H:i" }}</p>
+                            <p><strong>Dificultad:</strong> 
+                                <span class="difficulty-badge difficulty-{{ reading.difficulty_level }}">
+                                    {% if reading.difficulty_level == 'easy' %}
+                                        <i class="bi bi-emoji-smile me-1"></i>Fácil
+                                    {% elif reading.difficulty_level == 'medium' %}
+                                        <i class="bi bi-emoji-neutral me-1"></i>Medio
+                                    {% else %}
+                                        <i class="bi bi-emoji-frown me-1"></i>Difícil
+                                    {% endif %}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Tiempo estimado:</strong> {{ reading.estimated_time }} minutos</p>
+                            <p><strong>Puntos:</strong> {{ reading.points }}</p>
+                            <p><strong>Estado:</strong> 
+                                {% if reading.is_public %}
+                                    <span class="badge bg-success">Pública</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Privada</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {% if reading.instructions %}
+                    <div class="mt-3">
+                        <h6><i class="bi bi-list-check me-2"></i>Instrucciones</h6>
+                        <div class="alert alert-info">
+                            {{ reading.instructions }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Contenido de la Lectura -->
+            <div class="reading-content">
+                <h4 class="mb-3">
+                    <i class="bi bi-file-text me-2"></i>
+                    Contenido de la Lectura
+                </h4>
+                <div class="reading-text">
+                    {{ reading.content|safe }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Acciones Rápidas -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightning me-2"></i>
+                        Acciones Rápidas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil me-2"></i>Editar Lectura
+                        </a>
+                        <button class="btn btn-outline-success" onclick="assignToClass('{{ reading.id }}')">
+                            <i class="bi bi-plus-circle me-2"></i>Asignar a Clase
+                        </button>
+                        <button class="btn btn-outline-info" onclick="exportProgress()">
+                            <i class="bi bi-download me-2"></i>Exportar Progreso
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="deleteReading()">
+                            <i class="bi bi-trash me-2"></i>Eliminar Lectura
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progreso de Estudiantes -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-graph-up me-2"></i>
+                        Progreso de Estudiantes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if progress %}
+                        {% for student_progress in progress %}
+                        <div class="progress-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <img src="{% if student_progress.student.avatar %}{{ student_progress.student.avatar.url }}{% else %}{% static 'images/avatars/avatar1.png' %}{% endif %}" 
+                                             alt="Avatar" class="rounded-circle me-2" width="40" height="40">
+                                        <div>
+                                            <h6 class="mb-0">{{ student_progress.student.get_full_name }}</h6>
+                                            <small class="text-muted">{{ student_progress.student.username }}</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <span class="progress-status 
+                                            {% if student_progress.completed %}status-completed
+                                            {% elif student_progress.progress_percentage > 0 %}status-in-progress
+                                            {% else %}status-not-started{% endif %}">
+                                            {% if student_progress.completed %}
+                                                <i class="bi bi-check-circle me-1"></i>Completado
+                                            {% elif student_progress.progress_percentage > 0 %}
+                                                <i class="bi bi-clock me-1"></i>En Progreso
+                                            {% else %}
+                                                <i class="bi bi-x-circle me-1"></i>No Iniciado
+                                            {% endif %}
+                                        </span>
+                                        <small class="text-muted ms-2">
+                                            {{ student_progress.progress_percentage|default:0 }}% completado
+                                        </small>
+                                    </div>
+                                    
+                                    {% if student_progress.completed %}
+                                    <div class="mb-2">
+                                        <small class="text-success">
+                                            <i class="bi bi-check-circle me-1"></i>
+                                            Completado {{ student_progress.completed_at|timesince }} atrás
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if student_progress.reading_time %}
+                                    <div class="mb-2">
+                                        <small class="text-info">
+                                            <i class="bi bi-clock me-1"></i>
+                                            Tiempo de lectura: {{ student_progress.reading_time }} minutos
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="text-end">
+                                    {% if student_progress.completed %}
+                                        <span class="badge bg-success">{{ student_progress.score|default:reading.points }}/{{ reading.points }}</span>
+                                    {% else %}
+                                        <button class="btn btn-outline-primary btn-sm btn-action" onclick="viewStudentProgress('{{ student_progress.id }}')">
+                                            <i class="bi bi-eye me-1"></i>Ver
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                            <h6 class="text-muted mt-3">No hay estudiantes asignados</h6>
+                            <p class="text-muted">Asigna esta lectura a una clase para ver el progreso.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Estadísticas Detalladas -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>
+                        Estadísticas Detalladas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Completados</span>
+                            <span>{{ completed_students }}/{{ total_students }}</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {% widthratio completed_students total_students 100 %}%">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>En Progreso</span>
+                            <span>{{ in_progress_students|default:0 }}/{{ total_students }}</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-warning" role="progressbar" 
+                                 style="width: {% widthratio in_progress_students|default:0 total_students 100 %}%">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Tasa de completado: {{ completion_rate|default:0|floatformat:1 }}%
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Asignar a Clase -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-labelledby="assignModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Asignar Lectura a Clase
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="assignForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="readingId" name="reading_id" value="{{ reading.id }}">
+                    
+                    <div class="mb-3">
+                        <label for="classroom" class="form-label">Seleccionar Clase</label>
+                        <select class="form-select" id="classroom" name="classroom" required>
+                            <option value="">Seleccionar una clase...</option>
+                            {% for classroom in classrooms %}
+                            <option value="{{ classroom.id }}">{{ classroom.name }} ({{ classroom.grade }}°{{ classroom.section }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="dueDate" class="form-label">Fecha de Entrega (Opcional)</label>
+                        <input type="datetime-local" class="form-control" id="dueDate" name="due_date">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="submitAssignment()">
+                    <i class="bi bi-check-circle me-2"></i>Asignar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function assignToClass(readingId) {
+        document.getElementById('readingId').value = readingId;
+        const modal = new bootstrap.Modal(document.getElementById('assignModal'));
+        modal.show();
+    }
+    
+    function submitAssignment() {
+        const form = document.getElementById('assignForm');
+        const formData = new FormData(form);
+        
+        fetch('{% url "educational_games:assign_activity" activity_type="reading" activity_id=0 %}'.replace('0', formData.get('reading_id')), {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al asignar: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al asignar la lectura');
+        });
+    }
+    
+    function exportProgress() {
+        // Implementar exportación de progreso
+        alert('Función de exportación en desarrollo');
+    }
+    
+    function deleteReading() {
+        if (confirm('¿Estás seguro de que quieres eliminar esta lectura? Esta acción no se puede deshacer.')) {
+            // Implementar eliminación
+            alert('Función de eliminación en desarrollo');
+        }
+    }
+    
+    function viewStudentProgress(progressId) {
+        // Implementar vista de progreso detallado
+        alert('Función de vista de progreso en desarrollo');
+    }
+</script>
+{% endblock %} 
+ 
+ 
